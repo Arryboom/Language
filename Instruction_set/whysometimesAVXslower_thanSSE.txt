@@ -1,0 +1,2 @@
+https://www.zhihu.com/question/37230675
+https://software.intel.com/en-us/articles/intel-avx-state-transitions-migrating-sse-code-to-avx

@@ -1,0 +1,9 @@
+https://www.sapien.com/blog/2013/02/28/how-to-enable-and-disable-powershell-v2-on-windows-8/
+
+https://answers.microsoft.com/en-us/windows/forum/windows_vista-windows_programs/how-to-uninstall-windows-powershell/06d6f809-cce4-4bf0-92e8-3dc31f5e1b85
+
+https://answers.microsoft.com/en-us/windows/forum/windows_xp-windows_programs/windows-powershell-10-can-i-delete-it/e4f0b2c7-1190-4f09-bd29-ff012e2f2d5c
+
+https://answers.microsoft.com/en-us/windows/forum/windows_7-performance/how-to-uninstall-powershell-windows-7/c7077177-294d-4aed-8307-a1a554a56ae5
+
+https://www.petri.com/how-to-uninstall-windows-powershell
