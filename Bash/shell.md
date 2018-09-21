@@ -242,3 +242,158 @@ $空行
 ```
 cat abc.txt | egrep -v "^$|^#"
 ```
+
+
+#Seems could auto add missing
+automake --add-missing 
+
+
+#Static Compile
+```
+gcc -v -static -O3 -o prog prog.c
+gcc -static
+```
+https://stackoverflow.com/questions/8692128/static-option-for-gcc
+https://stackoverflow.com/questions/36823012/how-to-compile-gcc-with-static-library
+https://stackoverflow.com/questions/20068947/how-to-static-link-linux-software-that-uses-configure
+https://stackoverflow.com/questions/32224494/is-it-possible-to-compile-statically-with-gcc-or-g-on-linux-based-systems
+https://stackoverflow.com/questions/809794/use-both-static-and-dynamically-linked-libraries-in-gcc
+https://stackoverflow.com/questions/4156055/static-linking-only-some-libraries
+```
+gcc -lsome_dynamic_lib code.c some_static_lib.a
+```
+
+>TonyD suggested a method of checking:
+
+```
+ldd a.out 
+not a dynamic executable
+
+ldd b.out
+linux-vdso.so.1 =>  (0x00007fff3d5ac000)
+libstdc++.so.6 => /usr/lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007fce5e34a000)
+libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fce5df85000)
+libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fce5dc7e000)
+/lib64/ld-linux-x86-64.so.2 (0x00007fce5e677000)
+libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fce5da67000)
+```
+when it use ./configure
+```
+./configure LDFLAGS="-static"
+```
+https://stackoverflow.com/questions/20068947/how-to-static-link-linux-software-that-uses-configure
+You could also use ld option -Bdynamic
+```
+gcc <objectfiles> -static -lstatic1 -lstatic2 -Wl,-Bdynamic -ldynamic1 -ldynamic2
+All libraries after it (including system ones linked by gcc automatically) will be linked dynamically.
+```
+>-Wl,-Bdynamic requires GNU ld, so this solution doesn't work on systems where gcc uses the system ld (e.g. Mac OS X).
+issue with glibc libc:
+```
+yum install glibc-static
+```
+https://stackoverflow.com/questions/26304531/compiling-with-static-libgcc-static-libstdc-still-results-in-dynamic-depende
+https://www.systutorials.com/5217/how-to-statically-link-c-and-c-programs-on-linux-with-gcc/
+#compile error
+/usr/bin/ld: cannot find -lc
+libc.a
+https://stackoverflow.com/questions/45938875/linker-error-usr-bin-ld-cannot-find-lc
+https://superuser.com/questions/846768/gcc-unrecognized-command-line-options-v-and-qversion-with-autoconf
+gcc unrecognized command line options '-V' and '-qversion' with autoconf
+
+run strace -f ./foob so we can see what the "No such file or directory" is about. 
+
+
+#find
+```
+find  ./ -name "util*"
+```
+
+#GCC include 
+```
+gcc -I option flag
+gcc -I adds include directory of header files.
+
+Syntax
+$ gcc -Idir [options] [source files] [object files] [-o output file]
+
+Example
+proj/src/myheader.h:
+
+// myheader.h
+#define NUM1 5
+
+ 
+
+myfile.c:
+
+// myfile.c
+#include <stdio.h>
+#include "myheader.h"
+ 
+void main()
+{
+    int num = NUM1;
+    printf("num=%d\n", num);
+}
+ 
+
+Build myfile.c without include directory proj/src :
+
+$ gcc myfile.c -o myfile
+myfile.c:2:22: fatal error: myheader.h: No such file or directory
+compilation terminated.
+$
+
+ 
+
+Build myfile.c with include directory proj/src :
+
+$ gcc -Iproj/src myfile.c -o myfile
+$ ./myfile
+num=5
+$
+```
+
+gcc test.c -I/path/to/myinclude -L/path/to/mylib -lfoo
+
+where
+-I adds a directory to the list of dirs where #include <> files are found
+-L adds a directory to the list of dirs where .a files are found
+-l specifies the name of a library to search ("lib" and ".a" are assumed
+
+
+#16to10 Hex to bin
+```
+[root@localhost procps]# echo $((16#FF))
+255
+[root@localhost procps]# echo $((16#FFAA))
+65450
+[root@localhost procps]# echo $((16#FFAAFF))
+16755455
+```
+```
+echo $((0x2f))
+47
+
+hexNum=2f
+echo $((0x${hexNum}))
+47
+```
+
+#Ascii2Bin ASCII to Binary
+```
+$ echo -n "A" | xxd -b
+0000000: 01000001                                               A
+
+$ echo -n "A" | xxd -b | awk '{print $2}'
+01000001
+$ echo "obase=2; ibase=16; A" | bc
+1010
+
+$ echo "obase=16; ibase=2; 1010" | bc
+A
+```
+```
+bin2ascii() { { tr -cd 01 | fold -w8; echo; } | sed '1i obase=8; ibase=2' | bc | sed 's/^/\\/' | tr -d '\n' | xargs -0 echo -e; }
+``
