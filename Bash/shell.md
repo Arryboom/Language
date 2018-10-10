@@ -380,7 +380,7 @@ hexNum=2f
 echo $((0x${hexNum}))
 47
 ```
-
+https://stackoverflow.com/questions/13280131/hexadecimal-to-decimal-in-shell-script
 #Ascii2Bin ASCII to Binary
 ```
 $ echo -n "A" | xxd -b
