@@ -2,7 +2,7 @@
 ```
 <!DOCTYPE html>
 <html>
-<head>
+<head>f
 <meta charset="utf-8">
 <script src="https://cdn.bootcss.com/angular.js/1.4.6/angular.min.js"></script> 
 </head>
@@ -541,7 +541,8 @@ ng内置了九种过滤
 
 　　参数用来指定所要的格式，y M d h m s E 分别表示 年 月 日 时 分 秒 星期，你可以自由组合它们。也可以使用不同的个数来限制格式化的位数。另外参数也可以使用特定的描述性字符串，例如“shortTime”将会把时间格式为12:05 pm这样的。ng提供了八种描述性的字符串，个人觉得这些有点多余，我完全可以根据自己的意愿组合出想要的格式，不愿意去记这么多单词~
 
-　　3. filter(匹配子串)
+　　3. 
+　　4. (匹配子串)
 
 　　这个名叫filter的filter（不得不说这名字起的，真让人容易混淆——！）用来处理一个数组，然后可以过滤出含有某个子串 的元素，作为一个子数组来返回。可以是字符串数组，也可以是对象数组。如果是对象数组，可以匹配属性的值。它接收一个参数，用来定义子串的匹配规则。下面 举个例子说明一下参数的用法，我用现在特别火的几个孩子定义了一个数组：
 
@@ -1565,4 +1566,605 @@ demo
 </body>
 </html>
 
+```
+
+#ng各种表单验证，限制，设置
+常用的表单验证指令 
+1. 必填项验证
+某个表单输入是否已填写，只要在输入字段元素上添加HTML5标记required即可：
+
+<input type="text" required />
+
+2. 最小长度
+验证表单输入的文本长度是否大于某个最小值，在输入字段上使用指令ng-minleng= "{number}"：
+
+<input type="text" ng-minlength="5" /> 
+3. 最大长度
+验证表单输入的文本长度是否小于或等于某个最大值，在输入字段上使用指令ng-maxlength="{number}"：
+
+<input type="text" ng-maxlength="20" />
+4. 模式匹配
+使用ng-pattern="/PATTERN/"来确保输入能够匹配指定的正则表达式：
+
+<input type="text" ng-pattern="/[a-zA-Z]/" /> 
+5. 电子邮件
+验证输入内容是否是电子邮件，只要像下面这样将input的类型设置为email即可：
+
+<input type="email" name="email" ng-model="user.email" /> 
+6. 数字
+验证输入内容是否是数字，将input的类型设置为number：
+
+<input type="number" name="age" ng-model="user.age" /> 
+7. URL
+ 验证输入内容是否是URL，将input的类型设置为 url：
+
+<input type="url" name="homepage" ng-model="user.facebook_url" />
+
+```
+<div class="col-md-6">
+        <form role="form" class="form-horizontal">
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label for="name">1.必填项</label>
+                </div>
+                <div class="col-md-8">
+                    <input class="form-control" id="name" type="text" required ng-model='user.name' />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label for="minlength">2.最小长度=5</label>
+                </div>
+                <div class="col-md-8">
+                    <input type="text" id="minlength" ng-minlength="5" ng-model="user.minlength" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label for="minlength">3.最大长度=20</label>
+　　　　　　　　　　</div>
+                <div class="col-md-8">
+                    <input type="text" ng-model="user.maxlength" ng-maxlength="20" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label for="minlength">4. 模式匹配</label>
+               </div>
+                <div class="col-md-8">
+                 <input type="text" id="minlength" ng-model="user.pattern" ng-pattern="/^[a-zA-Z]*\d$/" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label for="email">5. 电子邮件</label>
+　　　　　　　　　　</div>
+                <div class="col-md-8">
+                    <input type="email" id="email" name="email" ng-model="user.email" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label for="age">6. 数字</label>
+　　　　　　　　　　</div>
+                <div class="col-md-8">
+                    <input type="number" id="age" name="age" ng-model="user.age" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label for="url"> 7. URL</label>
+　　　　　　　　　　</div>
+                <div class="col-md-8">
+                    <input type="url" id="url" name="homepage" ng-model="user.url" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group text-center">
+                <input class="btn btn-primary btn-lg" type="submit" value="提交" />
+            </div>
+        </form>       
+    </div>
+    <div class="col-md-12">
+        1.必填项:{{user.name}}<br>
+        2.最小长度=5:{{user.minlength}}<br>
+        3.最大长度=20:{{user.maxlength}}<br>
+        4.模式匹配:{{user.pattern}}<br>
+        5.电子邮件:{{user.email}}<br>
+        6.数字:{{user.age}}<br>
+        7.URL:{{user.url}}<br>
+    </div>
+```
+>https://www.cnblogs.com/rohelm/p/4033513.html
+
+
+#载入库的时机
+
+什么时候载入库?
+Note	在我们的实例中，所有 AngularJS 库都在 HTML 文档的头部载入。
+对于 HTML 应用程序，通常建议把所有的脚本都放置在 <body> 元素的最底部。
+
+这会提高网页加载速度，因为 HTML 加载不受制于脚本加载。
+
+在我们的多个 AngularJS 实例中，您将看到 AngularJS 库是在文档的 <head> 区域被加载。
+
+在我们的实例中，AngularJS 在 <head> 元素中被加载，因为对 angular.module 的调用只能在库加载完成后才能进行。
+
+另一个解决方案是在 <body> 元素中加载 AngularJS 库，但是必须放置在您的 AngularJS 脚本前面
+
+#单选框
+```
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+</head>
+<body ng-app="">
+	<p>check one you like </p>
+	<input type="radio" ng-model="that" value="bark">bark</input>
+	<input type="radio" ng-model="that" value="rabbit">rabbit</input>
+<input type="radio" ng-model="that" value="fruit">fruit</input>
+<div ng-switch="that">
+	<div ng-switch-when="bark">
+	<h1> take it </h1></div>
+	<div ng-switch-when="rabbit">
+<h1>how can you eat rabbit it's so cute.</h1>
+</div>
+<div ng-switch-when="fruit">
+<h1>vitamin C is great</h1>
+</div>
+</div>
+
+</body>
+</html>
+```
+#下拉框
+```
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+</head>
+<body ng-app="">
+
+	<form> <select ng-model="name">
+		<option value=""></option>
+		<option value="dice">DICE</option>
+		<option value="ea">EA</option>
+		<option value="ubi">UBI</option>
+		</select>
+	</form>
+	<div ng-switch="name">
+		<div ng-switch-when="dice">
+			<h1>dice is a good place</h1>
+		</div>
+<div ng-switch-when="ea">
+	<h1>ea game is not a good price</h1>
+		</div>
+		<div ng-switch-when="ubi">
+			<h1>ubi has potato servers</h1>
+		</div>
+	</div>
+
+<p>ng-switch 指令根据下拉菜单的选择结果显示或隐藏 HTML 区域。</p>
+
+</body>
+</html>
+```
+
+#表单验证
+```
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+</head>
+<body>
+
+<h2>验证实例</h2>
+<form ng-app="a" ng-controller="b" novalidate name="tankform">
+	<p>User:</p><input ng-model="user" name="user" type="text" required></input>
+	<span ng-show="tankform.user.$dirty && tankform.user.$invalid && !tankform.user.$error.required"><span>Not valid</span></span>
+	<span ng-show="tankform.user.$error.required" >No value</span>
+	<p>Email:</p><input ng-model="email" name="email" type="email" required></input>
+	<span ng-show="tankform.email.$dirty && tankform.email.$invalid &&!tankform.email.$error.required"><span style="color:red">Email not valid.</span></span>
+	<span ng-show="tankform.email.$error.required">You didn't input the email</span>
+	<input type="submit" ng-disabled="!tankform.email.$dirty || tankform.email.$invalid || tankform.user.$invalid">
+	</input>
+	</form>
+	<script>
+		a=angular.module("a",[]);
+		a.controller("b",function($scope){$scope.user="smith";});
+	</script>
+	
+</body>
+</html>
+
+```
+>对邮件地址格式的识别是通过input标签内的type="email"来实现的。
+
+#Angular API
+```
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://cdn.staticfile.org/angular.js/1.7.0/angular.min.js"></script>
+</head>
+<body>
+<div ng-app="a" ng-controller="b">
+	<p>{{x1}}</p>
+	<p>{{x2}}</p>
+	<p>{{x3}}</p>
+	<p>isstring?--{{z1}}</p>
+	<P>isnumber?--{{z2}}</p>
+	</div>
+	<script>
+		a=angular.module("a",[]);
+		a.controller("b",function($scope){$scope.x1="AwvS";$scope.x2=angular.$$lowercase($scope.x1);$scope.x3=angular.$$uppercase($scope.x1);$scope.z1=angular.isString($scope.x1);$scope.z2=angular.isNumber($scope.x1);});
+	</script>
+
+</body>
+</html>
+```
+
+#Angular判断数据类型
+angular.isArray
+
+判断括号内的值是否为数组。
+
+格式：angular.isArray(value);
+
+value: 被判断是否为数组的值。
+
+---------------------------------------------------------------
+
+angular.isDate
+
+判断括号内的值是否是一个时间。
+
+格式：angular.isDate(value);
+
+value：被判断是否为时间的值。
+
+---------------------------------------------------------------
+
+angular.isDefined
+
+判断括号内的值是否存在。
+
+格式：angular.isDefined(value);
+
+value:被判断是否存在的值。
+
+---------------------------------------------------------------
+
+angular.isFunction
+
+判断括号内的值是否是一个函数。
+
+格式：angular.isFunction(value);
+
+value：被判断是否是函数在值。
+
+---------------------------------------------------------------
+
+angular.isElement
+
+判断括号内的值是否是一个Dom元素（或者包装的jQuery元素）
+
+格式：angular.isElement(value);
+
+value:被判断是否是Dom元素/jQuery元素在值。
+
+---------------------------------------------------------------
+
+angular.isNumber
+
+判断括号内的值是否是数字。
+
+格式：angular.isNumber(value);
+
+value:被判断是否是数字的值。
+
+---------------------------------------------------------------
+
+angular.isObject
+
+判断括号内的值是否是一个对象。和Javascript的typeof不相同，它不把null视为对象。需要注意的是：数组也是对象。
+
+格式：angular.isObject(value);
+
+value:被判断是否是对象的值。
+
+---------------------------------------------------------------
+
+angular.isString
+
+判断括号内的值是否是字符串。
+
+格式：angular.isString(value);
+
+value:被判断是否是字符串的值。
+
+---------------------------------------------------------------
+
+angular.isUndefined
+
+判断括号内的值是否是undefined。
+
+格式：angular.isUndefined(value);
+
+value:被判断是否是undefined的值。
+
+#Angular取长度时报length undefined
+>https://stackoverflow.com/questions/32909441/angularjs-ui-calendar-typeerror-cannot-read-property-length-of-undefined
+
+需要在使用变量的length之前定义
+#安哥拉表格
+>下列表格未按照设想禁用提交按钮，原因为{name:"jack",sex:"man",password:1,id:1}中password被javascript当作int处理，无法获取到password的length导致判断长度比较为undefined导致失败。
+```
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="//apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+</head>
+<body ng-app="a" ng-controller="b">
+<!--<div class="IdontKnowWhyIjustWannaAddThis">-->
+	<div class="container">
+	<h4>users</h4>
+	<table class="table table-striped">
+		<thead>
+		<tr>
+			<td>name</td>
+			<td>sex</td>
+			<td>edit</td>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="x in users track by $index">
+				<td>{{x.name}}</td>
+				<td>{{x.sex}}</td>
+				<td><button class="btn" ng-click="edituser(x.id)"><span class="glyphicon glyphicon-pencil"></span>edit</button><td>
+			</tr>
+		</tbody>
+	</table>
+	<hr>
+	<h4 ng-show="editstatus">编辑用户</h4>
+	<h4 ng-show="!editstatus">创建新用户</h4>
+	<form class="form-horizontal">
+		<div class="form-group">
+		<label class="col-sm-2 control-label">name:</label>
+		<input ng-disabled="editstatus" type="text" ng-model="name"></input>
+			</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">sex:</label>
+		<input type="text" ng-model="sex"></input>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">password:</label>
+		<input type="text" ng-model="password"></input>
+	</div>
+	</form>
+	<hr>
+	<button ng-disabled="error" ng-click="submit()"><span class="glyphicon glyphicon-save"></span>Submit</button>
+	<div>
+		<script>
+		a=angular.module("a",[]);
+			a.controller("b",function($scope){
+				$scope.name='';
+				$scope.password='';
+				$scope.sex='';
+				$scope.users=[{name:"jack",sex:"man",password:1,id:1},{name:"jacks",sex:"man",password:1,id:2},{name:"jacak",sex:"woman",password:1,id:3}];
+				$scope.edituser=function(id){$scope.editstatus=true;$scope.ondd=true;$scope.name=$scope.users[id-1].name;$scope.sex=$scope.users[id-1].sex;$scope.password=$scope.users[id-1].password;};
+				$scope.submit=function(){alert("Success(->pretend)")};
+				$scope.check=function(){console.log("check begin");console.log(!!$scope.name.length &&
+    !!$scope.sex.length &&
+    !!$scope.password.length);console.log("fuck:"+$scope.sex.length);if($scope.editstatus && ($scope.name.length &&
+    $scope.sex.length &&
+    $scope.password.length)) {
+    $scope.error = false;console.log("1");
+  }else{$scope.error=true;console.log("2");};if(!$scope.sex.length||!$scope.name.length||!$scope.password.length){$scope.error=true;console.log("3");}else{$scope.error=false;console.log("5");};};
+				$scope.$watch("name",function(){$scope.check()});
+				$scope.$watch("sex",function(){$scope.check()});
+				$scope.$watch("password",function(){$scope.check()});
+											 });
+		</script>
+</body>
+</html>
+```
+
+**正常版**
+```
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="//apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+</head>
+<body ng-app="a" ng-controller="b">
+<!--<div class="IdontKnowWhyIjustWannaAddThis">-->
+	<div class="container">
+	<h4>users</h4>
+	<table class="table table-striped">
+		<thead>
+		<tr>
+			<td>name</td>
+			<td>sex</td>
+			<td>edit</td>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="x in users track by $index">
+				<td>{{x.name}}</td>
+				<td>{{x.sex}}</td>
+				<td><button class="btn" ng-click="edituser(x.id)"><span class="glyphicon glyphicon-pencil"></span>edit</button><td>
+			</tr>
+		</tbody>
+	</table>
+	<hr>
+	<h4 ng-show="editstatus">编辑用户</h4>
+	<h4 ng-show="!editstatus">创建新用户</h4>
+	<form class="form-horizontal">
+		<div class="form-group">
+		<label class="col-sm-2 control-label">name:</label>
+		<input ng-disabled="editstatus" type="text" ng-model="name"></input>
+			</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">sex:</label>
+		<input type="text" ng-model="sex"></input>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-2 control-label">password:</label>
+		<input type="text" ng-model="password"></input>
+	</div>
+	</form>
+	<hr>
+	<button ng-disabled="error" ng-click="submit()"><span class="glyphicon glyphicon-save"></span>Submit</button>
+	<div>
+		<script>
+		a=angular.module("a",[]);
+			a.controller("b",function($scope){
+				$scope.name='';
+				$scope.password='';
+				$scope.sex='';
+				$scope.users=[{name:"jack",sex:"man",password:"1",id:1},{name:"jacks",sex:"man",password:"1",id:2},{name:"jacak",sex:"woman",password:"1",id:3}];
+				$scope.edituser=function(id){$scope.editstatus=true;$scope.ondd=true;$scope.name=$scope.users[id-1].name;$scope.sex=$scope.users[id-1].sex;$scope.password=$scope.users[id-1].password;};
+				$scope.submit=function(){alert("Success(->pretend)")};
+				$scope.check=function(){console.log("check begin");console.log($scope.editstatus);console.log($scope.name.length+"-"+
+    $scope.sex.length+"-"+
+    $scope.password.length);console.log("fuck:"+$scope.sex.length);if($scope.editstatus && ($scope.name.length &&
+    $scope.sex.length &&
+    $scope.password.length)) {
+    $scope.error = false;console.log("1");
+  }else{$scope.error=true;console.log("2");};if(!$scope.sex.length||!$scope.name.length||!$scope.password.length){$scope.error=true;console.log("3");}else{$scope.error=false;console.log("5");};};
+				$scope.$watch("name",function(){$scope.check()});
+				$scope.$watch("sex",function(){$scope.check()});
+				$scope.$watch("password",function(){$scope.check()});
+											 });
+		</script>
+</body>
+</html>
+
+```
+
+#Bootstrap
+Bootstrap 类解析
+元素	Bootstrap 类	定义
+<div>	container	内容容器
+<table>	table	表格
+<table>	table-striped	带条纹背景的表格
+<button>	btn	按钮
+<button>	btn-success	成功按钮
+<span>	glyphicon	字形图标
+<span>	glyphicon-pencil	铅笔图标
+<span>	glyphicon-user	用户图标
+<span>	glyphicon-save	保存图标
+<form>	form-horizontal	水平表格
+<div>	form-group	表单组
+<label>	control-label	控制器标签
+<label>	col-sm-2	跨越 2 列
+<div>	col-sm-10	跨越 10 列
+
+
+
+#ng-include
+
+html内包含html
+
+
+```
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+	<body>
+		<div ng-app="">
+			<div ng-include="'runoob.htm'"></div></div>
+		</body>
+</html>
+```
+ng-include 指令除了可以包含 HTML 文件外，还可以包含 AngularJS 代码,其中的Angularjs代码也会正常执行:
+如以下例子:
+1.html
+```
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+<body>
+
+<div ng-app="myApp" ng-controller="sitesCtrl"> 
+  <div ng-include="'sites.htm'"></div>
+</div>
+ 
+<script>
+var app = angular.module('myApp', []);
+app.controller('sitesCtrl', function($scope, $http) {
+    $http.get("sites.php").then(function (response) {
+        $scope.names = response.data.records;
+    });
+});
+</script>
+
+<p>AngularJS 代码包含在 "sites.htm" 文件中。</p>
+
+</body>
+</html>
+```
+2.php
+```
+{"records":[{"Name":"\u83dc\u9e1f\u6559\u7a0b","Url":"www.runoob.com"},{"Name":"\u83dc\u9e1f\u5de5\u5177","Url":"c.runoob.com"},{"Name":"Google \u641c\u7d22","Url":"www.google.com"},{"Name":"\u6dd8\u5b9d","Url":"www.taobao.com"},{"Name":"\u5fae\u535a","Url":"www.weibo.com"}]}
+```
+3.htm
+```
+<table>
+<tr ng-repeat="x in names">
+<td>{{ x.Name }}</td>
+<td>{{ x.Url }}</td>
+</tr>
+</table>
+```
+
+**跨域包含**
+
+默认情况下， ng-include 指令不允许包含其他域名的文件。
+
+如果你需要包含其他域名的文件，你需要设置域名访问白名单：
+```
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+<body ng-app="myApp">
+ 
+<div ng-include="'http://c.runoob.com/runoobtest/angular_include.php'"></div>
+ 
+<script>
+var app = angular.module('myApp', [])
+app.config(function($sceDelegateProvider) {
+    $sceDelegateProvider.resourceUrlWhitelist([
+        'http://c.runoob.com/runoobtest/**'
+    ]);
+});
+</script>
+<p>你需要设置服务端允许跨域访问，设置方法可参考 <a target="_blank" href="/w3cnote/php-ajax-cross-border.html">PHP Ajax 跨域问题最佳解决方案</a>。
+</body>
+</html>
+```
+>此外，要保证访问的目标资源也允许跨域访问
+
+php示例：
+```
+<?php
+// 允许所有域名可以访问
+header('Access-Control-Allow-Origin:*');
+ 
+echo '<b style="color:red">我是跨域的内容</b>';
+?>
 ```

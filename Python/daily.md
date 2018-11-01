@@ -70,3 +70,43 @@ print("转换为二进制为：", bin(dec))
 print("转换为八进制为：", oct(dec))
 print("转换为十六进制为：", hex(dec))
 ```
+
+#try输出完整调试信息
+```
+#!/usr/bin/python
+import sys
+import traceback
+import test1 
+ 
+a=10
+b=0
+ 
+try:
+    print test1.division(a,b)
+except:
+    print 'invoking division failed.'
+    traceback.print_exc()
+    sys.exit(1)
+```
+**样例输出：**
+```
+$python test2.py
+execution python-2.5.1/python (enodeb/linux)
+b eq 0
+invoking division failed.
+Traceback (most recent call last):
+  File "test2.py", line 10, in <module>
+    test1.division(a,b)
+  File "/home/fesu/test1.py", line 6, in division
+    sys.exit(1)
+SystemExit: 1
+```
+**Print exception line**
+```
+try:
+    code;
+except Exception as e:
+    exc_type, exc_obj, exc_tb = sys.exc_info();
+    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+    print(exc_type, fname, exc_tb.tb_lineno)
+```
