@@ -701,3 +701,8 @@ int _tmain(int argc, _TCHAR* argv[])
 }
 
 ```
+
+#配置环境参考
+>https://blog.csdn.net/charlessimonyi/article/details/50904956
+>https://blog.csdn.net/blog_index/article/details/18084463
+>https://blog.csdn.net/laowu_csdn/article/details/50672869

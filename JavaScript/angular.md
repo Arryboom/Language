@@ -2168,3 +2168,389 @@ header('Access-Control-Allow-Origin:*');
 echo '<b style="color:red">我是跨域的内容</b>';
 ?>
 ```
+
+
+
+#Angular实现表格增删改查
+
+>https://www.jb51.net/article/117829.htm
+
+```
+<!DOCTYPE html>
+<html>
+<head lang="en">
+ <meta charset="UTF-8">
+ <title>实现表格的增删改查</title>
+ 
+ <meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+ <meta http-equiv="description" content="this is my page">
+ <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+ <link rel="stylesheet" href="//apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap.min.css" rel="external nofollow" >
+ <link rel="stylesheet" href="css/font-awesome.css" rel="external nofollow" type="text/css"></link>
+ <link rel="stylesheet" href="css/ui.css" rel="external nofollow" type="text/css"></link>
+ <link rel="stylesheet" href="css/form.css" rel="external nofollow" type="text/css"></link>
+ 
+ <script type="text/javascript" src="js/jquery-1.11.1.js"></script>
+ <script type="text/javascript" src="js/bootstrap.js"></script>
+ <script src="http://cdn.static.runoob.com/libs/angular.js/1.4.6/angular.min.js"></script>
+ <style>
+  .add{
+   position:relative;
+   top:-40px;
+   left:1000px;
+  }
+ </style>
+ </head>
+ 
+ <body>
+ <div ng-app="myapp" ng-controller="myCtrl">
+  <h2>管理信息：</h2><br>
+  <p>搜索：<input type="text" placeholder="请输入关键字" ng-model="test"></p>
+  <button class="btn btn-primary add" ng-click="add()">添加</button>
+  <table class="table table-bordered" style="text-align: center">
+   <thead>
+    <tr>
+     <td>姓名</td>
+     <td>年龄</td>
+     <td>城市</td>
+     <td>操作</td>
+    </tr>
+   </thead>
+   <tbody>
+    <tr ng-repeat="x in texts | filter:test">
+     <td>{{x.name}}</td>
+     <td>{{x.age}}</td>
+     <td>{{x.city}}</td>
+     <td>
+      <button class="btn btn-warning"" ng-click="update($index)">修改</button> 
+      <button class="btn btn-danger" ng-click="del($index)">删除</button>
+     </td>
+    </tr>
+   </tbody>
+  </table>
+  
+  <!-- 添加信息 -->
+  <div class="modal" id="modal-1">
+
+    <div class="modal-dialog">
+
+     <div class="modal-content">
+
+      <div class="modal-header">
+       <button class="close" data-dismiss="modal">
+        <span class="glyphicon glyphicon-remove"></span>
+       </button>
+       <h3 class="modal-title">添加信息</h3>
+      </div>
+
+      <div class="modal-body">
+       <div>姓名：</div>
+       <input ng-model="newName" type="text">
+       <div>年龄：</div>
+       <input ng-model="newAge" type="text">
+       <div>城市：</div>
+       <input ng-model="newCity" type="text">
+      </div>
+
+      <div class="modal-footer">
+       <button class="btn btn-default" data-dismiss="modal">关闭</button>
+       <button class="btn btn-success" ng-click="save()">保存</button>
+      </div>
+
+     </div>
+
+    </div>
+
+  </div>
+  
+  <!-- 修改信息 -->
+  <div class="modal" id="modal-2">
+
+    <div class="modal-dialog">
+
+     <div class="modal-content">
+
+      <div class="modal-header">
+       <button class="close" data-dismiss="modal">
+        <span class="glyphicon glyphicon-remove"></span>
+       </button>
+       <h3 class="modal-title">修改信息</h3>
+      </div>
+
+      <div class="modal-body">
+       <div>姓名：</div>
+       <input ng-model="prod.name" value="{{prod.name}}" type="text">
+       <div>年龄：</div>
+       <input ng-model="prod.age" value="{{prod.age}}" type="text">
+       <div>城市：</div>
+       <input ng-model="prod.city" value="{{prod.city}}" type="text">
+      </div>
+
+      <div class="modal-footer">
+       <button class="btn btn-default" data-dismiss="modal">关闭</button>
+       <button class="btn btn-success" ng-click="ensure()">确定</button>
+      </div>
+
+     </div>
+
+    </div>
+
+   </div>
+ </div>
+ 
+ <script type="text/javascript">
+  var app = angular.module('myapp',[]);
+  app.controller('myCtrl',function($scope){
+   //定义表格内容
+   $scope.texts = [
+    {name:"张三",age:"23",city:"海南"},
+    {name:"李四",age:"25",city:"香港"},
+    {name:"王五",age:"25",city:"济南"},
+    {name:"刘六",age:"22",city:"济南"},
+    {name:"李七",age:"35",city:"烟台"},
+    {name:"张八",age:"32",city:"聊城"},
+    {name:"吕九",age:"30",city:"盘锦"}
+   ];
+   //定义一个空对象，用于保存和修改数据时临时存储
+   $scope.prod = {};
+   //定义一个单击删除按钮时触发的事件，用于删除选中行
+   $scope.del = function ($index) {
+    if($index>=0){
+     if(confirm("是否删除"+$scope.texts[$index].name) ){
+      $scope.texts.splice($index,1);
+     }
+    }
+   };
+   
+   //定义一个全局变量idx,用于存储选中行的索引，方便执行保存操作。idx取值为0、1、、、、都有用，所以暂取值为-1;
+   var idx = -1;
+   //定义一个点击添加按钮时触发的事件，用于新增数据
+   $scope.add = function(){
+    //显示bootstrap中的模块窗口
+    $('#modal-1').modal('show');
+    
+   };
+   //定义一个点击保存按钮时触发的事件
+   $scope.save = function(){
+    //将添加的值赋给数组
+    $scope.texts.name = $scope.newName;
+    $scope.texts.age = $scope.newAge;
+    $scope.texts.city = $scope.newCity;
+    $scope.texts.push({name:$scope.newName,age:$scope.newAge,city:$scope.newCity});
+    //关闭模块窗口
+    $('#modal-1').modal('hide');
+   };
+   
+   
+   //定义一个点击修改按钮时出发的事件，用于修改数据
+   $scope.update = function($index){
+    //显示bootstrap中的模块窗口
+    $('#modal-2').modal('show');
+
+    //将选中行的数据绑定到临时对象prod中，在下面的模态窗口中展示出来
+    $scope.prod.name = $scope.texts[$index].name;
+    $scope.prod.age = $scope.texts[$index].age;
+    $scope.prod.city = $scope.texts[$index].city;
+    //选中行的索引赋值给全局变量idx
+    idx = $index;
+   };
+
+   //定义一个点击确定按钮时触发的事件,
+   $scope.ensure = function () {
+    //将修改后的值赋给数组
+    $scope.texts[idx].name = $scope.prod.name;
+    $scope.texts[idx].age = $scope.prod.age;
+    $scope.texts[idx].city = $scope.prod.city;
+    //关闭模块窗口
+    $('#modal-2').modal('hide');
+   };
+   
+   
+   
+  });
+ </script>
+ </body>
+</html>
+```
+>https://blog.csdn.net/mayn666/article/details/78754996
+
+```
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title></title><script type="text/javascript" src="js/angular.min.js" ></script><script type="text/javascript" src="js/jquery-3.2.1.min.js" ></script></head><body ng-app="myApp" ng-controller="myCtrl">水果：<input type="text" ng-model="name" /><input type="button" value="添加" ng-click="add()" /><input type="button" value="批量删除" ng-click="plsc()" /><table border="1px" cellspacing="0px" cellpadding="0px" width="200px" height="30px"><tr><td><input type="checkbox" ng-click="qx()"/></td><td>水果名称</td><td>操作</td></tr><tr ng-repeat="g in goods"><td><input type="checkbox" name="ck" ng-click="ck($index)"</td><td>{{g.name}}</td><td><input type="button" ng-click="dele($index)" value="删除"/></td></tr></table><script type="text/javascript">
+var mb = angular.module("myApp",[]);//创建模板mb.controller("myCtrl",function($scope){//创建控制//定义数组$scope.goods=[];//添加的方法$scope.add = function(){//创建对象var go = {"flag":false,"name":$scope.name}//放进数组$scope.goods.push(go);}//删除一行$scope.dele =function($index){$scope.goods.splice($index,1);}//改变每行chekbox的状态$scope.ck = function($index){$scope.goods[$index].flag=!$scope.goods[$index].flag}//批量删除$scope.plsc = function(){//反着遍历for (var i = $scope.goods.length-1;i>=0;i--) {if ($scope.goods[i].flag) {$scope.goods.splice(i,1);}}}//全选var qq = true;$scope.qx = function(){//获取属性var ck = $("input[name=ck]")for (var i=0;i<ck.length;i++) {ck[i].checked=qq;//给每个数组中的ck赋值$scope.goods[i].flag=qq;}qq=!qq;}});</script></body>
+</html>
+
+---------------------
+```
+
+#Angular 的表单属性 $valid, $invalid, $pristine, $dirty
+属性类 
+$valid     ng-valid    Boolean 告诉我们这一项当前基于你设定的规则是否验证通过
+
+$invalid   ng-invalid  Boolean 告诉我们这一项当前基于你设定的规则是否验证未通过
+
+$pristine  ng-pristine     Boolean 如果表单或者输入框没有使用则为True
+
+$dirty     ng-dirty    Boolean 如果表单或者输入框有使用到则为True
+
+# scope中的Dirty Checking(脏数据检查)
+scope功能概述
+
+scope是AngularJS中的核心概念之一。它的设计思想和实现方式也是希望深入了解和学习AngularJS的开发人员必须熟知的。
+
+它的功能主要有以下几点： 
+1. 通过数据共享连接Controller和View 
+2. 事件的监听和响应 
+3. 脏数据检查和数据绑定
+
+前两点并没有什么新奇的地方，关键的地方在于第三点。这是AngularJS这一框架和好多其它框架的不同之处，也是AngularJS的一大卖点。
+
+本文也着重描述这一部分。
+
+所谓脏数据检查(Dirty Checking)，实际上是一种概念而不是指具体的某种技术。根据应用的场景，不同的技术都会选择实现这一概念，比如Java中的ORM框架Hibernate也实现了脏数据检查。
+
+在AngularJS中，脏数据检查在scope这一对象中通过$digest方法实现。但是一般认为$digest方法过于底层，更加推荐使用$apply方法。该方法算是对$digest方法的一层包装吧。
+
+第一次接触这两个方法的同学可以参考之前我翻译过的一篇文章来建立基本概念： 
+理解Angular中的$apply()以及$digest()
+
+然而，如果仔细阅读AngularJS的源码就能够发现还有很多值得注意和学习的地方，且听我一一道来。
+
+首先，我们需要明白这个$digest方法到底是用来干什么的，为什么需要有这个方法。
+
+使用jQuery这种库开发过Web应用的同学们都知道，每次在获取了所需要的数据之后，需要写不少代码去把DOM折腾一番，让前端的View能够反映出最新的数据。这个过程不仅繁琐易出错而且写多了也很无聊。
+
+在桌面应用开发中，这种数据同步的问题也没少出现，于是就顺理成章的出现了数据绑定。比如.NET框架的WinForm以及最新的WPF，都支持这一技术。
+
+所谓数据绑定，实际上就是为前端部分的占位符和后台的对应数据建立一种关联关系。这个关联关系可以是双向的，也可以是单向的。
+
+单向的数据绑定就是后台数据的动态更新能够实时自动地同步到前端。而双向的数据绑定则是在单向数据绑定的基础之上，实现了前端数据的动态更新也能自动实时地同步到后台。
+
+注意以上提到的后台，指的就是容纳该数据变量的地方。应用于AngularJS这个场景，也就对应着scope。
+
+那么这种能够节省前端开发人员大量时间的神奇技术，是如何实现呢？
+
+首先，很明显的一点是需要有一种办法能够在一方数据发生变化的时候，通知另一方：嗨，我这里的数据更新了，请你也更新一下吧。看到这个需求，很多同学肯定能够不假思索地回答：使用事件不就好了！ 
+但是！这样以来，不又走到了jQuery那一套bind/on的老路子上了嘛。最后还是需要开发人员一个个的注册事件，写响应事件的回调函数。什么都没有改变！
+
+所以，AngularJS为了不走寻常路，设计一套截然不同的方案来解决了数据绑定的问题。这种方案不需要开发人员写任何事件相关的注册代码和响应代码。这就导致了Digest Cycle的诞生，也就是$digest方法。
+
+目前看来，$digest方法需要完成两件事情才能实现数据绑定： 
+1. 确定此次检查和上一次检查的这段时间内，哪些数据发生了变化 
+2. 对于改变了的数据，设法通知到另一端(如果是后台变化了，那么就需要通知到前端)；没改变的数据则不需要处理
+
+可是光看看第一条就觉得挺难的，又不让利用事件系统，如何知道哪些数据发生了变化…… 那就让AngularJS帮你完成事件的注册和监听吧！在AngularJS版的Hello World中不是有这样的代码嘛：
+
+```
+
+// JavaScript Code
+$scope.hello = 'Hello World';12
+
+
+
+<!-- HTML Code -->
+{{ hello }}12
+```
+利用再HTML中写下{{ hello }}这种表达式，AngularJS就能够帮你自动注册并监听hello这个变量的改变。那么它是如何完成注册工作的呢？实际上，AngularJS会首先将你在{{ }}中声明的表达式编译成函数并调用$watch方法。这里出现了一个新的概念$watch方法，这个方法很接近事件的注册和监听：
+
+
+```
+$scope.$watch(
+    function(scope) { return scope.someValue; },
+    function(newValue, oldValue, scope) { // listener code defined here }
+);1234
+```
+$watch方法的第一个参数是一个函数，它通常被称为watch函数，它的返回值声明需要监听的变量；第二个参数是listener，在变量发生改变的时候会被调用。这样看来它和传统的事件注册和监听并没有什么本质上的差别，差别仅在于AngularJS能够帮你自动注册绝大多数的change事件并监听它们，只要你按照AngularJS要求的语法来写HTML中的表达式代码，即{{ }}。$watch方法为当前scope注册了一个watcher，这个watcher会被保存到一个scope内部维护的数组中。
+
+那么现在既然已经注册了需要监听的变量并赋予了listener函数，什么时候才会触发listener函数呢？是时候让$digest方法登台亮相了，在$digest函数中，会逐个检查$watch方法中注册的watch函数，如果该函数返回的值和上一次检查中返回的值不一样的话，就会触发对应的listener函数。拿{{ }}表达式作为例子，该表达式编译得到的listener的行为就是将后台的最新变量给同步到前端。这么一来，就完成了一个简单的数据绑定。
+
+好，现在明白了$digest方法用来触发watchers中的listener函数。那么什么时候会触发$digest方法呢？如果没有地方触发$digest方法，那么也没有办法完成整个数据绑定的流程。
+
+答案就是$apply方法。这个方法能够触发$digest方法。$digest方法的执行就标志着一轮Digest Cycle的开始。
+
+
+
+>https://blog.csdn.net/dm_vincent/article/details/50344395?utm_source=copy 
+
+
+
+#Angular动画
+```
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+div {
+  transition: all linear 0.5s;
+  background-color: lightblue;
+  height: 100px;
+  width: 100%;
+  position: relative;
+  top: 0;
+  left: 0;
+}
+
+.ng-hide {
+  height: 0;
+  width: 0;
+  background-color: transparent;
+  top:-200px;
+  left: 200px;
+}
+
+</style>
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular-animate.min.js"></script>
+</head>
+<body ng-app="ngAnimate">
+
+<h1>隐藏 DIV: <input type="checkbox" ng-model="myCheck"></h1>
+
+<div ng-hide="myCheck"></div>
+
+</body>
+</html>
+```
+已经分配了app时，可以直接在app初始化时集成
+```
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+div {
+  transition: all linear 0.5s;
+  background-color: lightblue;
+  height: 100px;
+  width: 100%;
+  position: relative;
+  top: 0;
+  left: 0;
+}
+
+.ng-hide {
+  height: 0;
+  width: 0;
+  background-color: transparent;
+  top:-200px;
+  left: 200px;
+}
+
+</style>
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular-animate.min.js"></script>
+</head>
+<body ng-app="myApp">
+
+<h1>隐藏 DIV: <input type="checkbox" ng-model="myCheck"></h1>
+
+<div ng-hide="myCheck"></div>
+
+<script>
+var app = angular.module('myApp', ['ngAnimate']);
+</script>
+
+</body>
+</html>
+```

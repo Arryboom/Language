@@ -210,3 +210,11 @@ VC++ 对于动态链接库和静态链接库的处理是有差异的，见 Visua
 
 
 另外，使用动态链接库的程序允许 dll 中包含与该程序中相同名称的全局变量；而静态链接的则不允许。
+
+
+
+#总在最前窗口，比TOPMOST还要TOPMOST的窗口（如管理器）
+>https://bbs.csdn.net/topics/390857224
+>http://blogs.microsoft.co.il/pavely/2012/05/16/windows-8-topmost-vs-topmost/
+
+简单说就是设置WS_EX_TOPMOST的窗口在不同的程序中有不同的表现，普通程序只能在desktop中设置成top most。只有特殊程序才能设置成整个系统中的top most。这个特殊程序必须是具有accessibility框架，必须安装到特定windows目录，必须拥有microsoft 签名。如何编写这种程序msdn中有详细的说明，当然用c/c++来写是最麻烦的，用c#, vb更容易。

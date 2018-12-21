@@ -615,6 +615,83 @@ Nojquery
 </html>
 
 ```
+
+***获取DOM元素宽高度***
+
+一、获取css的大小
+
+1.第一种通过内联样式
+```
+    var box = document.getElementById('box');
+    var w = box.style.width;
+    var h = box.style.height;```
+2.通过计算元素的大小（但是在ie情况下有一个问题，那就没写widht和height的css就返回auto）;
+```
+    var style = window.getComputedStyle ? window.getComputedStyle(box,null) : null || box.currentStyle;
+    var w = style.width;
+    var h = style.height;```
+3.通过CSSStyleSheet对象中的cssRules(或rules)属性获取元素大小（但是无法获得计算的样式）
+```
+    var sheet = document.styleSheets[0];
+    var rule = (sheet.cssRules || sheet.rules)[0];
+    var w = rule.style.width;
+    var h = rule.style.height;```
+以上三种方法都不行。
+
+二、获取实际的大小
+
+1.clientWidth和clientHeight
+```
+    var w = box.clientWidth;
+    var h = box.clientHeight;```
+说明：padding和scroll变动，才有变化
+
+2.scrollWidth 和box.scrollHeight;
+```
+    var w = box.scrollWidth;
+    var h = box.scrollHeight;```
+说明，1）border变化，不同浏览器有不同变化2）padding变化，有变化3)margin变化，无变化
+
+3.offsetWidth和offsetHeight
+```
+    var w = box.scrollWidth;
+    var h = box.scrollHeight;```
+说明，padding和border有变动，才有变化
+
+三、获取元素周变的距离（原本只能从左边和上边）
+
+1.clientLeft 和 clientTop
+这组属性可以获取元素设置了左边框和上边框的大小。
+```
+    var l = box.clientLeft;
+    var t = box.clientTop;```
+2.获取相对父级元素的位置
+```
+    var l = box.offsetLeft;
+    var t = box.offsetTop;
+    var parent = box.offsetParent;  //获取伏击元素，返回body```
+说明，如果没有position：absolute;如果每个浏览器有不同解释
+
+那么获取多层中的元素到body或html的距离，代码如下：
+```
+    function offsetLeft(element){
+        var left = element.offsetLeft;
+        var parent = element.offsetParent;
+        
+        while(parent!== null){
+            left += parent.offsetLeft;
+            parent = parent.offsetParent;
+        }
+        return left;
+    }
+```
+3.
+
+//这组属性可以获取滚动条被隐藏的区域大小，也可设置定位到该区域。
+```
+box.scrollTop; //获取滚动内容上方的位置
+box.scrollLeft; //获取滚动内容左方的位置
+```
 #HTML DOM elements 集合
 定义和用法
 elements 集合可返回包含表单中所有元素的数组。
@@ -805,6 +882,29 @@ for (var i=0;i<x.length;i++)
 | :selected | $(":selected") | 所有被选取的 input 元素 |
 | :checked | $(":checked") | 所有被选中的 input 元素 |
 
+***jquery选择自定义属性***
+```
+<html>
+<head>
+<script type="text/javascript" src="./jq/jquery.js"></script>
+ 
+<script type="text/javascript">
+ 
+$(function(){
+	$("[cool]").click(function(){
+			alert(1);
+	});
+});
+</script>
+</head>
+ 
+<body>
+<button type="button"  cool="bt">Click me</button>
+ 
+</body>
+</html>
+
+```
 
 #jQuery - 设置内容和属性
 设置内容 - text()、html() 以及 val()
@@ -1461,4 +1561,277 @@ var content = $('#old').html();
 var new = $('<div>'+content+'</div>');
 new.after($('#old'));
 $('#old').remove();
+```
+
+**jQuery replaceWith()替换标签函数用法**
+jquery替换选定元素的内容replaceWith()方法
+
+replaceWith，替换元素
+
+本文章来给各位同学介绍jquery中replaceWith()方法的使用方法，有需要了解的朋友不防进入参考，希望此文章对各位同学有所帮助。
+
+replaceWith() 方法将选择的元素的内容替换为其他内容。
+
+
+我们先在先看一个实例
+```
+<%@ page language="java"contentType="text/html;charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC"-//W3C//DTDHTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type"content="text/html;charset=UTF-8">
+<title>Inserttitle here</title>
+<script type="text/javascript"src="script/jquery-1.7.2.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+       $("button").click(function(){
+           $("p").replaceWith("<b>hello</b>");
+           //将p元素里面的内容替换为"<b>hello</b>"
+       });
+    });
+</script>
+</head>
+ 
+
+<body>
+    <p>1111111111111111111111</p>
+    <button>click</button>
+</body>
+</html>
+```
+
+把所有p标签替换为“##”
+
+```
+<html>
+<head></head>
+<body>
+
+<p>a</p>
+<p>a</p>
+<p>a</p>
+<p>a</p>
+
+</body>
+</html>
+
+```
+--- 
+```
+$('p').replaceWith('##');替换所有p标签为##
+--- 
+```
+```
+<html>
+<head></head>
+<body>
+
+##
+##
+##
+##
+
+</body>
+</html>
+
+```
+
+**替换标签**
+利用这个replaceWith，我们可以把所有p标签替换为b标签，内容不变：
+```
+$('p').each(function(){
+    $(this).replaceWith('<b>'+$(this).html()+'</b>');
+});
+```
+```
+<html>
+<head></head>
+<body>
+
+<b>haha</b>
+<b>haha</b>
+<b>haha</b>
+<b>haha</b>
+
+</body>
+</html>
+```
+
+多语言网站可以利用这个函数轻松完成
+如果你开发的是一个多语言的网站，甚至可以利用这个特性，比如，在你需要翻译的文字上加上i标签，然后遍历翻译替换。
+
+假如页面dom结构如下：
+
+```
+<html>
+<head></head>
+<body>
+
+<p><i>苹果</i></p>
+<p><i>电脑</i></p>
+<p>中文</p>
+<p>Chinese</p>
+
+</body>
+</html>
+
+```
+我们要把页面中的i标签里的文本给翻译，页面中有i标签的分别是苹果、电脑。于是我们实现需要一个翻译库：
+```
+var translate = {
+    '苹果' : 'apple',
+    '电脑' : 'PC'
+};
+```
+然后我可以这样执行翻译替换
+```
+$('i').each(function(){
+    $(this).replaceWith(translate[$(this).html()]);
+});
+```
+执行后效果：
+
+```
+<html>
+<head></head>
+<body>
+
+<p>apple</p>
+<p>PC</p>
+<p>中文</p>
+<p>Chinese</p>
+
+</body>
+</html>
+
+```
+replaceWith和replaceAll
+
+相同点：他们二个都可以进行，查找替换
+
+不同点：写法不同，反正我是没有发现，他们二个有什么功能上的不同。
+```
+<script type="text/javascript">
+ $(document).ready(function(){
+ $("strong").replaceAll($("div")); //用strong标签把div标签都替换掉
+//$("div").replaceWith($("strong")); //和上面的一样，没什么区别，写法不同
+ });
+</script>
+```
+
+#js获取当前页面url
+在WEB开发中，时常会用到javascript来获取当前页面的url网址信息，在这里是我的一些获取url信息的小总结。
+
+下面我们举例一个URL，然后获得它的各个组成部分：http://i.cnblogs.com/EditPosts.aspx?opt=1
+
+1、window.location.href(设置或获取整个 URL 为字符串)
+
+var test = window.location.href;
+alert(test);
+返回：http://i.cnblogs.com/EditPosts.aspx?opt=1
+
+2、window.location.protocol(设置或获取 URL 的协议部分)
+
+var test = window.location.protocol;
+alert(test);
+返回：http:
+
+3、window.location.host(设置或获取 URL 的主机部分)
+
+var test = window.location.host;
+alert(test);
+返回：i.cnblogs.com
+
+4、window.location.port(设置或获取与 URL 关联的端口号码)
+
+var test = window.location.port;
+alert(test);
+返回：空字符(如果采用默认的80端口(update:即使添加了:80)，那么返回值并不是默认的80而是空字符)
+
+5、window.location.pathname(设置或获取与 URL 的路径部分（就是文件地址）)
+var test = window.location.pathname;
+alert(test);
+返回：/EditPosts.aspx
+
+6、window.location.search(设置或获取 href 属性中跟在问号后面的部分)
+
+var test = window.location.search;
+alert(test);
+返回：?opt=1
+
+PS：获得查询（参数）部分，除了给动态语言赋值以外，我们同样可以给静态页面，并使用javascript来获得相信应的参数值。
+
+7、window.location.hash(设置或获取 href 属性中在井号“#”后面的分段)
+
+var test = window.location.hash;
+alert(test);
+返回：空字符(因为url中没有)
+
+js-正则
+```
+function getQueryString(name) {
+  var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+  var r = window.location.search.substr(1).match(reg);
+  if (r != null) {
+    return unescape(r[2]);
+  }
+  return null;
+}
+// 这样调用：
+alert(GetQueryString("参数名1"));
+  
+alert(GetQueryString("参数名2"));
+  
+alert(GetQueryString("参数名3"));
+```
+
+js-split
+```
+function GetRequest() {
+  var url = location.search; //获取url中"?"符后的字串
+  var theRequest = new Object();
+  if (url.indexOf("?") != -1) {
+    var str = url.substr(1);
+    strs = str.split("&");
+    for(var i = 0; i < strs.length; i ++) {
+      theRequest[strs[i].split("=")[0]] = unescape(strs[i].split("=")[1]);
+    }
+  }
+  return theRequest;
+}
+var Request = new Object();
+Request = GetRequest();<br>// var id=Request["id"]; 
+// var 参数1,参数2,参数3,参数N;
+// 参数1 = Request['参数1'];
+// 参数2 = Request['参数2'];
+// 参数3 = Request['参数3'];
+// 参数N = Request['参数N'];
+```
+指定取
+
+比如说一个url：http://i.cnblogs.com/?j=js,我们想得到参数j的值，可以通过以下函数调用。
+```
+function GetQueryString(name) { 
+  var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i"); 
+  var r = window.location.search.substr(1).match(reg); //获取url中"?"符后的字符串并正则匹配
+  var context = ""; 
+  if (r != null) 
+     context = r[2]; 
+  reg = null; 
+  r = null; 
+  return context == null || context == "" || context == "undefined" ? "" : context; 
+}
+alert(GetQueryString("j"));
+```
+单个参数的获取方法
+```
+function GetRequest() {
+  var url = location.search; //获取url中"?"符后的字串
+  if (url.indexOf("?") != -1) {  //判断是否有参数
+   var str = url.substr(1); //从第一个字符开始 因为第0个是?号 获取所有除问号的所有符串
+   strs = str.split("=");  //用等号进行分隔 （因为知道只有一个参数 所以直接用等号进分隔 如果有多个参数 要用&号分隔 再用等号进行分隔）
+   alert(strs[1]);     //直接弹出第一个参数 （如果有多个参数 还要进行循环的）
+  }
+}
 ```
