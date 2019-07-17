@@ -12,7 +12,7 @@ sleep 1m 表示延迟一分钟
 sleep 1h 表示延迟一小时
 sleep 1d 表示延迟一天
 
-#`需要输入到文件的情况
+#需要输入到文件的情况
 使用base64编码后输出
 echo "9tbWFu=" | base64 -d >>/tmp/t.tmp
 
@@ -397,3 +397,14 @@ A
 ```
 bin2ascii() { { tr -cd 01 | fold -w8; echo; } | sed '1i obase=8; ibase=2' | bc | sed 's/^/\\/' | tr -d '\n' | xargs -0 echo -e; }
 ``
+
+
+#找不到某个函数的依赖库
+```
+ yum whatprovides
+```
+ex:
+ yum whatprovides “*/perl(Term::ReadKey)”
+ yum whatprovides “*/perl(Locale::gettext)”
+ yum whatprovides “*/perl(RPC::XML)”
+ ```
