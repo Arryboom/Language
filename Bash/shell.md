@@ -408,3 +408,4 @@ ex:
  yum whatprovides “*/perl(Locale::gettext)”
  yum whatprovides “*/perl(RPC::XML)”
  ```
+>https://gitlab.com/apparmor/apparmor/wikis/Distro_CentOS
