@@ -396,16 +396,121 @@ A
 ```
 ```
 bin2ascii() { { tr -cd 01 | fold -w8; echo; } | sed '1i obase=8; ibase=2' | bc | sed 's/^/\\/' | tr -d '\n' | xargs -0 echo -e; }
-``
+```
 
 
 #找不到某个函数的依赖库
 ```
  yum whatprovides
 ```
+```
 ex:
  yum whatprovides “*/perl(Term::ReadKey)”
  yum whatprovides “*/perl(Locale::gettext)”
  yum whatprovides “*/perl(RPC::XML)”
- ```
+```
+
 >https://gitlab.com/apparmor/apparmor/wikis/Distro_CentOS
+
+
+#iptables限制其他用户进程访问网络
+```
+$ iptables -A OUTPUT -p tcp --dport 992 -d localhost -m owner ! --uid-owner root -j REJECT
+```
+
+This rule tells the kernel to reject packets sent to the local TCP port 992 unless they're sent by one of root's processes.
+
+>https://unix.stackexchange.com/questions/67351/is-it-possible-to-whitelist-a-specific-program-in-iptables
+
+>https://unix.stackexchange.com/questions/304021/how-can-i-implement-a-whitelist-on-a-specific-port-using-iptables
+
+#linux kernel enable apparmor
+
+If AppArmor should be selected as the default security module then set:
+```
+CONFIG_DEFAULT_SECURITY="apparmor"
+CONFIG_SECURITY_APPARMOR_BOOTPARAM_VALUE=1
+```
+
+
+Build the kernel
+
+If AppArmor is not the default security module it can be enabled by passing security=apparmor on the kernel’s command line.
+
+If AppArmor is the default security module it can be disabled by passing apparmor=0, security=XXXX (where XXXX is valid security module), on the kernel’s command line.
+
+For AppArmor to enforce any restrictions beyond standard Linux DAC permissions policy must be loaded into the kernel from user space (see the Documentation and tools links).
+
+>https://www.kernel.org/doc/html/v4.15/admin-guide/LSM/apparmor.htm
+
+
+#Linux关闭ASLR
+
+
+关闭内核地址随机化（KALSR）：
+>内核是通过grup启动的，所以在grup配置文件中，内核启动参数里加上nokaslr 
+
+$ cat /etc/default/grub |grep -v "#" | grep CMDLI
+GRUB_CMDLINE_LINUX_DEFAULT="nokaslr"
+GRUB_CMDLINE_LINUX=""
+$ sudo update-grub
+
+
+#带符号的内核：
+
+$ cat /etc/apt/sources.list.d/ddebs.list
+deb http://ddebs.ubuntu.com/ bionic main
+deb http://ddebs.ubuntu.com/ bionic-updates main
+$ sudo apt install linux-image-4.15.0-20-generic-dbgsym
+$ ls /usr/lib/debug/boot/vmlinux-4.15.0-20-generic
+
+
+#Iptables
+
+Set your default policy. Packets matching none of the below given rules will be dropped by default:
+```
+iptables -P INPUT DROP
+```
+Create a custom chain. We are going to pass packets fulfilling given conditions (for example having source address 10.0.0.1) to this chain:
+```
+iptables -N CUSTOM
+```
+Accept connections that are already up and accept connections on the loopback interface:
+```
+iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+iptables -A INPUT -i lo -j ACCEPT
+```
+Pass new TCP connections from 10.0.0.1 (arriving on interface eth0) to the CUSTOM chain:
+
+``
+iptables -s 10.0.0.1 -i eth0 -p tcp -m conntrack --ctstate NEW -j CUSTOM
+Append rules to the custom chain that which accept specific ports:
+``
+``
+iptables -A CUSTOM -p tcp -m multiport --dports 22,80 -j ACCEPT``
+
+dd a new chain for your policy:
+``
+iptables -N MYCHAIN
+``
+Define a port list in the INPUT chain for the destination port you want to process:
+``
+iptables -A INPUT -p <protocol, either tcp or udp> -m <again, protocol, match the '-p' switch value> --dport <portnum> -j MYCHAIN``
+
+From your description, this is a fairly simple problem in iptables. I would approach it in three steps.
+
+Add a new chain for your policy:
+``
+iptables -N MYCHAIN``
+Define a port list in the INPUT chain for the destination port you want to process:
+``
+iptables -A INPUT -p <protocol, either tcp or udp> -m <again, protocol, match the '-p' switch value> --dport <portnum> -j MYCHAIN``
+What this does is to define the specific ports and then "jumps" to the rules for the named chain (MYCHAIN, in this case).
+
+Now, set up rules in MYCHAIN to allow/deny traffic to the described ports.  
+```  
+iptables -A MYCHAIN -s <source_IP> -j ACCEPT  
+iptables -A MYCHAIN -s <other_source_IP> -j ACCEPT  
+iptables -A MYCHAIN -J DROP  
+```
+In the last rule, you could, of course, use REJECT, instead of DROP. The user manual ( man iptables ) should show you additional parameters you can use to log or limit the traffic you're seeing. There are also several online tutorials available for more advanced rules.
