@@ -238,3 +238,16 @@ VC++ 对于动态链接库和静态链接库的处理是有差异的，见 Visua
 
 
 https://www.php.cn/csharp-article-362055.html
+
+
+
+
+
+
+
+
+
+
+
+
+
