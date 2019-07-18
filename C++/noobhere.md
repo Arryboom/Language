@@ -218,3 +218,23 @@ VC++ 对于动态链接库和静态链接库的处理是有差异的，见 Visua
 >http://blogs.microsoft.co.il/pavely/2012/05/16/windows-8-topmost-vs-topmost/
 
 简单说就是设置WS_EX_TOPMOST的窗口在不同的程序中有不同的表现，普通程序只能在desktop中设置成top most。只有特殊程序才能设置成整个系统中的top most。这个特殊程序必须是具有accessibility框架，必须安装到特定windows目录，必须拥有microsoft 签名。如何编写这种程序msdn中有详细的说明，当然用c/c++来写是最麻烦的，用c#, vb更容易。
+
+
+
+
+
+
+
+
+
+
+
+#VS2017完成静态库的搭建
+创建解决方案——许多人搞不清工程/项目Project和解决方案Solution的区别，在VS中，Project是基本的执行单元，一个Solution可以包含多个Project——我们的静态库就将会包含几个（.lib）Project和一个（.exe）Project用作测试。解决方案选win32 Console Application控制台。
+
+
+
+
+
+
+https://www.php.cn/csharp-article-362055.html
