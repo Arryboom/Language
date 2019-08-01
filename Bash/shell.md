@@ -545,3 +545,64 @@ different with apt-get
 ``cat /proc/version``
 
 
+#ubuntu check software location
+ubuntu下如何查看软件安装目录以及安装版本
+
+apt list | grep 软件名 查看软件准确名称
+
+1.查询版本
+
+1)aptitude show 软件名
+>可以查看软件的依赖包
+
+例如：aptitude show kde-runtime 
+
+
+
+2)dpkg -l软件名
+
+ 
+
+ 例如：dpkg -l gedit 
+
+
+
+2.查询安装路径
+
+1)dpkg -L 软件名
+
+ 
+
+例如：dpkg -L gedit  
+
+
+
+2)whereis 软件名
+
+ 
+
+例如：whereis gedit
+
+
+
+例如:
+
+$whereis vim
+
+ 
+
+vim: /usr/bin/vim.basic /usr/bin/vim /usr/bin/vim.tiny /etc/vim /usr/share/vim /usr/share/man/man1/vim.1.gz
+
+
+dpkg -P来卸载软件,或者 dpkg --purge完全删除,包括配置文件
+
+
+
+
+#check alias
+``type cat``
+
+```
+jjj@jjj-virtual-machine:~/Downloads/zlib-1.2.11$ type ls
+ls is aliased to `ls --color=auto'
+```
