@@ -133,3 +133,8 @@ WARNINGS_AS_ERRORS:BOOL=OFF
 YASM_EXECUTABLE:FILEPATH=/usr/bin/yasm
 
 ```
+
+
+#change something then make again the same err
+maybe your cache didn't removed.
+``rm -f CMakeCache.txt``
