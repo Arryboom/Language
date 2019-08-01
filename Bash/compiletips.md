@@ -138,3 +138,10 @@ YASM_EXECUTABLE:FILEPATH=/usr/bin/yasm
 #change something then make again the same err
 maybe your cache didn't removed.
 ``rm -f CMakeCache.txt``
+
+
+
+
+#accelerate compile speed
+
+make -jN（N表示cpu核心数，加快编译速度）
