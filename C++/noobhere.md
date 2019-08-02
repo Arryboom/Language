@@ -244,6 +244,8 @@ https://www.php.cn/csharp-article-362055.html
 
 
 
+#C byte
+C语言里面没有byte类型，一般用unsigned char来代替。
 
 
 
