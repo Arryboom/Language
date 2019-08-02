@@ -535,6 +535,8 @@ different with apt-get
 - search
 ```/thekeyword```
   - Next search result  ``n`` 
+- keyword highlight
+  - move cursor to keyword,shift+#(maybe only works on vim)
 
 #get system version
 - centos
@@ -596,6 +598,17 @@ vim: /usr/bin/vim.basic /usr/bin/vim /usr/bin/vim.tiny /etc/vim /usr/share/vim /
 
 dpkg -P来卸载软件,或者 dpkg --purge完全删除,包括配置文件
 
+#Centos Check software installed
+
+1. rpm包安装的，可以用rpm -qa看到，如果要查找某软件包是否安装，用 rpm -qa | grep "软件或者包的名字"。
+
+2. yum方法安装的，可以用yum list installed查找，如果是查找指定包，命令后加 | grep "软件名或者包名"； 
+        例如：yum list installed openssl |grep openssl
+                openssl.x86_64                     1:1.0.2k-8.el7                      @anaconda
+
+        如果没有返回值则表示没有安装
+3. 如果是以源码包自己编译安装的，例如.tar.gz或者tar.bz2形式的，这个只能看可执行文件是否存在了， 
+   上面两种方法都看不到这种源码形式安装的包。如果是以root用户安装的，可执行程序通常都在/sbin:/usr/bin目录下
 
 
 
@@ -606,3 +619,9 @@ dpkg -P来卸载软件,或者 dpkg --purge完全删除,包括配置文件
 jjj@jjj-virtual-machine:~/Downloads/zlib-1.2.11$ type ls
 ls is aliased to `ls --color=auto'
 ```
+
+
+#reverse_proxy
+
+``mkfifo backpipe; nc -l 12345 0<backpipe | nc www.google.com 80 1>backpipe``
+``socat STDIO TCP:www.google.com:80``
