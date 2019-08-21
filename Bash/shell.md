@@ -278,6 +278,19 @@ exit
 fi
 ```
 
+>I researched, and this is quite hairy:
+
+>-a is deprecated, thus isn't listed in the manpage for /usr/bin/test anymore, but still in the one for bash. Use -e . For single '[', the bash builtin behaves the same as the test bash builtin, which behaves the same as /usr/bin/[ and /usr/bin/test (the one is a symlink to the other). Note the effect of -a depends on its position: If it's at the start, it means file exists. If it's in the middle of two expressions, it means logical and.
+
+>[ ! -a /path ] && echo exists doesn't work, as the bash manual points out that -a is considered a binary operator there, and so the above isn't parsed as a negate -a .. but as a if '!' and '/path' is true (non-empty). Thus, your script always outputs "-a" (which actually tests for files), and "! -a" which actually is a binary and here.
+
+>For [[, -a isn't used as a binary and anymore (&& is used there), so its unique purpose is to check for a file there (although being deprecated). So, negation actually does what you expect.
+>https://stackoverflow.com/questions/321348/bash-if-a-vs-e-option
+>https://askubuntu.com/questions/598080/bash-if-and-syntax
+>for some double[[]] and space above link.
+>http://tldp.org/LDP/abs/html/comparison-ops.html
+>details ! eq etc above 
+
 #带参数函数
 $1 是第一个参数
 myfunc () {
@@ -752,6 +765,22 @@ echo $m # 输出为hell
 
 3，Bash版本比较低的不行……
 
+```
+#! /bin/bash
+# 注意:脚本第一行一定要注明脚本解释器是bash.不能是sh,或dash
+# 因为sh软连接有可能指向的是dash
+var="Hello,Word"
+# 把变量中的第一个字符换成大写 
+echo ${var^} 
+# 把变量中的所有小写字母，全部替换为大写
+echo ${var^^}   
+# 把变量中的第一个字符换成小写
+echo ${var,}
+# 把变量中的所有大写字母，全部替换为小写
+echo ${var,,}
+```
+
+
 
 #echo换行
 echo -e "text1\ntext2"
@@ -1192,12 +1221,13 @@ example:
 gzip-1.3.12-18.el6.x86_64
 
     新建一个脚本进行测试，脚本如下：
+```
 [root@super ~]# vim hello.sh 
 
 
 #!/bin/bash
 echo hello world .
-
+```
     使用gzexe 进行加密：
 
 [root@super ~]# gzexe hello.sh 
@@ -1364,3 +1394,38 @@ everytime you will got a echo back with random salt added to passwd 'tecmint'.
 by default openssl using random salt.so -salt is redundant.
 - openssl dec
 ``` echo U2FsdGVkX18Zgoc+dfAdpIK58JbcEYFdJBPMINU91DKPeVVrU2k9oXWsgpvpdO/Z | openssl enc -aes-256-cbc -a -d -salt -pass pass:tecmint```
+
+
+
+
+
+
+
+
+#vi
+
+
+- ：u
+撤销
+恢复撤销：Ctrl + r
+- GG
+跳到文件末尾
+- gg
+跳到文件开头
+- :set nu
+设置行号
+- :3
+跳到第三行
+- :s/who/me/
+替换整个文件中的who为me
+``[range]s/s1/s2/ [option]``
+[range] 表示检索范围，省略时表示当前行。下面是一些检索范围的例子。
+1,10表示从第 1 行到 10 行。
+%表示整个文件，同1, $。
+. ,$从当前行到文件尾。
+s 为替换命令。
+s1 要被替换的串，s2 为替换的串。
+option 表示选项：
+/g表示在全局文件中进行替换。
+/c表示在每次替换之前需要用户进行确认。
+省略时仅对每行第一个匹配串进行替换。
