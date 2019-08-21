@@ -517,9 +517,97 @@ ex:
  yum whatprovides “*/perl(Locale::gettext)”
  yum whatprovides “*/perl(RPC::XML)”
 ```
+``# yum whatprovides [file_name]``
+ex:
+```
+# yum whatprovides libstdc++
+Loaded plugins: langpacks, product-id, search-disabled-repos, subscription-manager
+This system is not registered to Red Hat Subscription Management. You can use subscription-manager to register.
+libstdc++-4.8.5-4.el7.x86_64 : GNU Standard C++ Library
+Repo        : @repo
+```
 
+```
+# yum whatprovides *bin/ls
+Loaded plugins: langpacks, product-id, search-disabled-repos, subscription-manager
+This system is not registered to Red Hat Subscription Management. You can use subscription-manager to register.
+coreutils-8.22-15.el7.x86_64 : A set of basic GNU tools commonly used in shell scripts
+Repo        : @repo
+Matched from:
+Filename    : /bin/ls
+Filename    : /usr/bin/ls
+```
+
+Finding file and libraries provided by a particular package
+To find all the files (binaries and library files) provided by a package, use the below command.
+```
+# rpm -ql bash
+/etc/skel/.bash_logout
+/etc/skel/.bash_profile
+/etc/skel/.bashrc
+/usr/bin/alias
+/usr/bin/bash
+/usr/bin/bashbug
+/usr/bin/bashbug-64
+/usr/bin/bg
+```
+
+
+1. Method 1 : using rpm command
+1. Use below rpm commands to find which rpm package provide a particular file.
+```
+# rpm -q --whatprovides [file name]```
+For example, to find which rpm package provides /etc/hosts file, use the command below:
+```
+# rpm -q --whatprovides /etc/hosts
+setup-2.8.14-23.el6.noarch```
+To find the rpm package which provides the library file /usr/lib/gcc/x86_64-redhat-linux/4.4.4/libgomp.so, use the command below.
+```
+# rpm -qf /usr/lib/gcc/x86_64-redhat-linux/4.4.4/libgomp.so
+gcc-4.4.7-18.el6.x86_64```
+Similarly, you can also use the command below command as well.
+```
+# rpm -qf [file name]```
+For example,
+```
+# rpm -qf /etc/hosts
+setup-2.8.14-23.el6.noarch
+```
 >https://gitlab.com/apparmor/apparmor/wikis/Distro_CentOS
+>https://www.thegeekdiary.com/how-to-find-which-rpm-package-provides-a-specific-file-or-library-in-rhel-centos/
 
+
+对应的pip
+```pip search```
+
+ubuntu对应的apt-file 和'dpkg -S filename'
+
+```
+$ apt-file update
+$ apt-file list mysqladmin
+kmysqladmin: /usr/bin/kmysqladmin
+
+$ apt-file search mysqladmin
+autoconf-archive: /usr/share/aclocal/ac_prog_mysqladmin.m4
+autoconf-archive: /usr/share/autoconf-archive/html/ac_prog_mysqladmin.html
+bash-completion: /etc/bash_completion.d/mysqladmin
+kmysqladmin: /usr/bin/kmysqladmin
+
+$ apt-file search mysqladmin
+mysql-admin: /usr/share/mysql-gui/administrator/mysqladmin_health.xml
+mysql-admin: /usr/share/mysql-gui/administrator/mysqladmin_startup_variables_description.dtd
+mysql-admin: /usr/share/mysql-gui/administrator/mysqladmin_startup_variables_description.xml
+mysql-admin: /usr/share/mysql-gui/administrator/mysqladmin_status_variables.xml
+mysql-admin: /usr/share/mysql-gui/administrator/mysqladmin_system_variables.xml
+mysql-client-5.1: /usr/bin/mysqladmin
+mysql-client-5.1: /usr/share/man/man1/mysqladmin.1.gz
+mysql-cluster-client-5.1: /usr/bin/mysqladmin
+mysql-cluster-client-5.1: /usr/share/man/man1/mysqladmin.1.gz
+mysql-testsuite: /usr/lib/mysql-testsuite/r/mysqladmin.result
+mysql-testsuite: /usr/lib/mysql-testsuite/t/mysqladmin.test
+
+
+>https://stackoverflow.com/questions/4471327/ubuntu-equivalent-of-yums-whatprovides-to-find-which-package-provides-a-file
 
 #iptables限制其他用户进程访问网络
 ```
