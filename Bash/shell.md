@@ -266,6 +266,18 @@ int1 -le int2　　　　int1小于等于int2为真
 
 语法虽然简单，但是在SHELL里使用的时候，他的功能变得强大了。
 
+>https://www.cnblogs.com/qianjinyan/p/9013810.html
+
+**example**
+```
+declare -l params
+params=$1
+if [[ -z $params || "$params" = "-h" || "$params" = "-help" || "$params" = "--help" ]];then
+echo -e "This will hide the proc by PID you provided.\nusage:$0 <PID>\nexample:$0 1000"
+exit
+fi
+```
+
 #带参数函数
 $1 是第一个参数
 myfunc () {
@@ -708,3 +720,647 @@ ls is aliased to `ls --color=auto'
 
 ``mkfifo backpipe; nc -l 12345 0<backpipe | nc www.google.com 80 1>backpipe``
 ``socat STDIO TCP:www.google.com:80``
+
+
+#lowercase/uppercase
+
+以前写Bash Shell脚本，大小写转换通常这样做：
+
+str="This is a Bash Shell script."
+
+newstr=`tr '[A-Z]' '[a-z]' <<<"$str"`
+
+今天看bash的man page，发现有更简单的方法
+
+转小写，只需要将变量名字declare -l 后，再给变量赋值，变量的内容即为小写
+转大写，只需要将变量名字declare -u后，再给变量赋值，变量的内容即为大写
+
+例如:
+m="abc"
+echo $m # 输出为abc
+declare -u m
+echo $m # 输出为abc,
+m="cde"
+echo $m # 输出为CDE
+declare -l m="HELL"
+echo $m # 输出为hell
+
+注意： 
+1，declare 不影响变量当前值，而是影响declare之后的赋值
+
+2，通过declare -l/-u进行设置过的变量，可以通过declare +l/+u来取消设置。
+
+3，Bash版本比较低的不行……
+
+
+#echo换行
+echo -e "text1\ntext2"
+-e表示开启转义字符。
+
+
+
+#linux multipe line result to variable
+
+赋值
+两种方式 ：
+
+1、$()方式 
+```
+data=$(ls -l)
+```
+2、单反引号方式
+```
+data=`ls -l`
+
+```
+3、 Read
+```
+date +%s| read tm
+echo $tm
+```
+
+>Read方式centos测试不成功，原因可能为
+>https://blog.csdn.net/Rainnnbow/article/details/47000055
+
+---
+最近在将ksh转成bash运行的时候出现了问题。代码如下：
+
+    echo $1 | sed 's/\..*$/''/' | read FILE_NAME
+
+当使用ksh执行的时候没有问题，FILE_NAME能获取到正确的值。但当使用bash执行时，FILE_NAME值为空。
+
+找了半天也不知道什么原因，最后找到了一种解决方法。代码如下：
+
+    read FILE_NAME <<< ` echo $1 | sed 's/\..*$/''/' `
+
+![https://img-blog.csdn.net/20150722112109453](data:image/png;base64,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)
+上面的代码有两点需要注意：
+
+①使用了 <<< ，这个叫“here string"，中文不知道叫什么，具体用法可以参考：http://www.360doc.com/content/10/0303/18/155970_17452864.shtml
+
+②<<<之后的代码使用了反单引号括了起来，否则执行会报错。
+
+参考：http://bbs.chinaunix.net/thread-1821214-1-1.html
+
+**linux中查看现在使用的shell是ksh还是bash？以及怎样修改？**
+
+**查看系统支持的shell： cat  /etc/shells**
+
+![https://img-blog.csdn.net/20150722112147710](data:image/png;base64,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)
+
+**查看现在使用的shell： **
+
+![https://img-blog.csdn.net/20150722112155434](data:image/png;base64,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)
+
+修改默认shell：
+
+![https://img-blog.csdn.net/20150722112201665](data:image/png;base64,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)
+
+具体解释参考：http://blog.chinaunix.net/uid-20722281-id-160012.html
+
+另外，修改了系统默认shell之后不会立即生效，之后再次登录系统修改的shell才会生效。
+
+---
+
+
+读取
+（1） 如果是echo $data，输出结果为一行，没有换行符:
+
+echo $data
+total 132 drwxrwxr-x 3 faster faster 4096 Mar 31 06:11 client drwxrwxr-x 2 faster faster 4096 Mar 31 06:11 common drwxrwxr-x 2 faster faster 4096 Sep 1 11:34 conf -rw-rw-r-- 1 faster faster 35067 Dec 29 2016 COPYING-3_0.txt -rw-rw-r-- 1 faster faster 2959 Dec 29 2016 fastdfs.spec -rw-rw-r-- 1 faster faster 32463 Dec 29 2016 HISTORY drwxrwxr-x 2 faster faster 4096 Dec 29 2016 init.d -rw-rw-r-- 1 faster faster 7755 Dec 29 2016 INSTALL -rwxrwxr-x 1 faster faster 5548 Dec 29 2016 make.sh drwxrwxr-x 2 faster faster 4096 Dec 29 2016 php_client -rw-rw-r-- 1 faster faster 2380 Dec 29 2016 README.md -rwxrwxr-x 1 faster faster 1768 Dec 29 2016 restart.sh -rwxrwxr-x 1 faster faster 1680 Dec 29 2016 stop.sh drwxrwxr-x 4 faster faster 4096 Mar 31 06:11 storage drwxrwxr-x 2 faster faster 4096 Dec 29 2016 test drwxrwxr-x 2 faster faster 4096 Mar 31 06:11 tracker
+
+（2） 如果是echo "$data"，输出结果为多行，有换行符:
+
+echo "$data"
+total 132
+drwxrwxr-x 3 faster faster  4096 Mar 31 06:11 client
+drwxrwxr-x 2 faster faster  4096 Mar 31 06:11 common
+drwxrwxr-x 2 faster faster  4096 Sep  1 11:34 conf
+-rw-rw-r-- 1 faster faster 35067 Dec 29  2016 COPYING-3_0.txt
+-rw-rw-r-- 1 faster faster  2959 Dec 29  2016 fastdfs.spec
+-rw-rw-r-- 1 faster faster 32463 Dec 29  2016 HISTORY
+drwxrwxr-x 2 faster faster  4096 Dec 29  2016 init.d
+-rw-rw-r-- 1 faster faster  7755 Dec 29  2016 INSTALL
+-rwxrwxr-x 1 faster faster  5548 Dec 29  2016 make.sh
+drwxrwxr-x 2 faster faster  4096 Dec 29  2016 php_client
+-rw-rw-r-- 1 faster faster  2380 Dec 29  2016 README.md
+-rwxrwxr-x 1 faster faster  1768 Dec 29  2016 restart.sh
+-rwxrwxr-x 1 faster faster  1680 Dec 29  2016 stop.sh
+drwxrwxr-x 4 faster faster  4096 Mar 31 06:11 storage
+drwxrwxr-x 2 faster faster  4096 Dec 29  2016 test
+drwxrwxr-x 2 faster faster  4096 Mar 31 06:11 tracker
+
+>https://blog.csdn.net/hongweigg/article/details/77948664
+
+
+
+#read
+
+Linux read命令用于从标准输入读取数值。
+
+read 内部命令被用来从标准输入读取单行数据。这个命令可以用来读取键盘输入，当使用重定向的时候，可以读取文件中的一行数据。
+
+### 语法
+
+    read [-ers] [-a aname] [-d delim] [-i text] [-n nchars] [-N nchars] [-p prompt] [-t timeout] [-u fd] [name ...]
+
+**参数说明:**
+
+* -a 后跟一个变量，该变量会被认为是个数组，然后给其赋值，默认是以空格为分割符。
+* -d 后面跟一个标志符，其实只有其后的第一个字符有用，作为结束的标志。
+* -p 后面跟提示信息，即在输入前打印提示信息。
+* -e 在输入的时候可以使用命令补全功能。
+* -n 后跟一个数字，定义输入文本的长度，很实用。
+* -r 屏蔽\，如果没有该选项，则\作为一个转义字符，有的话 \就是个正常的字符了。
+* -s 安静模式，在输入字符时不再屏幕上显示，例如login时输入密码。
+* -t 后面跟秒数，定义输入字符的等待时间。
+* -u 后面跟fd，从文件描述符中读入，该文件描述符可以是exec新开启的。
+### 实例
+
+**1、简单读取**
+
+    #!/bin/bash
+    
+    #这里默认会换行  
+    echo "输入网站名: "  
+    #读取从键盘的输入  
+    read website  
+    echo "你输入的网站名是 $website"  
+    exit 0  #退出
+
+测试结果为：
+
+    输入网站名: 
+    www.runoob.com
+    你输入的网站名是 www.runoob.com
+
+**2、-p 参数，允许在 read 命令行中直接指定一个提示。**
+
+    #!/bin/bash
+    
+    read -p "输入网站名:" website
+    echo "你输入的网站名是 $website" 
+    exit 0
+
+测试结果为：
+
+    输入网站名:www.runoob.com
+    你输入的网站名是 www.runoob.com
+
+**3、-t 参数指定 read 命令等待输入的秒数，当计时满时，read命令返回一个非零退出状态。**
+
+    #!/bin/bash
+    
+    if read -t 5 -p "输入网站名:" website
+    then
+        echo "你输入的网站名是 $website"
+    else
+        echo "\n抱歉，你输入超时了。"
+    fi
+    exit 0
+
+执行程序不输入，等待 5 秒后：
+
+    输入网站名:
+    抱歉，你输入超时了
+
+4、除了输入时间计时，还可以使用 **-n** 参数设置 **read** 命令计数输入的字符。当输入的字符数目达到预定数目时，自动退出，并将输入的数据赋值给变量。
+
+    #!/bin/bash
+    
+    read -n1 -p "Do you want to continue [Y/N]?" answer
+    case $answer in
+    Y | y)
+          echo "fine ,continue";;
+    N | n)
+          echo "ok,good bye";;
+    *)
+         echo "error choice";;
+    
+    esac
+    exit 0
+
+该例子使用了-n 选项，后接数值 1，指示 read 命令只要接受到一个字符就退出。只要按下一个字符进行回答，read 命令立即接受输入并将其传给变量，无需按回车键。
+
+只接收 2 个输入就退出：
+
+    #!/bin/bash
+    
+    read -n2 -p "请随便输入两个字符: " any
+    echo "\n您输入的两个字符是:$any"
+    exit 0
+
+执行程序输入两个字符：
+
+    请随便输入两个字符: 12
+    您输入的两个字符是:12
+
+5、**-s** 选项能够使 **read** 命令中输入的数据不显示在命令终端上（实际上，数据是显示的，只是 **read** 命令将文本颜色设置成与背景相同的颜色）。输入密码常用这个选项。
+
+    #!/bin/bash
+    
+    read  -s  -p "请输入您的密码:" pass
+    echo "\n您输入的密码是 $pass"
+    exit 0
+
+执行程序输入密码后是不显示的：
+
+    请输入您的密码:
+    您输入的密码是 runoob
+
+**6.读取文件**
+
+每次调用 read 命令都会读取文件中的 "一行" 文本。当文件没有可读的行时，read 命令将以非零状态退出。
+
+通过什么样的方法将文件中的数据传给 read 呢？使用 cat 命令并通过管道将结果直接传送给包含 read 命令的 while 命令。
+
+测试文件 test.txt 内容如下：
+
+    123
+    456
+    runoob
+
+测试代码：
+
+    #!/bin/bash
+      
+    count=1    # 赋值语句，不加空格
+    cat test.txt | while read line      # cat 命令的输出作为read命令的输入,read读到>的值放在line中
+    do
+       echo "Line $count:$line"
+       count=$[ $count + 1 ]          # 注意中括号中的空格。
+    done
+    echo "finish"
+    exit 0
+
+执行结果为：
+
+    Line 1:123
+    Line 2:456
+    Line 3:runoob
+    finish
+
+使用 **-e** 参数，以下实例输入字符 **a** 后按下 **Tab** 键就会输出相关的文件名(该目录存在的)：
+
+    $ read -e -p "输入文件名:" str 
+    输入文件名:a
+    a.out    a.py     a.pyc    abc.txt  
+    输入文件名:a
+
+
+ published from :[Linux read 命令 | 菜鸟教程](https://www.runoob.com/linux/linux-comm-read.html)
+
+---
+
+
+
+#Openssl
+
+- enc
+openssl中enc 中salt相关参数
+需要注意的就是，当仅设置-K时，还需要设置IV。
+
+```
+-pass arg
+the password source. For more information about the format of arg see the PASS PHRASE ARGUMENTS section in openssl(1).
+ 
+-salt
+use a salt in the key derivation routines. This is the default.
+ 
+-nosalt
+don't use a salt in the key derivation routines. This option SHOULD NOT be used except for test purposes or compatibility with ancient versions of OpenSSL and SSLeay.
+ 
+-k password
+the password to derive the key from. This is for compatibility with previous versions of OpenSSL. Superseded by the -pass argument.
+ 
+-kfile filename
+read the password to derive the key from the first line of filename. This is for compatibility with previous versions of OpenSSL. Superseded by the -pass argument.
+ 
+-nosalt
+do not use a salt
+ 
+-salt
+use salt (randomly generated or provide with -S option) when encrypting (this is the default).
+ 
+-S salt
+the actual salt to use: this must be represented as a string of hex digits.
+ 
+-K key
+the actual key to use: this must be represented as a string comprised only of hex digits. If only the key is specified, the IV must additionally specified using the -iv option. When both a key and a password are specified, the key given with the -K option will be used and the IV generated from the password will be taken. It probably does not make much sense to specify both key and password.
+ 
+-iv IV
+```
+
+- manually passwd for linux
+
+```
+引言:在Linux系统中我们要向手动生成一个密码可以采用opensll passwd来生成一个密码作为用户账号的密码。Linux系统中的密码存放在/etc/shadow文件中，并且是以加密的方式存放的，根据加密方式的不同，所产生的加密后的密码的位数也不同。
+
+openssl passwd的作用是用来计算密码hash的，目的是为了防止密码以明文的形式出现。
+
+语法格式： openssl passwd [option] passwd
+
+openssl passwd常用的选项如下：
+
+-1：表示采用的是MD5加密算法。
+
+-salt：指定salt值，不使用随机产生的salt。在使用加密算法进行加密时，即使密码一样，salt不一样，所计算出来的hash值也不一样，除非密码一样，salt值也一样，计算出来的hash值才一样。salt为8字节的字符串。 
+
+示例：
+
+[tom@localhost ~]$ openssl passwd -1 -salt '12345678'  ##注意‘12345678’不是密码而是密码的长度
+
+Password:   ##这里输入的是密码
+
+$1$12345678$1qWiC4czIc07B4J8bPjfC0   ##这是生成的密文密码
+
+
+
+将生成的密码串，手动添加到/etc/shadow中就可用作用户的登陆密码了。
+```
+
+
+
+>https://www.cnblogs.com/gordon0918/p/5317701.html
+
+- EXAMPLE:
+
+1、只对文件进行base64编码，而不使用加解密
+```
+/*对文件进行base64编码*/
+openssl enc -base64 -in plain.txt -out base64.txt
+/*对base64格式文件进行解密操作*/
+openssl enc -base64 -d -in base64.txt -out plain2.txt
+/*使用diff命令查看可知解码前后明文一样*/
+diff plain.txt plain2.txt
+```
+2、不同方式的密码输入方式
+
+```
+/*命令行输入，密码123456*/
+openssl enc -aes-128-cbc -in plain.txt -out out.txt -pass pass:123456
+/*文件输入，密码123456*/
+echo 123456 > passwd.txt
+openssl enc -aes-128-cbc -in plain.txt -out out.txt -pass file:passwd.txt
+/*环境变量输入，密码123456*/
+passwd=123456
+export passwd
+openssl enc -aes-128-cbc -in plain.txt -out out.txt -pass env:passwd
+/*从文件描述输入*/ 
+openssl enc -aes-128-cbc -in plain.txt -out out.txt -pass fd:1  
+/*从标准输入输入*/ 
+openssl enc -aes-128-cbc -in plain.txt -out out.txt -pass stdin 
+```
+3、固定salt值加密
+
+```
+xlzh@cmos:~$ openssl enc -aes-128-cbc -in plain.txt -out encrypt.txt -pass pass:123456 -P
+salt=32F5C360F21FC12D
+key=D7E1499A578490DF940D99CAE2E29EB1
+iv =78EEB538897CAF045F807A97F3CFF498
+xlzh@cmos:~$ openssl enc -aes-128-cbc -in plain.txt -out encrypt.txt -pass pass:123456 -P
+salt=DAA482697BECAB46
+key=9FF8A41E4AC011FA84032F14B5B88BAE
+iv =202E38A43573F752CCD294EB8A0583E7
+xlzh@cmos:~$ openssl enc -aes-128-cbc -in plain.txt -out encrypt.txt -pass pass:123456 -P -S 123
+salt=1230000000000000
+key=50E1723DC328D98F133E321FC2908B78
+iv =1528E9AD498FF118AB7ECB3025AD0DC6
+xlzh@cmos:~$ openssl enc -aes-128-cbc -in plain.txt -out encrypt.txt -pass pass:123456 -P -S 123
+salt=1230000000000000
+key=50E1723DC328D98F133E321FC2908B78
+iv =1528E9AD498FF118AB7ECB3025AD0DC6
+xlzh@cmos:~$ 
+```
+可以看到，不使用-S参数，salt参数随机生成，key和iv值也不断变化，当slat值固定时，key和iv值也是固定的。
+
+4、加解密后过程使用base64编解码
+
+```
+/*使用-a参数加密后使用base64编码*/
+xlzh@cmos:~$ openssl enc -aes-128-cbc -in plain.txt -a -out encrypt.txt -pass pass:123456
+/*使用-a参数解密前使用base64解码*/
+xlzh@cmos:~$ openssl enc -aes-128-cbc -in encrypt.txt -d -a -out plain1.txt -pass pass:123456
+/*文件一样*/
+xlzh@cmos:~$ diff plain.txt plain1.txt 
+/*加密后文件使用了base64编码*/
+xlzh@cmos:~$ cat encrypt.txt 
+U2FsdGVkX19KbCj9GMI1TBOQjP8JJcefIUH1tHwf/Z4=
+```
+ 5、手动指定Key和IV值
+
+```
+/*手动指定key和iv值，salt固定*/
+xlzh@cmos:~$ openssl enc -aes-128-cbc -in plain.txt -out encrypt.txt  -K 1223 -iv f123 -p
+salt=0B00000000000000
+key=12230000000000000000000000000000
+iv =F1230000000000000000000000000000
+/*指定pass密码，不起作用，注意Key和IV值是16进制*/
+xlzh@cmos:~$ openssl enc -aes-128-cbc -in plain.txt -out encrypt.txt  -K 1223 -iv f123 -p -pass pass:123456
+salt=F502F4B8DE62E0E5
+key=12230000000000000000000000000000
+iv =F1230000000000000000000000000000
+```
+
+- 证书管理
+>https://segmentfault.com/a/1190000014963014
+
+#xxd hex2str
+
+　　　　		关于xxd的使用，就最上面的示例的几个参数做下解释：
+
+　　　　　　-ps ，只打印16进制的信息，默认会打印位偏移、十六进制和ascii结果，如果只要16进制的转化结果就使用这个参数
+
+　　　　　　-u ，16进制大写显示
+
+　　　　　　-c，换行宽度，如果生成的16进制过长默认是会换行的，如果不希望结果被分成两行显示就把换行宽度设大一点
+
+example:
+``echo -n "${data}" | openssl des-cbc  -iv 31313131312D2D2D -K 31313131312D2D2D -nosalt  | xxd -ps -u -c100``
+
+
+
+#Shell enc
+
+1、linux自带的加密命令 gzexe  
+使用该命令，主要是防止一些菜鸟和一些不太懂得加密的新手。这种加密不是很安全，但是能满足一般的加密用途(隐藏敏感信息)。它不但加密而且还是压缩文件。
+
+[root@super ~]# which gzexe
+/usr/bin/gzexe
+
+[root@super ~]# rpm -qf /usr/bin/gzexe
+gzip-1.3.12-18.el6.x86_64
+
+    新建一个脚本进行测试，脚本如下：
+[root@super ~]# vim hello.sh 
+
+
+#!/bin/bash
+echo hello world .
+
+    使用gzexe 进行加密：
+
+[root@super ~]# gzexe hello.sh 
+hello.sh:	19.4%
+[root@super ~]# ll hello.sh*
+-rw-r--r-- 1 root root 861 Jun 15 15:43 hello.sh
+-rw-r--r-- 1 root root  31 Jun 15 15:42 hello.sh~
+
+    加密后，会变成两个文件，其中 hello.sh 为加密后的文件，hello.sh~为源文件。
+
+[root@super ~]# sh hello.sh
+hello world .
+[root@super ~]# sh hello.sh~ 
+hello world .
+
+两个执行的结果都是一致的。
+
+
+但是使用gzexe解密也是非常简单的，这就是使用gzexe的弊端。
+```
+[root@super ~]# cat hello.sh 
+#!/bin/sh
+skip=44
+
+
+tab='	'
+nl='
+```
+这是加密后脚本的一部分。如果我们要解密。只需要执行 gzexe -d 。
+
+ll hello.sh*
+-rw-r--r-- 1 root root  31 Jun 15 15:48 hello.sh
+-rw-r--r-- 1 root root 861 Jun 15 15:43 hello.sh~
+
+也是会生成两个文件，这是源文件为：hello.sh  加密文件为：hello.sh~
+
+
+二、使用SHC加密。
+
+SHC代表shell script compiler, 即shell脚本编译器。通过SHC编译过后的脚本程序对普通用户来说，一般都是不可读的。因此想要正真保护代码就得用到SHC加密。
+
+    1.下载并编译SHC
+
+[root@super bash]# wget http://www.datsi.fi.upm.es/~frosal/sources/shc-3.8.7.tgz            #下载压缩包
+
+[root@super bash]# tar zxvf shc-3.8.7.tgz
+
+[root@super bash]# cd shc-3.8.7[root@super shc-3.8.7]# make
+
+[root@super shc-3.8.7]# ./shc -v
+shc parse(-f): No source file specified
+
+shc Usage: shc [-e date] [-m addr] [-i iopt] [-x cmnd] [-l lopt] [-rvDTCAh] -f script
+
+    2.建立一个bash脚本测试。
+```
+[root@super shc-3.8.7]# vim hello.sh  
+#!/bin/bash
+echo hello world .
+```
+    3.使用SHC加密bash脚本
+
+[root@super shc-3.8.7]# ll hello.sh*
+-rw-r--r-- 1 root root    31 Jun 15 15:57 hello.sh
+-rwx--x--x 1 root root 11624 Jun 15 16:01 hello.sh.x
+-rw-r--r-- 1 root root  9411 Jun 15 16:01 hello.sh.x.c
+
+这样会产生三个文件。
+hello.sh                    是原始未加密的脚本。
+hello.sh.x                是加密的二进制格式的bash脚本。
+hello.sh.x.c                是原始脚本的C源代码，该文件是从源bash脚本中转换而来的。SHC就是通过将bash脚本转为C语言在编译加密的。
+
+[root@super shc-3.8.7]# file hello.sh*
+hello.sh:     Bourne-Again shell script text executable
+hello.sh.x:   ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.18, stripped
+hello.sh.x.c: ASCII C program text
+
+    4.执行bash脚本。
+
+[root@super shc-3.8.7]# ./hello.sh.x
+hello world .
+
+二、SHC的其他功能
+    1、设置脚本使用期限
+
+可以通过SHC设置有限期，当过了有限期，用户再次使用时，就会收到报错信息。SHC使用-e  dd/mm/yyyy来实现该功能
+
+[root@super shc-3.8.7]# ./shc -e 14/6/2015 -f hello.sh
+[root@super shc-3.8.7]# ./hello.sh.x
+./hello.sh.x: has expired!
+Please contact your provider
+[root@super shc-3.8.7]# date
+Mon Jun 15 16:11:15 CST 2015
+
+    2.创建可灵活使用的脚本
+
+可以使用./shc --h  来查看帮助。通常把以下选项进行连用：
+-r ：允许该脚本在同操作系统的不同硬件上运行。
+-T：运行然后调试命令来跟踪脚本。
+-v：输出详细信息。
+
+[root@super shc-3.8.7]# ./shc -v -T -r -f hello.sh 
+shc shll=bash
+shc [-i]=-c
+shc [-x]=exec '%s' "$@"
+shc [-l]=
+shc opts=
+shc: cc  hello.sh.x.c -o hello.sh.x
+shc: strip hello.sh.x
+shc: chmod go-r hello.sh.x
+
+[root@super shc-3.8.7]# ll hello.sh*
+-rw-r--r-- 1 root root   30 Jun 15 16:17 hello.sh
+-rwx--x--x 1 root root 9336 Jun 15 16:17 hello.sh.x
+-rw-r--r-- 1 root root 9630 Jun 15 16:17 hello.sh.x.c
+
+[root@super shc-3.8.7]# file !$   
+file hello.sh*
+hello.sh:     Bourne-Again shell script text executable
+hello.sh.x:   ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.18, stripped
+hello.sh.x.c: ASCII C program text
+
+
+
+
+
+3、Myway
+
+z.sh
+```
+jack=$(echo U2FsdGVkX1/ihjjKVCgouVg5bhbOVmg/Y0YCrMA0qw4= | openssl enc -aes-256-cbc -a -d -salt -pass pass:thisispass)
+echo $jack
+$jack
+```
+
+
+
+#linux passwd generate 
+
+
+- pwgen
+yum install pwgen
+epel release source needed.
+example:
+```
+\#pwgen 10 1
+Thah9haiC8
+```
+- makepasswd
+seems like a ubuntu tool,not tested.
+example:
+生成一个长度为 50 个字符的随机密码。
+``$ makepasswd --char50``
+
+- mkpasswd
+a tool that generate password with salt
+```
+$ mkpasswd tecmint
+everytime you will got a echo back with random salt added to passwd 'tecmint'.
+```
+
+- openssl enc 
+```# echo Tecmint-is-a-Linux-Community | openssl enc -aes-256-cbc -a -salt -pass pass:tecmint```
+by default openssl using random salt.so -salt is redundant.
+- openssl dec
+``` echo U2FsdGVkX18Zgoc+dfAdpIK58JbcEYFdJBPMINU91DKPeVVrU2k9oXWsgpvpdO/Z | openssl enc -aes-256-cbc -a -d -salt -pass pass:tecmint```
