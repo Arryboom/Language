@@ -1549,3 +1549,122 @@ option 表示选项：
     首先就要考虑root 的$PATH里是否已经包含了这些环境变量。
     可以查看PATH，如果是：PATH=$PATH:$HOME/bin则需要添加成如下：
     PATH=$PATH:$HOME/bin:/sbin:/usr/bin:/usr/sbin
+
+
+
+#linux获取文件大小
+
+centos ``stat -c%s "/usr/bin/ls"``
+
+``size=$(stat -c%s $filename)``
+```
+size=$(stat -f%z $filename) # BSD stat
+
+size=$(stat -c%s $filename) # GNU stat?
+```
+
+
+
+
+#交互式 Bash Shell 获取进程 pid
+在已知进程名(name)的前提下，交互式 Shell 获取进程 pid 有很多种方法，典型的通过 grep 获取 pid 的方法为（这里添加 -v grep是为了避免匹配到 grep 进程）：
+```
+ps -ef | grep "name" | grep -v grep | awk '{print $2}'
+```
+或者不使用 grep（这里名称首字母加[]的目的是为了避免匹配到 awk 自身的进程）：
+```
+ps -ef | awk '/[n]ame/{print $2}'
+```
+如果只使用 x 参数的话则 pid 应该位于第一位：
+```
+ps x | awk '/[n]ame/{print $1}'
+```
+最简单的方法是使用 pgrep：
+```
+pgrep -f name
+```
+如果需要查找到 pid 之后 kill 掉该进程，还可以使用 pkill：
+```
+pkill -f name
+```
+如果是可执行程序的话，可以直接使用 pidof
+```
+pidof name
+```
+
+>pgrep使用-d指定分隔符
+
+
+#bash list
+
+list loop
+```
+strings=(
+    string1
+    string2
+    "string with spaces"
+    stringN
+)
+for i in "${strings[@]}"; do
+    echo "$i"
+done
+
+```
+
+
+#char split
+```
+#!/bin/bash
+a="hello,world,nice,to,meet,you"
+#要将$a分割开，先存储旧的分隔符
+OLD_IFS="$IFS"
+
+#设置分隔符
+IFS="," 
+
+#如下会自动分隔
+arr=($a)
+
+#恢复原来的分隔符
+IFS="$OLD_IFS"
+
+#遍历数组
+for s in ${arr[@]}
+do
+echo "$s"
+done
+```
+
+功能就是sh文件分割字符串到数组并遍历引用，示例代码如下：
+```
+CURLURL="1;2;5;9"
+IFS=";"
+read -r -a array <<< "$CURLURL"
+for i in "${!array[@]}"; do
+    echo -e ${array[i]}"\n"
+done
+```
+#declare
+
+bash提供了declare命令来声明变量，该命令的基本语法如下：
+```
+declare attribute variable
+      其中，attribute表示变量的属性，常用的属性有如下所述。
+            -p  显示所有变量的值。
+            -i   将变量定义为整数，在之后可以对表达式求值，结果只能是整数。如果求值失败或不为整数则置0。
+            -r   将变量声明为只读变量。
+            -a  将变量声明为 数组变量。
+            -f   显示所有自定义函数，包括名称和函数体。
+            -x   将变量设置成环境变量，这样可以在随后的脚本和程序中使用。
+```
+
+
+
+
+#get arry length
+```
+echo ${#nums[*]}
+echo ${#nums[@]}
+```
+
+
