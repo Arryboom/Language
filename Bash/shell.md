@@ -1518,6 +1518,12 @@ option 表示选项：
 /c表示在每次替换之前需要用户进行确认。
 省略时仅对每行第一个匹配串进行替换。
 
+- 清空文件
+Go to command mode in the editor by pressing ESC key on the keyboard.
+Press gg. It will take to the first line of the file.
+Then press dG. This will delete from the first line to the last line.
+
+
 
 
 
@@ -1667,4 +1673,50 @@ echo ${#nums[*]}
 echo ${#nums[@]}
 ```
 
+
+#uuid in bash
+```
+#!/bin/bash
+
+psd="/proc/sys/kernel/random/uuid"
+echo $(cat $psd)
+UUID=$(cat /proc/sys/kernel/random/uuid)
+echo $UUID
+```
+
+
+
+#multiLine echo
+```
+__usage="
+Usage: $(basename $0) [OPTIONS]
+
+Options:
+  -l, --level <n>              Something something something level
+  -n, --nnnnn <levels>         Something something something n
+  -h, --help                   Something something something help
+  -v, --version                Something something something version
+"
+```
+Then I can simply use it as
+```
+echo "$__usage"
+```
+or even better, when parsing parameters, I can just echo it there in a one-liner:
+```
+levelN=${2:?"--level: n is required!""${__usage}"}
+```
+
+---
+
+Here documents are often used for this purpose.
+```
+cat << EOF
+usage: up [--level <n>| -n <levels>][--help][--version]
+
+Report bugs to: 
+up home page:
+EOF
+```
+>https://stackoverflow.com/questions/10969953/how-to-output-a-multiline-string-in-bash
 
