@@ -253,3 +253,5 @@ C语言里面没有byte类型，一般用unsigned char来代替。
 
 
 
+#DLL与LIB的区别
+>https://www.cnblogs.com/alantu2018/p/8470976.html

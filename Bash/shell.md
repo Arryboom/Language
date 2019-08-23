@@ -1740,3 +1740,219 @@ escape
 [root@localhost tmp]# echo "_______________\$\$\$\$\$\$" | rev
 $$$$$$_______________
 ```
+
+
+#char split
+
+获取当前shell脚本所在的路径(目录), 支持软链接.
+
+```
+DIR=`S=\`readlink "$0"\`; [ -z "$S" ] && S=$0; dirname $S`
+```
+$0: 获取当前脚本的名称
+$#: 传递给脚本的参数个数
+$$: shell脚本的进程号
+$1, $2, $3...：脚本程序的参数
+Linux 的字符串截取很有用。有八种方法。
+
+假设有变量 var=http://www.aaa.com/123.htm.
+
+1. \# 号截取，删除左边字符，保留右边字符。
+
+ 
+
+复制代码代码如下:
+
+``echo ${var#*//}``
+ 
+
+其中 var 是变量名，# 号是运算符，*// 表示从左边开始删除第一个 // 号及左边的所有字符
+即删除 http://
+结果是 ：www.aaa.com/123.htm
+
+2. \#\# 号截取，删除左边字符，保留右边字符。
+
+ 
+
+复制代码代码如下:
+
+``echo ${var##*/}``
+ 
+
+\#\#*/ 表示从左边开始删除最后（最右边）一个 / 号及左边的所有字符
+即删除 http://www.aaa.com/
+
+结果是 123.htm
+
+3. %号截取，删除右边字符，保留左边字符
+
+ 
+
+复制代码代码如下:
+
+``echo ${var%/*}``
+ 
+
+%/* 表示从右边开始，删除第一个 / 号及右边的字符
+
+结果是：http://www.aaa.com
+
+4. %% 号截取，删除右边字符，保留左边字符
+
+ 
+
+复制代码代码如下:
+
+``echo ${var%%/*}``
+ 
+
+%%/* 表示从右边开始，删除最后（最左边）一个 / 号及右边的字符
+结果是：http:
+
+5. 从左边第几个字符开始，及字符的个数
+
+ 
+
+复制代码代码如下:
+
+``echo ${var:0:5}``
+ 
+
+其中的 0 表示左边第一个字符开始，5 表示字符的总个数。
+结果是：http:
+
+6. 从左边第几个字符开始，一直到结束。
+
+ 
+
+复制代码代码如下:
+
+``echo ${var:7}``
+ 
+
+其中的 7 表示左边第8个字符开始，一直到结束。
+结果是 ：www.aaa.com/123.htm
+
+7. 从右边第几个字符开始，及字符的个数
+
+ 
+
+复制代码代码如下:
+
+``echo ${var:0-7:3}``
+ 
+
+其中的 0-7 表示右边算起第七个字符开始，3 表示字符的个数。
+结果是：123
+
+8. 从右边第几个字符开始，一直到结束。
+
+ 
+
+复制代码代码如下:
+
+``echo ${var:0-7}``
+ 
+
+表示从右边第七个字符开始，一直到结束。
+结果是：123.htm
+
+注：（左边的第一个字符是用 0 表示，右边的第一个字符用 0-1 表示）
+
+
+---
+
+                   命令的2种替换形式 $()和 ``  
+ 示例：截断字符串   
+a):  
+ #截取文件名称  
+ var1=$(basename /home/aimybbe/bash/test.sh)  
+ echo $var1  
+
+ #截取目录  
+ var2=$(dirname /home/aimybbe/bash/test.sh)  
+ echo $var2  
+ b):  
+ var1=`basename /home/aimybbe/bash/test.sh`  
+ echo $var1  
+
+ var2=$(dirname /home/aimybbe/bash/test.sh)  
+ echo $var2  
+
+ 更专业的字符串截取方法：  
+
+ 示例：testfile.tar.gz  
+
+ a)获取后缀名  
+ 你想截取 tar.gz  
+ filename=testfile.tar.gz  
+ file=${filename#*.}  
+ echo $file  
+ 你想截取 gz  
+ filename=testfile.tar.gz  
+ file=${filename##*.}  
+ echo $file  
+ 说明：  
+ 这里的${filename##*.}什么意思呢？在 ${ } 中输入环境变量名称，两个##(或一个#)，然后是通配符 ("*.")。  
+ 然后，bash 取得 filename，找到从字符串 "testfile.tar.gz"开始处开始、且匹配通配符 "*."的最长子字符串(或最短)，然后将其从字符串的开始处截去。  
+<span style="color:#ff0000;">注意：</span>  
+ 1.#意思是从字符串的开始处开始截取。  
+ 2.两个##代表匹配的最大长度，一个#代表匹配的最小长度(也就是说这里不是一个#匹配一个‘.’)  
+
+ b)获取文件名称(也就是去除后缀名)  
+ 你想截取testfile.tar  
+ filename=testfile.tar.gz  
+ file=${filename%.*}  
+ echo $file  
+ 你想截取testfile  
+ filename=testfile.tar.gz  
+ file=${filename%%.*}  
+ echo $file   
+<span style="color:#ff0000;">注意：</span>  
+ 1.这个方法和上面原理相同%就是从末尾字符串开始截取，%%就是最大长度,%就是最小长度  
+
+ c)截取任意的字符  
+ 你想截取file  
+ filename=testfile.tar.gz  
+ file=${filename:4:4}  
+ echo $file  
+
+ 你想截取test  
+ filename=testfile.tar.gz  
+ file=${filename:0:4}  
+ echo $file  
+ 说明：  
+ 格式为${filename::}第一个':'后面的数字是字符串的索引从左边开始，索引从0开始，第二个':'后面的数字是长度，两处的数字都是十进制数值。
+
+
+
+>http://c.biancheng.net/view/1120.html
+>https://www.iteye.com/blog/gavin2lee-2352908
+>http://www.360doc.com/content/18/0704/19/54185769_767728959.shtml
+>https://www.cnblogs.com/xwdreamer/p/3823463.html
+
+
+
+
+#sleep延时
+
+在 linux shell 脚本中经常需要做一些延时处理。
+所以经常要用到 sleep 或 usleep 函数。
+下面来说一下  sleep 和 usleep 的区别：
+
+sleep : 默认以秒为单位。
+
+usleep : 默认以微秒为单位。
+
+1s = 1000ms = 1000000us
+
+sleep 不但可以用秒为单位，还可以指定延迟的单位，例如：
+
+sleep 1s 表示延迟一秒
+
+sleep 1m 表示延迟一分钟
+
+sleep 1h 表示延迟一小时
+
+sleep 1d 表示延迟一天
+
