@@ -1720,3 +1720,23 @@ EOF
 ```
 >https://stackoverflow.com/questions/10969953/how-to-output-a-multiline-string-in-bash
 
+
+
+
+#bash escape
+
+```
+[root@localhost tmp]# echo "_______________$$$$$$" | rev
+242012420124201_______________
+[root@localhost tmp]# echo $$
+10242
+[root@localhost tmp]# echo $$$
+10242$
+[root@localhost tmp]# echo $$$$
+1024210242
+```
+escape
+```
+[root@localhost tmp]# echo "_______________\$\$\$\$\$\$" | rev
+$$$$$$_______________
+```
