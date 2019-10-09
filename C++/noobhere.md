@@ -255,3 +255,97 @@ C语言里面没有byte类型，一般用unsigned char来代替。
 
 #DLL与LIB的区别
 >https://www.cnblogs.com/alantu2018/p/8470976.html
+
+
+#Windows编程中char*转LPCWSTR解决的方法总结
+
+Windows编程中常常涉及到的一个问题是字符串之间的转换，开发过程总是遇到编译器提示无法格式转换的问题。于是自己总结了几种解决的方法。
+
+1、通过T2W转换宏
+```
+   char* szStr = "balabala";  
+
+   CString str = CString(szStr);
+
+   USES_CONVERSION;
+   LPCWSTR wszClassName = new WCHAR[str.GetLength()+1];
+   wcscpy((LPTSTR)wszClassName,T2W((LPTSTR)str.GetBuffer(NULL)));
+   str.ReleaseBuffer();
+```
+
+2、通过A2CW转换
+```
+char* szStr = "balabala";  
+CString str = CString(szStr);
+USES_CONVERSION;
+LPCWSTR wszClassName = A2CW(W2A(str));
+str.ReleaseBuffer();
+```
+3、通过swprintf()转换
+```
+char a[] = "C://";
+strcat(a, "balabala.wav");
+WCHAR wsz[64];
+swprintf(wsz, L"%S", a);
+LPCWSTR m_szFilename = wsz;
+```
+4、LPCWSTR实际上也是CONST WCHAR *类型，能够通过MultiByteToWideChar函数转换
+```
+char* szStr = "balabala";
+WCHAR wszClassName[256];
+memset(wszClassName,0,sizeof(wszClassName));
+MultiByteToWideChar(CP_ACP,0,szStr,strlen(szStr)+1,wszClassName,
+sizeof(wszClassName)/sizeof(wszClassName[0]));
+```
+希望能对大家有所帮助。
+
+
+#无法打开mfc120.lib
+安装Multibyte MFC Library for Visual Studio 2013
+
+https://www.microsoft.com/zh-CN/download/confirmation.aspx?id=40770
+
+
+
+#MFC 程序32位转为64位生成方案时error LNK1561: entry point must be defined
+
+右键->属性->链接器->系统->子系统，下拉框选择：窗口 (/SUBSYSTEM:WINDOWS)
+
+
+不用手动设置入口点，会自动识别，如果不成功多重启几次VS。
+
+
+#C++程序加载lib静态库
+
+使用Visual Studio 编写C++程序有几种配置lib的方法，以下是在代码中加载lib文件的方法：
+
+在项目所在目录下创建文件夹lib，将lib文件此路径下，包括Debug和Release两种模式编译的lib文件，此外根据程序的需要，分别考虑Win32和x64的lib文件。
+
+以下预处理指令用于加载lib文件，根据编译环境自动加载相应的lib。
+
+```
+#ifdef _DEBUG
+#pragma comment(lib,"lib\\BulletCollision_Debug.lib")
+#pragma comment(lib,"lib\\BulletDynamics_Debug.lib")
+#pragma comment(lib,"lib\\LinearMath_Debug.lib")
+#else
+#pragma comment(lib,"lib\\BulletCollision.lib")
+#pragma comment(lib,"lib\\BulletDynamics.lib")
+#pragma comment(lib,"lib\\LinearMath.lib")
+#endif
+```
+
+
+#MFC程序入口点
+
+MFC启动非常隐晦，F10调试时，看到的入口点在APPMODULE.CPP中的_tWinMain。我所能看的书籍上都说windows程序的起点是WinMain，并没有将这件事情交待清楚。
+微软为了对UNICODE进行支持，在tchar.h中做了这样的定义：
+```define _tWinMain   WinMain```
+其实真正的入口点还是WinMain，并没有改变。
+
+虽然弄清楚了入口点，但是具体怎么调用呢？如果以动态库的形式使用MFC，那么WinMain应该在DLL中，不在EXE中，系统是如何进入WinMain的呢？实际情况是我们的APP链接了两个库，如下：
+```
+#pragma comment(lib, "mfc42.lib")
+#pragma comment(lib, "mfcs42.lib")
+```
+WinMain实际上被编译到mfcs42.lib中，以静态链接库的形式，最终链接到APP的EXE中。
