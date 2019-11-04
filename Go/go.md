@@ -302,3 +302,128 @@ http://docscn.studygolang.com/ref/spec
 http://docscn.studygolang.com/pkg/
 - go 参数  
 http://docscn.studygolang.com/cmd/go/
+
+
+
+#跨平台编译
+
+```
+OS ARCH OS version
+linux 386 / amd64 / arm >= Linux 2.6
+darwin 386 / amd64 OS X (Snow Leopard + Lion)
+freebsd 386 / amd64 >= FreeBSD 7
+windows 386 / amd64 >= Windows 2000
+```
+
+(1)首先进入go/src 源码所在目录，执行如下命令创建目标平台所需的包和工具文件。
+```
+$ cd /usr/local/go/src
+$ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 ./make.bash
+```
+如果是 Windows 则修改 GOOS 即可（是GO的工作目录/src下）。
+```
+$ set CGO_ENABLED=0
+set GOOS=linux
+set GOARCH=amd64 
+./make.bat
+```
+(2) 现在可以编译 Linux 和 Windows 平台所需的执行文件了。
+```
+$ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
+$ CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build
+```
+不过该方式暂时不支持 CGO。
+
+http://solovyov.net/en/2012/03/09/cross-compiling-go/
+
+以上假定是64位架构，32位，修改GOARCH为386
+
+说明：
+这里并不是重新编译Go，因为安装Go的时候，只是编译了本地系统需要的东西；而需要跨平台交叉编译，需要在Go中增加对其他平台的支持。所以，有 ./make.bash 这么一个过程
+
+交叉编译问题补充：
+
+首先，建议安装Go语言通过源码安装，否则可能没有make.bash或make.bat程序。
+
+之所以需要执行上面的这些步骤，是因为安装Go语言时，一些工具和平台相关的代码并没有生成，执行上面的步骤，并不是重新安装Go语言，而是生成交叉编译（目标平台）需要的工具和文件。这些只是在第一次交叉编译的时候做。之后就不需要了。
+
+为了更快的编译，可以
+```
+./make.bash --no-clean
+```
+
+```
+CGO_ENABLED=0 GOARCH=arm GOOS=linux ./make.bash 安卓的`
+```
+
+#变量作用域
+
+变量作用域
+全局变量的作用域是整个包，局部变量的作用域是该变量所在的花括号内，这是一个很基础的问题。我们通常会使用golang的一个语法糖:=来给变量赋值，这种方式可以节省掉我们定义变量的代码，让代码变的更加简洁，但是如果你定义了一个全局变量，又不小心用:=来给它赋值，就会出现一些问题。
+
+问题
+看下面的代码，定义了一个全局变量t，我想在init()中给他赋值为2，然后在main中使用它。
+```
+var t int
+
+func init() {
+    t, err := strconv.Atoi("2")
+    if err != nil {
+        log.Fatalln(err)
+    }
+    fmt.Println("init:", t)
+}
+
+func main() {
+    fmt.Println("main:", t)
+}
+```
+输出：
+```
+init: 2
+main: 0
+```
+执行之后，在init和main中打印出了不一样的数字，为什么会不一样呢，可能你仔细一看就知道原因了。很简单，init中的t是用:=生成的，所以t是局部变量，在init函数中覆盖了全局变量t。全局变量t并没有被赋值，它还是原来的0值。
+
+我本想在init中给全局变量t赋值的，却不小心用:=创建了一个局部变量导致全局变量t没有赋值成功，犯了一个低级错误。
+
+解决
+知道原因之后就容易解决了，我不使用:=就可以了。代码如下：
+```
+var t int
+
+func init() {
+    var err error
+    t, err = strconv.Atoi("2")
+    if err != nil {
+        log.Fatalln(err)
+    }
+    fmt.Println("init:", t)
+}
+
+func main() {
+    fmt.Println("main:", t)
+}
+```
+输出：
+```
+init: 2
+main: 2
+```
+没有使用:=之后，init中的t就是全局变量t，给全局变量t赋值为2，main中自然输出的就是2，实现了我最初的目的。
+
+
+
+#cannotfind package "golang.org/x/sys/unix" in any of:
+
+```
+go get golang.org/x/sys/unix
+```
+
+部分直接自己下载https://github.com/golang/net放到C:\Users\Administrator\go\src\golang.org下面
+
+
+
+#GO docs
+
+http://c.biancheng.net/view/89.html
