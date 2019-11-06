@@ -42,3 +42,12 @@ or
 isual Studio": https://visualstudio.microsoft.com/downloads/*
 
 download and setup https://go.microsoft.com/fwlink/?LinkId=691126.
+
+
+#name 'ConvLearner' is not defined
+
+在最新的fast ai包中，ConvLearner已经被create_cnn取代，所以替换为下列语句就好了：
+```
+learn = create_cnn(data, models.resnet34, metrics=error_rate)
+```
+更新的fast ai包中，create_cnn已经被cnn_learner取代。
