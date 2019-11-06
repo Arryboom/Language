@@ -32,3 +32,8 @@ conda install -c fastai fastai
 ```
 
 
+
+
+---
+or 
+>https://pytorch.org/get-started/locally/

@@ -1005,3 +1005,105 @@ int main()
 gcc -shared dlib.c -o dlib.so
 gcc test.c -o test.o -ldl
 ```
+
+
+#codeblocks创建静态库并使用
+
+步骤：
+1.在code::blocks中新建Static library 工程 在仅有的main.c中添加你所有想要包含的函数
+
+   若还有其他很多源文件和头文件，点击"add files"就ok，几乎和原来工程没区别，全局变量、头文件等都存在，只是去掉main函数，确定要创建静态链接库的函数为最外层函数入口。
+
+2.编译……成功
+
+3.切换到工程目录下找出生成的libname.a,则这个就是生成的静态库
+
+使用：
+在code::blocks下建立c工程，如下设置：
+
+1.把你的lib文件链接进来 setting->compiler and debugger->link setting->add 加载你的libname.a 的静态库文件
+
+2.在使用时包含生成静态库函数的头文件，直接通过main函数使用函数即可：
+
+3.编译……成功
+
+4.运行程序
+
+---
+
+静态库  (扩展名为 .a 或 .lib) 是包含函数的文件，用于在link阶段整合执行程序，动态链接库(扩展名  .dll)是不在link阶段整合进执行程序中的。
+
+DLL文件在执行阶段动态调用
+
+下面我们将用免费的开发工具CodeBocks开发静态库
+
+创建静态库
+
+启动Codeblocks并创建一个类型为 "Static Library" (File/New/Project/Static Library/Go)的项目。
+
+ 
+
+给项目取一个名字("malibrairie" for instance ), 并分配一个目标目录("C:/essai" for instance )
+
+ 
+
+删除main.cpp文件中的默认内容。按照下面的内容输入到程序中。
+```
+void cinq(int *i)
+{
+int n;
+n=*i;n=5*n;
+*i=n;
+}
+```
+ 
+
+选择"Build/Run"菜单。
+
+ 
+
+Codeblocks立即生成库文件到 "C:/essai/malibrairie" 目录并取名 "libmalibrairie a"。
+
+ 
+
+Codeblocks 和 Devcpp 生成扩展名为 ".a" 的库文件，Visual Studio将生成扩展名为 ".lib"的库文件。
+
+我们下面使用这个库文件。
+
+库文件 "libmalibrairie.a" 已经被创建。
+
+Use the static library
+Create a new project with the type "Win32 GUI".
+
+ 
+
+选择应用程序类型 "Frame based"。
+
+ 
+
+取名 ("monprogramme" ) 并选定项目目录 ("C:/essai" )。
+
+ 
+
+删除main.cpp默认的代码然后将代码替换为下面的代码用于测试我们的静态库。
+```
+#include "windows.h"
+extern "C" void cinq (int *);
+int APIENTRY WinMain(HINSTANCE h1,HINSTANCE h2,LPSTR l,int n)
+{
+int x;
+char texte[80];
+x=2;
+cinq(&x);
+wsprintf(texte,"%d",x);
+MessageBox(NULL,texte,"",MB_OK);
+return 0;
+}
+
+ ```
+
+通常, Codeblocks并不知道库文件被使用和它的位置，我们必须声明库文件，让它在链接的时候不会出错。选择菜单 "Project/Build options/Linker Settings" 添加"libmalibrairie.a"库文件。（亲自测试，需要在linker搜索目录添加库文件的目录）。
+
+ 
+
+点击 "Build/Build and run"。程序正常运行。
