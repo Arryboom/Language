@@ -534,3 +534,11 @@ QueryPerformanceFrequency()函数和QueryPerformanceCounter()函数的原型如�
 #define snprintf _snprintf_s  
 #endif  
 ```
+
+
+#Did you forget to add '#include "stdafx.h"?
+【问题原因】在编译时使用了预编译头文件，
+
+【解决方法】Project-->Property-->Configuraton Properties-->C/C++-->Precompiled Header-->Precompiled Header-->Not Using Precompiled Headers
+
+
