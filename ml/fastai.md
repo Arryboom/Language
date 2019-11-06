@@ -37,3 +37,8 @@ conda install -c fastai fastai
 ---
 or 
 >https://pytorch.org/get-started/locally/
+
+*error: Microsoft Visual C++ 14.0 is required. Get it with "Build Tools for V
+isual Studio": https://visualstudio.microsoft.com/downloads/*
+
+download and setup https://go.microsoft.com/fwlink/?LinkId=691126.
