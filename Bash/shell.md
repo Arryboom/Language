@@ -2020,3 +2020,99 @@ screen用法：
 恢复之前离开的会话：screen -r 会话名或进程号
 清除dead状态的会话：screen -wipe
 启动一个开始就是Detached状态的会话：screen -dmS 名字 命令
+
+
+#crontab
+
+/etc/crontab文件和crontab -e命令区别
+
+1、格式不同
+
+前者
+
+按 Ctrl+C 复制代码
+```
+# For details see man 4 crontabs
+
+# Example of job definition:
+# .---------------- minute (0 - 59)
+# |  .------------- hour (0 - 23)
+# |  |  .---------- day of month (1 - 31)
+# |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+# |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+# |  |  |  |  |
+# *  *  *  *  * user-name command to be executed
+```
+后者
+```
+#50 1 * * *  command
+```
+
+2、使用范围
+
+修改/etc/crontab这种方法只有root用户能用，这种方法更加方便与直接直接给其他用户设置计划任务，而且还可以指定执行shell等等，crontab -e这种所有用户都可以使用，普通用户也只能为自己设置计划任务。然后自动写入/var/spool/cron/usename
+
+3、服务管理区别
+```
+/etc/init.d/crond restart
+service crond restart```
+1、crontab会进行语法检查，vi不会
+
+2、有些os的crond不会重读配置，所以用service重启
+
+crontab -e是某个用户的周期计划任务；/etc/crontab是系统的周期任务
+
+crontab -e与/etc/crontab修改语法格式不一样，后者多一个user指定
+
+不管用crontab -e或者/etc/crontab都不需要重新启动crond服务
+```
+01 22 * * * /sbin/shutdown -h now```
+执行的结果都是一样, 一般Linux都用shutdown -h now也可以init 0，init 0在UNIX用得比较多，关机需要root的身份在可以执行
+
+可以选取方法操作：
+
+方法1：
+
+换到root 的身份
+```
+su - root
+
+crontab -e (按a增加下)
+
+01 22 * * * /sbin/shutdown -h now   (或01 22 * * * /sbin/init 0)
+```
+保存退出即可以
+
+方法2：
+
+vi /etc/crontab在里面插入
+```
+01 22 * * * root   /sbin/shutdown -h now
+或 
+01 22 * * * root   /sbin/init 0 ```
+crontab  -e是针对用户的cron来设计的，如果是系统的例行性任务，该怎么办？是否还是需要以crontab -e来管理例行性命令？当然不需要，只需要编辑/etc/crontab文件就可以了。需要注意的是：crontab -e的作用其实是/usr/bin/crontab这个执行文件，但是/etc/crontab是个纯文本文件，可以root的身份编辑这个文件。
+
+基本上，cron服务的最低检测时间单位是分钟，所以cron会每分钟读取一次/etc/crontab与/var/spool/cron中的数据内容，因此，只要您编辑完/etc/crontab文件并且保存之后，crontab时设定就会自动执行。
+
+注意：在Linux下的crontab会自动帮我们每分钟重新读取一次/etc/crontab的例行工作事项，但是某些原因或在其他的unix系统中，由于crontab是读到内存中，所以在您修改完/etc/crontab之后可能并不会马上执行，这时请重新启动crond服务。
+```
+/etc/rc.d/init.d/crond   restart
+```
+
+7、crontab的限制
+
+/etc/cron.allow：将可以使用 crontab 的帐号写入其中，若不在这个文件内的使用者则不可使用 crontab；
+
+/etc/cron.deny：将不可以使用 crontab 的帐号写入其中，若未记录到这个文件当中的使用者，就可以使用 crontab 。
+
+以优先顺序来说， /etc/cron.allow 比 /etc/cron.deny 要优先， 而判断上面，这两个文件只选择一个来限制而已，因此，建议你只要保留一个即可， 免得影响自己在配置上面的判断！一般来说，系统默认是保留 /etc/cron.deny ， 你可以将不想让他运行 crontab 的那个使用者写入 /etc/cron.deny 当中，一个帐号一行！
+
+9、crontab的原理
+
+当使用者使用crontab这个命令来创建工作排程之后，该项工作就会被纪录到/var/spool/cron/里面去了，而且是以帐号来作为判别的喔！举例来说， blue使用crontab后， 他的工作会被纪录到/var/spool/cron/blue里头去！但请注意，不要使用vi直接编辑该文件， 因为可能由於输入语法错误，会导致无法运行cron！另外， cron运行的每一项工作都会被纪录到/var/log/cron这个登录项中，所以，如果你的Linux不知道有否被植入木马时，也可以搜寻一下 /var/log/cron这个登录项！
+
+crond服务的最低侦测限制是“分钟”，所以“ cron会每分钟去读取一次/etc/crontab与/var/spool/cron里面的数据内容 ”，因此，只要你编辑完/etc/crontab这个文件，并且将他储存之后，那么cron的配置就自动的会来运行了！
+
+备注：在Linux底下的crontab会自动的帮我们每分钟重新读取一次/etc/crontab的例行工作事项，但是某些原因或者是其他的Unix系统中，由于crontab是读到内存当中的，所以在你修改完/etc/crontab之后，可能并不会马上运行， 这个时候请重新启动crond这个服务！“/etc/init.d/crond restart” 
+
+>https://www.cnblogs.com/EasonJim/p/8308717.html
