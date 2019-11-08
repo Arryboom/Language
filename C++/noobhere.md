@@ -577,3 +577,20 @@ QueryPerformanceFrequency()函数和QueryPerformanceCounter()函数的原型如�
 
 【解决方法】Project-->Property-->Configuraton Properties-->C/C++-->Precompiled Header-->Precompiled Header-->Not Using Precompiled Headers
 
+
+
+
+#全局调试信息OutputDebugString
+
+需要时使用OutputDebugString输出调试信息，使用dbgview捕获系统全局相关日志
+```
+OutputDebugString("dll_loaded_123456");//Check this with dbgview tool.
+```
+通用方法。驱动可以直接使用kdprint
+
+
+
+
+
+
+

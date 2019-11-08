@@ -12,6 +12,8 @@ Windows Registry Editor Version 5.00
 "DEFAULT"=dword:0000000f
 
 ```
+　　1.1、在注册表 "HKEY_LOCAL_MACHINE / SYSTEM / CurrentControlSet / Control / Session Manager /" 中新建key（项），名字为Debug Print Filter ，然后在此key下新建一个DWORD value（32位的就OK），名字为DEFAULT，然后设置值为0x00000008，重启电脑后会生效。
+
 
 导入成功之后重启，DbgPrint就能输出信息了。
 
