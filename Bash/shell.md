@@ -2005,3 +2005,18 @@ ssh-keygen -t dsa
 ssh-keygen -t ecdsa -b 521
 ssh-keygen -t ed25519
 ```
+
+
+#screen
+
+screen用法：
+
+打开新的会话窗口：screen
+结束当前会话：exit
+在新会话中执行程序（程序关闭时会话自动结束）：screen vi test.c
+打开新会话并起个名字：screen -S myname
+暂时离开会话（经常用）：Ctrl+a 然后 d
+查看会话列表: screen -ls
+恢复之前离开的会话：screen -r 会话名或进程号
+清除dead状态的会话：screen -wipe
+启动一个开始就是Detached状态的会话：screen -dmS 名字 命令
