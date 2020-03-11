@@ -6,6 +6,7 @@
 
 ```docker run -itd -p 8099:80 --name ng nginx```  
 将container80端口映射到主机8099，起别名为ng
+>on windows,it's reverse,means container 80 map to host 8099
 
 ```docker logs nginx```   
 查看容器日志
@@ -72,4 +73,24 @@
 
 
 
+```
+docker image build -t bulletinboard:1.0 .
+```
+在有DockerFile的目录下时(DockerFile已经编写好)可以直接创建镜像，-t后面跟标签名和版本号
 
+
+
+
+
+
+
+
+
+
+---
+
+#On windows port map error,not localhost
+If you’re using Docker Toolbox then any port you publish with docker run -p will be published on the Toolbox VM’s private IP address. docker-machine ip will tell you. It is frequently 192.168.99.100.
+
+This isn’t prominent in Docker’s documentation, but it does at least show up in the excellent Get Started, Part 2: Containers 502 tutorial. (I couldn’t find this rather important note anywhere around Toolbox Overview 66, for instance.)
+https://docs.docker.com/get-started/part2/#run-the-app
