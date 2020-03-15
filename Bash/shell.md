@@ -2116,3 +2116,30 @@ crond服务的最低侦测限制是“分钟”，所以“ cron会每分钟去�
 备注：在Linux底下的crontab会自动的帮我们每分钟重新读取一次/etc/crontab的例行工作事项，但是某些原因或者是其他的Unix系统中，由于crontab是读到内存当中的，所以在你修改完/etc/crontab之后，可能并不会马上运行， 这个时候请重新启动crond这个服务！“/etc/init.d/crond restart” 
 
 >https://www.cnblogs.com/EasonJim/p/8308717.html
+
+
+
+
+
+#卸载内核模块
+
+
+
+List loaded kernel modules and try to unload them manually with
+```
+ modprobe -r <module-name> 
+```
+command.
+
+Likely issue is caused by usage some modules inside the containers.
+
+Other reason is wrong order of unloading of the modules.
+
+
+#屏蔽内核模块
+
+
+Use lsmod command. It shows loaded kernel modules. To prevent loading modules use blacklist.
+ Just create any file with .conf extension under /etc/modprobe.d/ directory and insert into it lines with blacklist <module-name> content. 
+
+Something uses this module. There is a --force flag, but it's very dangerous and can cause the kernel panic. Paste the output of lsmod and new information into the question. Also, flush the firewall rules before unloading.
