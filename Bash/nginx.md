@@ -1022,6 +1022,14 @@ It enables TLS 1.3 ciphers as well as, for TLS 1.2, AES CBC/GCM 128/256 bits, CH
 
 You should be able to reload/restart your Nginx server, and if everything went well, you now have TLS 1.3 support!
 
+tls 1.2参考
+
+```
+ssl_ciphers ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:DHE-RSA-AES256-SHA;
+ssl_prefer_server_ciphers on;
+```
+
+
 >https://angristan.xyz/2018/11/how-to-enable-tls-13-nginx/
 >https://www.linuxidc.com/Linux/2018-11/155252.htm
 
