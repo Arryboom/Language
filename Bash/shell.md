@@ -2267,3 +2267,45 @@ Save and exit.
 >https://serverfault.com/questions/810636/how-to-manage-dns-in-networkmanager-via-console-nmcli
 >https://serverfault.com/questions/690559/how-do-i-force-networkmanager-to-update-etc-resolv-conf
 >https://askubuntu.com/questions/623940/network-manager-how-to-stop-nm-updating-etc-resolv-conf
+
+
+
+#DNF
+DNF的主要命令
+```
+$ dnf --help
+usage: dnf [options] COMMAND
+
+List of Main Commands:
+
+alias                     List or create command aliases
+autoremove                remove all unneeded packages that were originally installed as dependencies
+check                     check for problems in the packagedb
+check-update              check for available package upgrades
+clean                     remove cached data
+deplist                   List package's dependencies and what packages provide them
+distro-sync               synchronize installed packages to the latest available versions
+downgrade                 Downgrade a package
+group                     display, or use, the groups information
+help                      display a helpful usage message
+history                   display, or use, the transaction history
+info                      display details about a package or group of packages
+install                   install a package or packages on your system
+list                      list a package or groups of packages
+makecache                 generate the metadata cache
+mark                      mark or unmark installed packages as installed by user.
+module                    Interact with Modules.
+provides                  find what package provides the given value
+reinstall                 reinstall a package
+remove                    remove a package or packages from your system
+repolist                  display the configured software repositories
+repoquery                 search for packages matching keyword
+repository-packages       run commands on top of all packages in given repository
+search                    search package details for the given string
+shell                     run an interactive DNF shell
+swap                      run an interactive dnf mod for remove and install one spec
+updateinfo                display advisories about packages
+upgrade                   upgrade a package or packages on your system
+upgrade-minimal           upgrade, but only 'newest' package match which fixes a problem that affects your system
+```
+DNF最后的这个upgrade-minimal命令，貌似Yum没有，这个命令看着很不错。总之，能用DNS，就不要再用Yum了。
