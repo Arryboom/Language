@@ -80,8 +80,38 @@ docker image build -t bulletinboard:1.0 .
 
 
 
+#容器的启动/停止命令：
+　　1：停止命令
 
+　　 Docker stop
 
+        Docker kill
+
+　　这两个都可以停止容器
+
+　　区别：
+
+　　stop 发送一个命令等待容器停止： 有等待时间
+
+　　Kill   直接停止容器：没等待时间
+
+　　2：启动命令
+
+　　Docker start    ID/名称  启动一个未运行(已停止)的容器
+
+　　Docker start -i  ID/名称  以交互的方式启动容器(直接会进入容器)
+
+　　这个就不演示了，在使用-I 的时候不是每次都会成功的会卡住。这点注意了
+>https://www.cnblogs.com/szlblog/p/10612280.html
+
+#容器的退出命令
+　　1：exit
+
+　　2：ctrl+d        退出和exit 效果一样。
+
+　　3：ctrl+p ctrl+q  这种组合的退出方式只适用与交互式容器
+
+ 　　以上三个命令是在容器中使用的
 
 
 
