@@ -102,44 +102,62 @@ I have seen professional blogs only recommending to disable firewalld. Not going
 
 
 What's missing from the answers before is the fact that you first need to add your docker interface to the zone you configure, e.g. public (or add it to the "trusted" zone which was suggested here but I doubt that's wise, from a security perspective). Because by default it's not assigned to a zone. Also remember to reload the docker daemon when done.
+```
 # Check what interface docker is using, e.g. 'docker0'
-```
+
 ip link show
-```
+
 # Check available firewalld zones, e.g. 'public'
-```
+
 sudo firewall-cmd --get-active-zones
-```
+
 # Check what zone the docker interface it bound to, most likely 'no zone' yet
-```
+
 sudo firewall-cmd --get-zone-of-interface=docker0
-```
+
 # So add the 'docker0' interface to the 'public' zone. Changes will be visible only after firewalld reload
-```
+
 sudo nmcli connection modify docker0 connection.zone public
-```
+
 # Masquerading allows for docker ingress and egress (this is the juicy bit)
-```
+
 sudo firewall-cmd --zone=public --add-masquerade --permanent
-```
+
 # Optional open required incomming ports (wasn't required in my tests)
-```
+
 # sudo firewall-cmd --zone=public --add-port=443/tcp
-```
+
 # Reload firewalld
-```
+
 sudo firewall-cmd --reload
-```
+
 # Reload dockerd
-```
+
 sudo systemctl restart docker
-```
+
 # Test ping and DNS works:
-```
+
 docker run busybox ping -c 1 172.16.0.1
 docker run busybox cat /etc/resolv.conf
 docker run busybox ping -c 1 yourhost.local
 ```
+
+###funny details
+
+ have changed the FirewallBackend variable to iptables again and it works for me.
+
+    With this update, the nftables filtering subsystem is the default firewall backend for the firewalld daemon. To change the backend, use the FirewallBackend option in the /etc/firewalld.conf file.
+
+Link: Centos8 Deprecated_functionality
+
+I don't have too much information about this behavior change. Some of the iptables rules that Docker tries to use are not working according to the CentOS8 logs:
+
+    WARNING: COMMAND_FAILED: '/usr/sbin/iptables -w10 -D FORWARD -i docker0 -o docker0 -j DROP' failed: iptables: Bad rule (does a matching rule exist in that chain?).
+
+
+
+>https://serverfault.com/questions/987686/no-network-connectivity-to-from-docker-ce-container-on-centos-8
+
 
 ---
 #and don't forgot
