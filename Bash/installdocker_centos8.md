@@ -174,4 +174,11 @@ The box has two physical interfaces on it, eth0 which has a public ip assigned t
 EDIT SOLVED added --iptables=false to the docker options.
 ```
 
+>
+>how did you solve the issue? I'm also stuck at this very problem. After --iptables=false, now docker does not >temper explicitly with iptables but now I'm unable to connect to any host of the internet from inside my >container. I have tried everything found on the internet but still out of luck
+
+---
+
+>https://serverfault.com/questions/713748/firewalld-not-blocking-docker-container-ports
+
 >https://blog.tintinlabs.com/install-docker-ce-on-the-centos-8/
