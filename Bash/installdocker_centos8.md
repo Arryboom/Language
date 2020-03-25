@@ -64,4 +64,96 @@ rtt min/avg/max/mdev = 21.915/22.122/22.330/0.255 ms
 ```
 
 
+
+
+
+
+#security firewalld
+
+
+
+After spending a couple of days looking at logs and configurations for the involved components, I was about to throw in the towel and revert back to Fedora 30, where this seems to work straight out of the box.
+
+Focusing on firewalling, I realized that disabling firewalld seemed to do the trick, but I would prefer not to do that. While inspecting network rules with iptables, I realized that the switch to nftables means that iptables is now an abstraction layer that only shows a small part of the nftables rules. That means most - if not all - of the firewalld configuration will be applied outside the scope of iptables.
+
+I was used to be able to find the whole truth in iptables, so this will take some getting used to.
+
+Long story short - for this to work, I had to enable masquerading. It looked like dockerd already did this through iptables, but apparently this needs to be specifically enabled for the firewall zone for iptables masquerading to work:
+```
+# Masquerading allows for docker ingress and egress (this is the juicy bit)
+firewall-cmd --zone=public --add-masquerade --permanent
+
+# Specifically allow incoming traffic on port 80/443 (nothing new here)
+firewall-cmd --zone=public --add-port=80/tcp
+firewall-cmd --zone=public --add-port=443/tcp
+
+# Reload firewall to apply permanent rules
+firewall-cmd --reload
+```
+Reboot or restart dockerd, and both ingress and egress should work.
+
+
+
+I have seen professional blogs only recommending to disable firewalld. Not going to do that. After some digging, I found people recommending to add the docker0 interface to the trusted zone. That does not seem much better, but I will admit to not knowing if that could be made viable under some environments. Using masquerade seems like a good solution, but I unfamiliar with the term outside of NetworkManager DNS caching. Does it simply mean that the zone is allowed to configure forwarding? – Kevin Oct 18 '19 at 20:05
+
+
+---
+
+
+
+What's missing from the answers before is the fact that you first need to add your docker interface to the zone you configure, e.g. public (or add it to the "trusted" zone which was suggested here but I doubt that's wise, from a security perspective). Because by default it's not assigned to a zone. Also remember to reload the docker daemon when done.
+# Check what interface docker is using, e.g. 'docker0'
+```
+ip link show
+```
+# Check available firewalld zones, e.g. 'public'
+```
+sudo firewall-cmd --get-active-zones
+```
+# Check what zone the docker interface it bound to, most likely 'no zone' yet
+```
+sudo firewall-cmd --get-zone-of-interface=docker0
+```
+# So add the 'docker0' interface to the 'public' zone. Changes will be visible only after firewalld reload
+```
+sudo nmcli connection modify docker0 connection.zone public
+```
+# Masquerading allows for docker ingress and egress (this is the juicy bit)
+```
+sudo firewall-cmd --zone=public --add-masquerade --permanent
+```
+# Optional open required incomming ports (wasn't required in my tests)
+```
+# sudo firewall-cmd --zone=public --add-port=443/tcp
+```
+# Reload firewalld
+```
+sudo firewall-cmd --reload
+```
+# Reload dockerd
+```
+sudo systemctl restart docker
+```
+# Test ping and DNS works:
+```
+docker run busybox ping -c 1 172.16.0.1
+docker run busybox cat /etc/resolv.conf
+docker run busybox ping -c 1 yourhost.local
+```
+
+---
+#and don't forgot
+
+
+I want to explicitly open ports on my centos 7 machine, so I've configured firewalld with drop as the default zone and my external zone on my public facing interface. When I run python -m SimpleHTTPServer 8000 and hit the box on port 8000 it fails. But if I add the port to the external zone. It works. All as expected.
+
+However, when I start a docker container on port 8000, and I hit the box externally, I can get to the service. Which is not what I want to happen. I want that to only be accessible if I open port 8000 on zone external.
+
+Even if I bind the docker container to the public address of the box, it still get around the firewall. I can provide more information if needed like route tables and interface configuration, but I don't quite know what's useful. Looking to learn.
+
+The box has two physical interfaces on it, eth0 which has a public ip assigned to it and eth1 which is connected to the private network, and I want to have accessible.
+```
+EDIT SOLVED added --iptables=false to the docker options.
+```
+
 >https://blog.tintinlabs.com/install-docker-ce-on-the-centos-8/
