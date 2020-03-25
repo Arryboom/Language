@@ -2309,3 +2309,23 @@ upgrade                   upgrade a package or packages on your system
 upgrade-minimal           upgrade, but only 'newest' package match which fixes a problem that affects your system
 ```
 DNF最后的这个upgrade-minimal命令，貌似Yum没有，这个命令看着很不错。总之，能用DNS，就不要再用Yum了。
+
+
+
+#检查服务是否启用/正在运行
+
+不需要grep
+
+
+```
+At this point, we can confirm that the daemon is active by running:
+
+$ systemctl is-active docker
+active
+
+Similarly, we can check that it is enabled at boot, by running:
+
+$ systemctl is-enabled docker
+enabled
+
+```
