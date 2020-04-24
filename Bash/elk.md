@@ -292,7 +292,13 @@ bootstrap.memory_lock: true
 
 ---
 
+simple with kafka
+>https://www.jianshu.com/p/934c457a333c
 
 
 simple structure image
 >https://www.jianshu.com/p/cb696e0cc382
+
+
+logstash tag
+>https://www.jianshu.com/p/934c457a333c
