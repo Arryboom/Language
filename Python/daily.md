@@ -339,3 +339,505 @@ in summary:
 **kw是关键字参数，kw接收的是一个dict
 
 >https://blog.csdn.net/u012005313/article/details/48156887
+
+
+
+
+
+#requests ssl error
+
+ssl self certificate error
+
+###close requests cert verify
+```
+import requests
+'''
+    :param proxies: (optional) Dictionary mapping protocol to the URL of the proxy.
+    :param verify: (optional) Either a boolean, in which case it controls whether we verify
+            the server's TLS certificate, or a string, in which case it must be a path
+            to a CA bundle to use. Defaults to ``True``.
+            
+'''
+
+r = requests.get('https://kyfw.12306.cn',verify=False)
+
+print(r.text)
+```
+这种方式直接在函数里面加如verify改变Ture或者False即可，因为post与get调用的都为request()函数，所以get与post都一样。
+
+如果这种方式奏效就用这种方式，如果不奏效就用下面的一种
+
+```
+import requests
+'''
+    :param verify: (optional) Either a boolean, in which case it controls whether we verify
+            the server's TLS certificate, or a string, in which case it must be a path
+            to a CA bundle to use. Defaults to ``True``.
+            
+'''
+## 证书路径
+cert = '../cert/test.pem'
+
+r = requests.get('https://kyfw.12306.cn',cert=cert)
+print(r.text)
+```
+就用这种，直接把证书的路径丢给verify，请求即可
+
+>https://www.cnblogs.com/dflblog/p/11465044.html
+
+
+
+
+#字符串格式化_String format
+
+##1.%格式化
+
+```
+>>> name = 'liu'
+>>> 'hello, %s' %name
+'hello, liu'
+```
+
+```
+>>> 'hello %s , you are %s' %(name,age)
+'hello liu , you are 18'
+```
+
+```
+>>> first_name = "Chuang"
+>>> last_name = "Liu"
+>>> age = 18
+>>> profession = "comedian"
+>>> affiliation = "Monty Python"
+>>> "Hello, %s %s. You are %s. You are a %s. You were a member of %s." % (first_name, last_name, age, profession, affiliation)
+'Hello, Chuang Liu. You are 18. You are a comedian. You were a member of Monty Python.'
+```
+
+##2.str.format()
+
+它使用普通的函数调用语法, 通过 format() 方法将对象转换成为 string
+str.format() 被替换的部分使用 {} 占位
+```
+>>> 'hello {}, you are {}'.format(name, age)
+'hello liu, you are 18'
+```
+
+可以插入索引选择变量的顺序
+```
+>>> 'hello {1}, you are {0}'.format(age, name)
+'hello liu, you are 18'
+```
+可以插入变量名
+
+```
+>>> person = {'name': 'liu', 'age': 18}
+>>> "Hello, {name}. You are {age}.".format(name=person['name'], age=person['age'])
+'Hello, liu. You are 18.'
+```
+上面的操作可以使用 ** 对字典解包
+```
+>>> "Hello, {name}. You are {age}.".format(**person)
+'Hello, liu. You are 18.'
+>>>
+```
+
+
+相比第一代，已经好很多了，但是对于多参数，长字符处理起来还是很冗杂
+
+```
+>>> first_name = "Chuang"
+>>> last_name = "Liu"
+>>> age = 18
+>>> profession = "comedian"
+>>> affiliation = "Monty Python"
+>>> print(("Hello, {first_name} {last_name}. You are {age}. " +
+>>>        "You are a {profession}. You were a member of {affiliation}.") \
+>>>        .format(first_name=first_name, last_name=last_name, age=age, \
+>>>                profession=profession, affiliation=affiliation))
+'Hello, Chuang Liu. You are 18. You are a comedian. You were a member of Monty Python.'
+```
+
+上面的写成字典形式会好很多
+
+```
+>>> print(("Hello, {first_name} {last_name}. You are {age}. " +
+...        "You are a {profession}. You were a member of {affiliation}.") \
+...        .format(**person))
+Hello, Chuang Liu. You are 18. You are a comedian. You were a member of Monty Python.
+```
+
+##3.f-strings ; 更好的 字符串格式化方式
+
+
+类似于 str.format, 但是更加简洁
+```
+>>> name = 'liu'
+>>> age  = 18
+>>> f" hello, {name}, you are {age} ."
+' hello, liu, you are 18 .'
+```
+
+任意的表达式
+
+因为 f-stirngs是在运行的时候计算， 可以在括号里放置任何有效的 python 表达式
+1.可以直接写入括号
+
+```
+>>> f'{2*2+3}'
+'7'
+>>>
+```
+
+
+2.可以调用函数
+```
+>>> def add_number(a,b):
+...     return a+b
+
+>>> a , b = 1, 2
+>>> f'{a} + {b} = {add_number(a,b)}'
+'1 + 2 = 3'
+```
+
+3.可以直接调用 内置的 method
+
+```
+>>> name= 'LIU'
+>>> f"{name.lower()} is funny."
+'liu is funny.'
+```
+
+4.甚至可以是 class 里面的对象
+
+
+```
+class Person:
+    def __init__(self, first_name, last_name, age):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.age = age
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} is {self.age}."
+
+    def __repr__(self):
+        return f"{self.first_name} {self.last_name} is {self.age}. repr is calling!"
+
+
+liu = Person('Chuang','liu',18)
+
+f'{liu}'
+Out[3]: 'Chuang liu is 18.'
+```
+
+str() 和 repr() 方法将对象展示为字符，在 class 定义中， 确保至少包括其中一个方法。 如果只能选一个，建议使用 repr() ，因为它可以代替 str() .
+
+str() 的返回值是对象的一个非正式的字符表示，应该具有可读性
+repr() 的返回值是一个官方正式的表达。
+
+默认的 f-strings 使用 str() , 可以使用转换标志 !r 强制使用 repr()
+
+
+
+
+
+````
+f'{liu}'
+Out[3]: 'Chuang liu is 18.'
+
+f'{liu!r}'
+Out[4]: 'Chuang liu is 18. repr is calling!'
+```
+
+
+ ###多行的 f-strings
+
+每一行开头都需要放置一个 f
+
+```
+name = "liu"
+profession = "comedian"
+affiliation = "Monty Python"
+message = (
+    f"Hi {name}. "
+    f"You are a {profession}. "
+    f"You were in {affiliation}."
+)
+
+
+
+message
+Out[6]: 'Hi liu. You are a comedian. You were in Monty Python.'
+```
+
+如果不放 f ， {} 就会是代表原始的意义
+
+
+
+
+```
+name = "liu"
+
+profession = "comedian"
+affiliation = "Monty Python"
+message = (
+    f"Hi {name}. "
+    "You are a {profession}. "
+    "You were in {affiliation}."
+)
+
+
+
+message
+Out[8]: 'Hi liu. You are a {profession}. You were in {affiliation}.'
+```
+
+使用 \ 作多行分割
+
+
+```
+>>> message = f"Hi {name}. " \
+...           f"You are a {profession}. " \
+...           f"You were in {affiliation}."
+>>> message
+'Hi liu. You are a comedian. You were in Monty Python.'
+>>> print(message)
+Hi liu. You are a comedian. You were in Monty Python.
+```
+
+```
+
+>>> message = f"""
+...     Hi {name}.
+...     You are a {profession}.
+...     You were in {affiliation}.
+... """
+>>> message
+'\n    Hi liu. \n    You are a comedian. \n    You were in Monty Python.\n'
+>>> print(message)
+
+    Hi liu.
+    You are a comedian.
+    You were in Monty Python.
+
+>>>
+```
+
+
+###f string 转义
+
+可以使用各种各样的符号，只要不和外面的符号重复
+
+```
+>>> f"{'liu'}"
+'liu'
+
+>>> f'{"liu"}'
+'liu'
+
+>>> f"""liu"""
+'liu'
+
+>>> f'''liu'''
+'liu'
+
+>>> f'"liu"'
+'"liu"'
+
+>>> f"'liu'"
+"'liu'"
+```
+
+如果需要使用相同的， 可以转义
+```
+>>> f"The \"old man \" is  actually {age}"
+'The "old man " is  actually 18'
+```
+
+
+f-string大括号内所用的引号不能和大括号外的引号定界符冲突，可根据情况灵活切换 ' 和 "：
+
+
+```
+>>> f'I am {"Eric"}'
+'I am Eric'
+>>> f'I am {'Eric'}'
+  File "<stdin>", line 1
+    f'I am {'Eric'}'
+                ^
+SyntaxError: invalid syntax
+```
+
+若 ' 和 " 不足以满足要求，还可以使用 ''' 和 """：
+```
+>>> f"He said {"I'm Eric"}"
+  File "<stdin>", line 1
+    f"He said {"I'm Eric"}"
+                ^
+SyntaxError: invalid syntax
+
+>>> f'He said {"I'm Eric"}'
+  File "<stdin>", line 1
+    f'He said {"I'm Eric"}'
+                  ^
+SyntaxError: invalid syntax
+
+>>> f"""He said {"I'm Eric"}"""
+"He said I'm Eric"
+>>> f'''He said {"I'm Eric"}'''
+"He said I'm Eric"
+```
+
+大括号外的引号还可以使用 \ 转义，但大括号内不能使用 \ 转义：
+```
+>>> f'''He\'ll say {"I'm Eric"}'''
+"He'll say I'm Eric"
+>>> f'''He'll say {"I\'m Eric"}'''
+  File "<stdin>", line 1
+SyntaxError: f-string expression part cannot include a backslash
+```
+
+
+f-string大括号外如果需要显示大括号，则应输入连续两个大括号 {{ 和 }}：
+
+```
+>>> f'5 {"{stars}"}'
+'5 {stars}'
+>>> f'{{5}} {"stars"}'
+'{5} stars'
+```
+
+上面提到，f-string大括号内不能使用 \ 转义，事实上不仅如此，f-string大括号内根本就不允许出现 \。如果确实需要 \，则应首先将包含 \ 的内容用一个变量表示，再在f-string大括号内填入变量名：
+
+```
+
+
+>>> f"newline: {ord('\n')}"
+  File "<stdin>", line 1
+SyntaxError: f-string expression part cannot include a backslash
+
+>>> newline = ord('\n')
+>>> f'newline: {newline}'
+'newline: 10'
+```
+
+
+>https://liuchuang0059.github.io/2019/08/20/python%20%E4%B8%AD%20f%20Strings%E7%94%A8%E6%B3%95/index.html
+
+
+
+#去除空行
+
+###字符串
+```
+mystr = 'adfa\n\n\ndsfsf'
+print("".join([s for s in mystr.splitlines(True) if s.strip()]))
+```
+
+###文件
+```
+hand = open('box.txt', 'r')
+for line in hand:
+    line = line.rstrip() # or strip
+    print line
+```
+
+```
+#!/usr/bin/env python
+
+import sys
+
+get = []
+
+for line in sys.stdin:
+    get.append(line.strip())
+        
+print(get)
+```
+
+
+#utf8解码
+
+```
+str.decode("utf-8")
+```
+
+
+
+#unescape html
+
+Python 3.4+
+Use html.unescape():
+```
+import html
+print(html.unescape('&pound;682m'))
+```
+FYI html.parser.HTMLParser.unescape is deprecated, and was supposed to be removed in 3.5, although it was left in by mistake. It will be removed from the language soon.
+
+Python 2.6-3.3
+You can use HTMLParser.unescape() from the standard library:
+
+For Python 2.6-2.7 it's in HTMLParser
+For Python 3 it's in html.parser
+```
+>>> try:
+...     # Python 2.6-2.7 
+...     from HTMLParser import HTMLParser
+... except ImportError:
+...     # Python 3
+...     from html.parser import HTMLParser
+... 
+>>> h = HTMLParser()
+>>> print(h.unescape('&pound;682m'))
+£682m
+```
+You can also use the six compatibility library to simplify the import:
+```
+>>> from six.moves.html_parser import HTMLParser
+>>> h = HTMLParser()
+>>> print(h.unescape('&pound;682m'))
+£682m
+```
+
+
+###error
+HTMLParser.unescape() returns a unicode object, and therefore has to convert your input str. So it asks for the default encoding (which in your case is ASCII) and fails to interpret '\xe9' as an ASCII character (because it isn't). I guess your file encoding is ISO-8859-1 where '\xe9' is 'é'.
+
+There are two easy solutions. Either you do the conversion manually:
+```
+import HTMLParser
+parser = HTMLParser.HTMLParser()
+input = 'Rudimental &amp; Emeli Sand\xe9'
+input = input.decode('iso-8859-1')
+output = parser.unescape(input)
+```
+or you use codecs.open() instead of open() whenever you are working with files:
+```
+import codecs
+import HTMLParser
+parser = HTMLParser.HTMLParser()
+input = codecs.open("import.txt", encoding="iso-8859-1").readline()
+output = parser.unescape(input)
+```
+
+>https://stackoverflow.com/questions/21342549/unescaping-html-with-special-characters-in-python-2-7-3-raspberry-pi
+
+
+#编码转换_encode_decode
+
+```
+It's an encoding error - so if it's a unicode string, this ought to fix it:
+
+text.encode("windows-1252").decode("utf-8")
+If it's a plain string, you'll need an extra step:
+
+text.decode("utf-8").encode("windows-1252").decode("utf-8")
+Both of these will give you a unicode string.
+
+By the way - to discover how a piece of text like this has been mangled due to encoding issues, you can use chardet:
+
+>>> import chardet
+>>> chardet.detect(u"And the Hipâ€™s coming, too")
+{'confidence': 0.5, 'encoding': 'windows-1252'}
+```
+
