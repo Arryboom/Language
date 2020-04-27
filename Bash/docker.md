@@ -175,8 +175,43 @@ firewall-cmd reload
 service docker restart
 ```
 
+or
 
+```
+firewall-cmd --permanent --zone=public --add-rich-rule=‘rule family=ipv4 source address=172.17.0.0/16 accept’ && firewall-cmd --reload
+```
 
+or 
+
+Best Solution: add the docker networks/interfaces to a trusted zone.
+
+In the host:
+
+1: Find the network interfaces used by docker - run the command:
+```
+nmcli
+```
+and will show all network interfaces in the computer. The docker interfaces are: docker0 and br-xxxxxxxx (i think that depends on how many networks you have in the cluster)
+
+For me, was 3 networks.
+
+2- Add all interfaces to trusted zone with the command:
+```
+firewall-cmd --zone=trusted --change-interface=docker0 --permanent
+firewall-cmd --zone=trusted --change-interface=brxxxxx --permanent
+firewall-cmd --zone=trusted --change-interface=bryyyyy --permanent
+```
+3- Reload the firewall with the command:
+```
+firewall-cmd --reload
+```
+And will work :slight_smile:
+
+If you want to test if the problem is the firewall or not you can disable the all the firewall with:
+```
+systemctl disable firewalld
+```
+>https://forums.docker.com/t/mysql-2002-no-route-to-host/90217/14
 
 ---
 
