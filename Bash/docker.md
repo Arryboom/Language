@@ -170,7 +170,10 @@ CMD cron -f
 
 on host execute
 ```
-firewall-cmd --zone=public --add-masquerade --permanent```
+firewall-cmd --zone=public --add-masquerade --permanent
+firewall-cmd reload
+service docker restart
+```
 
 
 
