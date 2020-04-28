@@ -2329,3 +2329,15 @@ $ systemctl is-enabled docker
 enabled
 
 ```
+
+
+
+#Centos list all service
+
+
+使用 systemctl list-unit-files 可以查看所有服务 ，
+
+因为用chkconfig --list命令不包含原生systemd服务
+
+过滤查询可以systemctl list-unit-files | grep enable 过滤查看启动项如下
+
