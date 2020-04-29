@@ -276,3 +276,56 @@ Always use the update option (when updating). Do not remove and reinstall the os
 Do not re-use the same agent key between multiple agents or the same agent key after you remove/re-install an agent. If you use the “update” options everything should just work.
 
 >https://www.ossec.net/docs/docs/faq/unexpected.html
+
+
+**How to force an immediate syscheck scan?**
+Run agent control tool to perform a integrity checking immediately (option -a to run on all the agents and -u to specify an agent id)
+
+# /var/ossec/bin/agent_control -r -a
+# /var/ossec/bin/agent_control -r -u <agent_id>
+For more information see the agent_control documentation.
+
+
+**How to ignore a file that changes too often?**
+Set the file/directory name in the <ignore> option or create a simple local rule.
+
+The following one will ignore files /etc/a and /etc/b and the directory /etc/dir for agents mswin1 and ubuntu-dns:
+```
+<rule id="100345" level="0" >
+    <if_group>syscheck</if_group>
+    <description>Changes ignored.</description>
+    <match>/etc/a|/etc/b|/etc/dir</match>
+    <hostname>mswin1|ubuntu-dns</hostname>
+</rule>
+```
+
+
+**How to get detailed reporting on the changes?**
+Use the syscheck_control tool on the manager or the web ui for that.
+
+More information see the syscheck_control documentation.
+
+
+**Why aren’t new files creating an alert?**
+By default OSSEC does not alert on new files. To enable this functionality, <alert_new_files> must be set to yes inside the <syscheck> section of the manager’s ossec.conf. Also, the rule to alert on new files (rule 554) is set to level 0 by default. The alert level will need to be raised in order to see the alert. Alerting on new files does not work in realtime, a full scan will be necessary to detect them.
+
+Add the following to local_rules.xml:
+
+<rule id="554" level="10" overwrite="yes">
+  <category>ossec</category>
+  <decoded_as>syscheck_new_entry</decoded_as>
+  <description>File added to the system.</description>
+  <group>syscheck,</group>
+</rule>
+The <alert_new_files> entry should look something like this:
+
+<syscheck>
+  <frequency>7200</frequency>
+  <alert_new_files>yes</alert_new_files>
+  <directories check_all="yes">/etc,/bin,/sbin</directories>
+</syscheck>
+
+
+
+**How do I stop syscheck alerts during system updates?**
+There is no easy way to do this, but there are work-arounds. Stop the OSSEC processes on the manager, and run /var/ossec/bin/syscheck_control -u AGENT_ID. This will clear the syscheck database for the agent, and the next time syscheck runs it will create a new baseline. Next, start the OSSEC processes on the manager. Once the system update is complete, run a syscheck scan on that agent. The database will be populated with new values, and should not trigger “file modified” alarms.

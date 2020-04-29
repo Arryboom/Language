@@ -2341,3 +2341,18 @@ enabled
 
 过滤查询可以systemctl list-unit-files | grep enable 过滤查看启动项如下
 
+
+
+#Check All available shell
+
+想知道你的系统有几种shell，可以通过以下命令查看：
+
+cat /etc/shells
+显示如下：
+
+/bin/bash
+/bin/csh
+/bin/ksh
+/bin/sh
+/bin/tcsh
+/bin/zsh
