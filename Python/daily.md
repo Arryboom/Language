@@ -841,3 +841,674 @@ By the way - to discover how a piece of text like this has been mangled due to e
 {'confidence': 0.5, 'encoding': 'windows-1252'}
 ```
 
+
+
+
+#数据持久化
+
+>https://www.cnblogs.com/followlqc/p/11088866.html
+>https://www.iteye.com/blog/smartzxy-680431
+>https://www.cnblogs.com/progor/p/8463610.html
+>https://docs.python.org/zh-cn/3/library/persistence.html
+>https://www.cnblogs.com/huajiezh/p/5470770.html
+
+
+
+```
+ 什么是数据持久化
+1.什么是持久化？
+
+　　狭义的理解:“持久化”仅仅指把域对象永久保存到数据库中；
+
+　　广义的理解,“持久化”包括和数据库相关的各种操作。
+
+　　　　● 保存：把域对象永久保存到数据库。
+
+　　　　● 更新：更新数据库中域对象的状态。
+
+　　　　● 删除：从数据库中删除一个域对象。
+
+　　　　● 加载：根据特定的OID，把一个域对象从数据库加载到内存。
+
+　　　　● 查询：根据特定的查询条件，把符合查询条件的一个或多个域对象从数据库加载内在存中。
+
+2．为什么要持久化？
+
+　　持久化技术封装了数据访问细节，为大部分业务逻辑提供面向对象的API。
+
+　　　　● 通过持久化技术可以减少访问数据库数据次数，增加应用程序执行速度；
+
+　　　　● 代码重用性高，能够完成大部分数据库操作；
+
+　　　　● 松散耦合，使持久化不依赖于底层数据库和上层业务逻辑实现，更换数据库时只需修改配置文件而不用修改代码。
+```
+
+
+##1
+1、pymongo的使用
+
+　　前三步为创建对象
+
+　　第一步创建连接对象
+
+　　conn = pymongo.MongoClient('IP地址'，27017)
+
+　　第二步创建库
+
+　　db = conn['库名']
+
+　　第三步创建表
+
+　　myset = db['集合名']
+
+　　第四步把数据插入数据库
+
+　　myset.inset.one({})
+
+
+```
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# @Time : 2019/6/26 8:56
+# @Author : #####
+# @Site :
+# @File : 猫眼电影_mongo存储.py
+# @Software: PyCharm
+ 
+from urllib import  request
+import re
+import time
+import pymongo
+ 
+class MaoyanSpider(object):
+    def __init__(self):
+        self.headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.26 Safari/537.36 Core/1.63.5221.400 QQBrowser/10.0.1125.400'}
+ 
+        #用来计数
+        self.page=1
+        #连接对象
+        self.coon =pymongo.MongoClient('locslhost',27017)
+        #创建库对象
+        self.db=self.coon['maoyaodb']
+ 
+        #集合对象
+        self.myset=self.db['top100']
+    def get_page(self,url):
+        req = request.Request(url,headers=self.headers)
+        res = request.urlopen(req)
+        html = res.read().decode('utf-8')
+        self.parse_page(html)
+ 
+    def parse_page(self,html):
+        p = re.compile( '<div class="movie-item-info">.*?title="(.*?)".*?class="star">(.*?)</p>.*?class="releasetime">(.*?)</p>',re.S)
+ 
+        r_list = p.findall(html)
+ 
+        self.write_mongo(r_list)
+ 
+ 
+    def write_mongo(self,r_list):
+ 
+        for r_t in r_list:
+            d={
+                '电影名称：':r_t[0].strip(),
+                '电影主演：':r_t[1].strip(),
+                '上映时间：':r_t[2].strip()
+            }
+        #插入数据库
+            self.myset.inset.one(d)
+    def work_on(self):
+        for pn in range(0,41,10):
+            url = 'https://maoyan.com/board/4?offset=%s' % str(pn)
+ 
+            self.get_page(url)
+            print('第%d页爬取成功' % self.page)
+            self.page += 1
+            time.sleep(4)
+ 
+if __name__ ==  '__main__':
+    begin = time.time()
+    spider = MaoyanSpider()
+    spider.work_on()
+    end = time.time()
+    print("执行时间%.2f" % (end - begin))<br><br>#注不完美，仍然需修改
+```
+
+
+2、mysql的使用
+
+　　Mysql-front可视化工具，建库建表添加字段
+
+　　1、创建连接对象：db = pymysql.connet
+
+　　2、创建游标对象：cursor = db.sursor
+
+　　3、执行命令：cursor.execute()
+
+　　4、提交到数据库执行
+
+　　5、关闭：cursor.close
+
+mysql-Front使用流程
+
+　　1、创建数据库：
+
+　　　　localhost--数据库--新建---数据库
+
+　　　　数据库名改为maoyan （项目mysql库名）--- 字符集utf8 ---确定
+
+　　2、创建表：
+
+　　　　流程：选中maoyao数据库 --选中数据 ----新建 ----出现添加菜单 ---名称改为top100 ---创建成功
+
+　　3、往表格中添加字段：
+
+　　　　流程：选中top100表单  --- 数据库  ----新建  ----字段  ---出现添加界面 ----名称改为name  ---默认varchar  ---- 长度50  --确定
+
+　　　　用同样的方法穿件字段star和time
+
+　　　　ID一般设置为int 长度视情况而定
+
+
+---
+
+
+##2
+
+      最近喜欢上了Python，喜欢它的简洁高效，喜欢它的“无所不能”。
+
+ 
+
+      在动手我计划的项目之前，打算先储备些基础知识。之前已经对基本的语法熟悉了，现在该对数据操作做一些深入了。Python的数据持久化操作主要是六类：普通文件、DBM文件、Pickled对象存储、shelve对象存储、对象数据库存储、关系数据库存储。
+
+ 
+
+      普通文件不解释了，DBM就是把字符串的键值对存储在文件里：
+
+```
+% python  
+>>> import anydbm                             
+>>> file = anydbm.open('movie', 'c')        # make a DBM file called 'movie'  
+>>> file['Batman'] = 'Pow!'                 # store a string under key 'Batman'  
+>>> file.keys( )                                 # get the file's key directory  
+['Batman']  
+>>> file['Batman']                          # fetch value for key 'Batman'  
+'Pow!'  
+```
+ Pickled就是把对象序列化到文件，可以存储复杂类型：
+```
+% python  
+>>> table = {'a': [1, 2, 3],  
+             'b': ['spam', 'eggs'],  
+             'c': {'name':'bob'}}  
+>>>  
+>>> import pickle  
+>>> mydb  = open('dbase', 'w')  
+>>> pickle.dump(table, mydb)  
+```
+
+
+下面是反序列化：
+
+```
+% python  
+>>> import pickle  
+>>> mydb  = open('dbase', 'r')  
+>>> table = pickle.load(mydb)  
+>>> table  
+{'b': ['spam', 'eggs'], 'a': [1, 2, 3], 'c': {'name': 'bob'}}  
+```
+
+shelve存储差不多就是DBM和Pickled方式的结合，以键值对的形式把对象序列化到文件：
+
+```
+% python  
+>>> import shelve  
+>>> dbase = shelve.open("mydbase")  
+>>> object1 = ['The', 'bright', ('side', 'of'), ['life']]  
+>>> object2 = {'name': 'Brian', 'age': 33, 'motto': object1}  
+>>> dbase['brian']  = object2  
+>>> dbase['knight'] = {'name': 'Knight', 'motto': 'Ni!'}  
+>>> dbase.close( )  
+```
+
+
+ 取数据：
+
+```
+% python  
+>>> import shelve  
+>>> dbase = shelve.open("mydbase")  
+>>> len(dbase)                             # entries  
+2  
+  
+>>> dbase.keys( )                          # index  
+['knight', 'brian']  
+  
+>>> dbase['knight']                        # fetch  
+{'motto': 'Ni!', 'name': 'Knight'}  
+
+```
+
+---
+
+
+##3
+
+数据持久化的方式有：
+
+1.普通文件无格式写入：将数据直接写入到文件中
+
+2.普通序列化写入：json,pickle
+
+3.DBM方式：shelve,dbm
+
+
+- json
+- pickle
+- shelve
+- dbm
+
+###json
+介绍：
+按照指定格式【比如格式是字典，那么文件中就是字典】将数据明文写入到文件中，类型是bytes的，比如”中文“就会变成Unicode编码
+![904B8AFA-DFBD-5CEB-9552-D6BD5AB5D044]
+
+用法：
+- 首先要导入模块import json
+- 序列化：
+  - json.dump(序列化对象，文件对象)
+  - json.dumps(序列化对象)，返回值是一个字符串，需要手动将这个字符串写入到文件中
+
+
+```
+print("------json序列化--------")
+import json
+import time
+info={
+    'date':time.localtime(),
+    'name':'中文'
+}
+f=open("test.txt","w")
+
+print("---------dump---------")
+# json.dump(info,f)
+# f.close()
+print("---------dumps，---------")
+f.write(json.dumps(info))
+f.close()
+```
+
+- 反序列化：
+  - json.load(文件对象)
+  - json.loads(字符串)
+
+
+```
+print("------反序列化--------")
+import json
+f=open("test.txt","r")
+
+print("-------load----------")
+# data=json.load(f)#1
+# print(data)
+print("-------loads----------")
+d2=json.loads(f.read())
+print(d2)
+f.close()
+```
+
+对于多次dump\dumps，如何load\loads取出来：
+
+- 需要在dump的时候,手动对数据进行划分
+
+```
+print("------json序列化--------")
+import json
+import time
+info={
+    'date':time.localtime(),
+    'name':'中文'
+   # 'func':hello #注：json不可序列化函数
+}
+info2=['1',2,3,4]
+f=open("test.txt","w")
+
+print("---------dumps，---------")#用'\n'来区分两份数据
+f.write(json.dumps(info)+"\n")
+f.write(json.dumps(info2)+"\n")
+
+f.close()
+```
+
+
+```
+import json
+with open("test.txt") as f:
+    a=json.loads(f.readline())
+    b=json.loads(f.readline())
+    print(a,b)
+```
+
+
+###pickle
+
+介绍：
+用于实现Python数据类型与Python特定二进制格式之间的转换
+参数protocol规定了序列化的协议版本，默认情况下使用pikkle序列化数据是bytes的，打开文件的方式必须为二进制格式
+
+
+用法：
+- 首先导入模块import pickle
+- 序列化：
+  - pickle.dump(序列化对象，文件对象)
+  - pickle.dumps(序列化对象),返回值是一个字符串，需要手动将这个字符串写入到文件中
+
+
+```
+import pickle
+
+info={
+    'name':'1',
+    'age':2,
+}
+
+f=open("test2.txt","wb")
+pickle.dump(info,f)#序列化方法1
+# f.write(pickle.dumps(info))#序列化方法2
+f.close()
+```
+
+- 反序列化：
+  - pickle.load(文件对象)
+  - pickle.loads(字符串)
+
+```
+print("------反序列化--------")
+import pickle
+
+
+f=open("test2.txt","rb")
+data=pickle.loads(f.read())#反序列方法1
+print(data)
+
+
+# data=pickle.load(f)#反序列方法2
+# print(data)
+f.close()
+```
+
+
+###shelve
+
+
+专门用于将Python数据类型的数据持久化到磁盘，操作类似于dict
+
+
+- 首先导入模块import
+- shelve打开一个文件: shelve文件对象 = shelve.open(文件名)
+- 写入：shelve文件对象[key]=value
+- 读出：shelve文件对象.get(key)
+
+
+```
+import shelve,time
+
+d = shelve.open('shelve_test')  # 打开一个文件
+
+print("----------写----------")
+
+info ={"name":'lilei',"sex":"man"}
+name = ["autuman", "zhangsan", "lisi"]
+
+d["teacher"] = name
+d["student"] = info
+d["date"] = time.ctime()
+
+print("--------读------------")
+print(d.get("teacher"))
+print(d.get("student"))
+print(d.get("date"))
+
+
+d.close()
+```
+
+shelve可以很方便的序列化自定义的数据类型、函数：
+
+```
+import shelve,time
+
+
+class A:
+    def hello(self):
+        print("123")
+d = shelve.open('shelve_test')  # 打开一个文件
+
+print("----------写----------")
+
+d['class'] =A
+
+print("--------读------------")
+
+a=d.get('class')()
+a.hello()
+
+d.close()
+```
+
+
+###dbm:
+
+
+dbm与shelve非常类似，但dbm的键和值必须是字符串类型
+dbm默认写入的数据是bytes的，将所有字符串都序列化成bytes的
+
+
+
+- 首先导入模块imort dbm【注意的是由很多个不同的dbm，可以选择来使用,这里使用默认】
+- 打开文件：dbm对象=dbm.open(文件名，打开模式)
+
+![33031A96-586A-2A63-4189-7EB079CAF7F6]
+
+- 写入：dbm对象[key]=value
+- 读取: dbm对象[key]
+
+
+```
+import dbm
+
+db=dbm.open("test.txt","c")
+
+print("写".center(50,'-'))
+db["name"]="1111111111112"
+db["name2"]="2222222222222"
+
+print("读".center(50,'-'))
+print(db["name"])
+print(db["name2"])
+
+db.close()
+```
+
+###django 持久化
+
+
+如果使用了Django框架，可以使用它自带的ORM工具来操作数据库。首先当然是编写实体类（或者叫模型）了：
+
+```
+from django.db import models  
+ 
+class Musician(models.Model):  
+    first_name = models.CharField(max_length=50)  
+    last_name = models.CharField(max_length=50)  
+    instrument = models.CharField(max_length=100)  
+ 
+class Album(models.Model):  
+    artist = models.ForeignKey(Musician)  
+    name = models.CharField(max_length=100)  
+    release_date = models.DateField()  
+    num_stars = models.IntegerField()
+
+```
+
+
+Python的代码已经很清楚了，类对应表，成员变量对应表的列，列属性由models.XXXField(…)定义。如果实体类没有显式定义主键，Django会默认加上一句：
+```
+id = models.AutoField(primary_key=True)
+```
+
+Django里可以这样定义枚举型数据：
+
+```
+class Person(models.Model):  
+    GENDER_CHOICES = (  
+        (u'M', u'Male'),  
+        (u'F', u'Female'),  
+    )  
+    name = models.CharField(max_length=60)  
+    gender = models.CharField(max_length=2, choices=GENDER_CHOICES)
+```
+
+对于关联关系，在做列的映射定义时可以这么写：
+
+```
+poll = models.ForeignKey(Poll)  
+sites = models.ManyToManyField(Site)  
+place = models.OneToOneField(Place")
+```
+
+在Django里定义关联关系还有更多功能，详细的还是看官方文档吧~
+
+Django的Model基类中已经定义了基本的数据库操作，因为所有的实体类都是继承自Model类，所以也就有了这些操作。例如新建并保存一个person只需要这么做：
+
+
+```
+>>> p = Person(name="Fred Flinstone", gender="M")  
+>>> p.save()
+```
+
+
+Django会通过查询对象的主键是否存在来决定该UPDATE还是INSERT，当然你也可以强制框架执行某种操作。如果你不满意框架自带的方法，可以重写它：
+
+```
+class Blog(models.Model):  
+    name = models.CharField(max_length=100)  
+    tagline = models.TextField()  
+ 
+    def save(self, *args, **kwargs):  
+        do_something()  
+        super(Blog, self).save(*args, **kwargs) # Call the "real" save() method.  
+        do_something_else()
+```
+
+发现没，Django里存取数据不需要那种session，最讨厌Hibernate里的session了，总是报“Session Closed”错误……
+
+
+
+###SQLAlchemy
+
+
+Python还有一个独立的ORM框架——SQLAlchemy。功能更强大，支持的数据库也比Django自带的ORM工具要多。它有两种建立实体类的方法。
+
+一种是分开定义，再将表定义和类定义映射起来。首先是建立表的定义：
+
+```
+>>> from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey  
+>>> metadata = MetaData()  
+>>> users_table = Table('users', metadata,  
+...     Column('id', Integer, Sequence('user_id_seq'), primary_key=True),  
+...     Column('name', String(50)),  
+...     Column('fullname', String(50)),  
+...     Column('password', String(12))  
+... )
+```
+
+
+接着定义实体类：
+
+```
+
+>>> class User(object):  
+...     def __init__(self, name, fullname, password):  
+...         self.name = name  
+...         self.fullname = fullname  
+...         self.password = password
+```
+
+
+这还没完，还要把他们映射起来：
+
+```
+>>> from sqlalchemy.orm import mapper  
+>>> mapper(User, users_table)
+```
+
+这样的过程有点像Hibernate里将XML的Map文件和实体类的映射。Hibernate中还可以方便的直接用注释在实体类中完成与表的映射，当然SQLAlchemy也有直接的方法：
+
+
+```
+>>> from sqlalchemy.ext.declarative import declarative_base  
+ 
+>>> Base = declarative_base()  
+>>> class User(Base):  
+...     __tablename__ = 'users' 
+...  
+...     id = Column(Integer, primary_key=True)  
+...     name = Column(String)  
+...     fullname = Column(String)  
+...     password = Column(String)
+```
+
+作为一个独立的ORM框架，实体类的存取当然就不会像Django那样集成的那么完美了，SQLAlchemy里存取数据也是要Session的：
+
+```
+>>> from sqlalchemy.orm import sessionmaker  
+>>> Session = sessionmaker(bind=engine)
+```
+
+这里的engine对象需要这样建立：
+
+```
+>>> from sqlalchemy import create_engine  
+>>> engine = create_engine('<span style="font-family: monospace; white-space: normal; color: #333333; line-height: 20px;">dialect+driver://user:password@host/dbname[?key=value..]</span>', echo=True)
+```
+
+对于存取操作，如果是保存就这么写：
+
+```
+>>> ed_user = User('ed', 'Ed Jones', 'edspassword')  
+>>> session.add(ed_user)
+```
+
+如果要查询，就是类似的这种形式：
+
+```
+>>> our_user = session.query(User).filter_by(name='ed').first()
+
+```
+
+
+执行完一些数据操作，必要的时候要提交或是回滚：
+
+```
+>>> session.rollback()  
+或者  
+>>> session.commit()
+```
+
+SQLAlchemy框架还有一个衍生产品——Elixir，在SQLAlchemy的基础上对其映射方式做了些封装，使得实体类的定义有点类似Django中的定义方式。
+
+话说Django的ORM与它的其他模块结合的很紧密，不好单独使用；SQLAlchemy虽然强大，但风格不太喜欢，所以下一步打算深入两个ORM框架的代码，看看他们是怎么实现的。一方面好抉择用哪一个，另外也可以看看在自己的应用中能否自己做一个简单的ORM。
+
+
+
+[904B8AFA-DFBD-5CEB-9552-D6BD5AB5D044]:data:image/png;base64,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
+
+
+
+
+
+
+
+[33031A96-586A-2A63-4189-7EB079CAF7F6]:data:image/png;base64,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
