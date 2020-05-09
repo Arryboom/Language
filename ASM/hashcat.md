@@ -376,3 +376,31 @@ This should be pretty quick if your graphics cards have enough horse power.
 ## Reference
 
 -   [https://www.4armed.com/blog/perform-mask-attack-hashcat/](https://www.4armed.com/blog/perform-mask-attack-hashcat/)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#about CUDA
+
+
+### Updating GPU Drivers from the Command-Line (Recommended)
+
+1.  Access the Terminal.
+2.  Run `sudo lshw -c display` OR `sudo lshw -c video` to display the Ubuntu 18.04 stock-drivers loaded for the Nvidia GeForce GTX 1080 GPU cards.
+3.  Since we haven’t installed any drivers from the command-line yet, the driver-detail within the configuration field should display “driver=nouveau”.
+4.  Run `sudo ubuntu-drivers devices`
+5.  After running the above command, only two drivers will be displayed (e.g. ‘nvidia-driver-390 – distro non-free recommended’ and ‘xserver-xorg-video-nouveau – distro free builtin’); we want the latter ‘non-free recommended’- so run `sudo apt install nvidia-driver-version-number` (e.g. `sudo apt install nvidia-driver-390`).
+6.  After installing the drivers from the command-line, reboot the computer by running `sudo shutdown -r now`.
+7.  If after rebooting your welcome-screen hangs, click on the settings-wheel icon, select the “Ubuntu on wayland” and then re-enter password.
+8.  Access the terminal and run `sudo lshw -c display`; the driver field should now display “nvidia” instead of “nouveau”.
