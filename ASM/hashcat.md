@@ -1,3 +1,11 @@
+Your hash is base64 coded. You must decode this before use john. You can use the command :
+
+base64 -d <hash>
+If you want to be sure of the hash format, you can use :
+```
+hash-identifier
+```
+
 # Hashcat NTLM Hash Brute Force Notes
 
 >https://cyberloginit.com/2017/12/26/hashcat-ntlm-brute-force.html
