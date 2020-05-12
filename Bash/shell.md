@@ -2356,3 +2356,41 @@ cat /etc/shells
 /bin/sh
 /bin/tcsh
 /bin/zsh
+
+
+
+#socat
+
+###file transfer
+
+send node:
+```
+socat -u file:node4.tar.gz tcp:192.168.1.1:6666
+```
+receive node:
+```
+socat -u tcp-listen:6666 open:node4.tar.gz,create
+```
+
+
+If out.txt already exists, though, then this setup might behave unexpectely. If out.txt is longer than test.txt, the last part of out.txt will remain, since socat is overwriting the file byte by byte instead of making sure the file is empty. There are a few ways to fix this, depending on what you want to do:
+
+OPEN:out.txt,creat,trunc will delete all the bytes in out.txt before writing to it. This option mimics what you'd expect from cp, and is probably what you want.
+OPEN:out.txt,creat,excl will refuse to write out.txt if it already exists. Use this option for extra safety.
+OPEN:out.txt,creat,append will append data to out.txt.
+I also like to run md5sum on the source and destination files whenever I cobble something like this together, because of these sorts of corner cases.
+
+
+
+---
+
+Server sending file:
+```
+server$ socat -u FILE:test.dat TCP-LISTEN:9876,reuseaddr
+client$ socat -u TCP:127.0.0.1:9876 OPEN:out.dat,creat
+```
+Server receiving file:
+```
+server$ socat -u TCP-LISTEN:9876,reuseaddr OPEN:out.txt,creat && cat out.txt
+client$ socat -u FILE:test.txt TCP:127.0.0.1:9876
+```
