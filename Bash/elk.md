@@ -97,6 +97,90 @@ GET /bank/_search
 }
 ```
 
+** status/baseinfo **
+
+>https://www.elastic.co/guide/en/elasticsearch/reference/current/cat.html
+
+
+req
+```
+/_cat/master?v
+```
+res
+```
+id                     host      ip        node
+u_n93zwxThWHi1PDBJAGAg 127.0.0.1 127.0.0.1 u_n93zw
+```
+
+
+req
+```
+GET /_cat/nodes?h=ip,port,heapPercent,name
+```
+res
+```
+127.0.0.1 9300 27 sLBaIGK
+```
+
+
+req
+```
+GET /_cat/indices?bytes=b&s=store.size:desc&v
+```
+res
+```
+health status index    uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+yellow open   twitter  u8FNjxh8Rfy_awN11oDKYQ   1   1       1200            0      72171         72171
+green  open   twitter2 nYFWZEO7TUiOjLQXBaYJpA   1   0          0            0        230          230
+```
+
+
+req
+```
+http://192.168.40.234:9200/_search?pretty
+```
+res
+```
+{
+  "took" : 3,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 8,
+    "successful" : 8,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 80,
+      "relation" : "eq"
+    },
+    "max_score" : 1.0,
+    "hits" : [
+      {
+        "_index" : ".kibana_1",
+        "_type" : "_doc",
+        "_id" : "space:default",
+        "_score" : 1.0,
+        "_source" : {
+          "space" : {
+            "name" : "Default",
+            "description" : "This is your default space!",
+            "color" : "#00bfb3",
+            "disabledFeatures" : [ ],
+            "_reserved" : true
+          },
+          "type" : "space",
+          "references" : [ ],
+          "migrationVersion" : {
+            "space" : "6.6.0"
+          },
+          "updated_at" : "2020-05-15T05:23:27.656Z"
+        }
+      },
+```
+
+
 
 
 #issue
@@ -144,6 +228,104 @@ su elastic
 cd elasticsearch/bin
 ./elasticsearch
 启动后打印信息如下
+```
+
+
+##file beat test
+
+```
+[root@localhost filebeat]# filebeat test output
+elasticsearch: http://192.168.40.234:9200...
+  parse url... OK
+  connection...
+    parse host... OK
+    dns lookup... OK
+    addresses: 192.168.40.234
+    dial up... OK
+  TLS... WARN secure connection disabled
+  talk to server... OK
+  version: 7.6.2
+```
+
+
+
+```
+/usr/share/filebeat/bin/filebeat test config
+```
+
+
+> 2018/02/21 16:15:40.900903 log.go:116: INFO File is inactive: /opt/data/auth.log. Closing because close\_inactive of 5m0s reached.
+
+If you look at the look, I see that your configuration correctly it tries to read `auth.log` in `/opt/data/auth`, but filebeat close it because it cannot find new data written to the file.
+
+I think the registry has some information about this file so I doesn't detect new content.
+
+Question:
+
+- Does this file has content?
+- I think there is no more writes in that file?
+
+Can you add the content of the following file:
+
+```
+cat /var/lib/filebeat/registry
+```
+The registry does have some content.
+
+```
+tabitha@CaseV-611-ESML:~$ sudo cat /var/lib/filebeat/registry
+[sudo] password for tabitha: 
+[{"source":"/home/tabitha/Data/auth.log","offset":797638,"FileStateOS": {"inode":4729038,"device":2049},"timestamp":"2018-02-15T10:02:24.10256429-05:00","ttl":- 2},{"source":"/var/log/data/testdata-auth.log","offset":797638,"FileStateOS":{"inode":17705737,"device":2049},"timestamp":"2018-02-16T11:51:33.488626541-05:00","ttl":-2},{"source":"/opt/data/auth.log","offset":797637,"FileStateOS":{"inode":18612227,"device":2049},"timestamp":"2018-02-21T14:03:38.875454424-05:00","ttl":-1},{"source":"/var/log/auth.log","offset":47979,"FileStateOS":{"inode":17706302,"device":2049},"timestamp":"2018-02-20T11:57:32.43111871-05:00","ttl":-2},{"source":"/var/log/auth.log.1","offset":72313,"FileStateOS":{"inode":17696223,"device":2049},"timestamp":"2018-02-20T11:31:17.394728752-05:00","ttl":-2},{"source":"/opt/data/auth.log","offset":797637,"FileStateOS":{"inode":18612228,"device":2049},"timestamp":"2018-02-21T14:03:38.875456235-05:00","ttl":-1}]
+```
+
+When I was trying to figure out why it was not working. I moved the file auth.log from another directory (/home/tabitha/Data/), renamed it (testdata-auth.log), and of course have tried it several times since then.
+
+Question:
+
+- So how can I clear the registry to start over reading the file, auth.log?
+
+
+with xpack enable,the default rule of beats_system 
+```
+beats_system
+Grants access necessary for the Beats system user to send system-level data (such as monitoring) to Elasticsearch.
+
+This role should not be assigned to users as the granted permissions may change between releases.
+This role does not provide access to the beats indices and is **not suitable** for writing beats output to Elasticsearch.
+```
+
+to fix this
+
+>https://www.elastic.co/guide/en/beats/filebeat/7.x/feature-roles.html#privileges-to-publish-events
+another backup>https://www.elastic.co/guide/en/beats/filebeat/6.8/beats-basic-auth.html
+
+
+
+##filebeat debug log
+
+In the bottom of `/etc/filebeat/filebeat.yml` you should see a "logging" section. You will need to uncomment it and fill in the appropriate fields for you. Maybe some logging output would be helpful in formulating your question.
+
+```
+logging:
+  to_files: true
+  files:
+    path: /var/log/filebeat
+    name: filebeat.log
+    rotateeverybytes: 10485760 # = 10MB
+    keepfiles: 7
+  level: debug
+```
+
+newversion 7.7
+
+```
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
 ```
 
 ---
