@@ -302,3 +302,539 @@ simple structure image
 
 logstash tag
 >https://www.jianshu.com/p/934c457a333c
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#crack_7.6.2_xpack
+
+>https://blog.espnlol.com/?p=504
+>https://www.codetd.com/en/article/7049729
+
+
+```
+/usr/share/elasticsearch/jdk/bin/javac -cp "./lib/*" ./XPackBuild.java
+/usr/share/elasticsearch/jdk/bin/javac -cp "./lib/*" ./LicenseVerifier.java
+```
+
+
+
+
+破解方法是网上现有6.\*的版本破解方法，反编译校验许可证方法和jar包校验方法。
+
+> 此文章只记录使用破解方式 ，具体操作步骤不记录。
+
+1. 找到以下jar包
+
+```
+elasticsearch/modules/x-pack/x-pack-core/x-pack-core-6.3.2.jar
+```
+
+2. 反编译以下两个class文件
+
+- org/elasticsearch/license/LicenseVerifier.class
+
+```java
+package org.elasticsearch.license; import java.nio.*;import org.elasticsearch.common.bytes.*;import java.security.*;import java.util.*;import org.elasticsearch.common.xcontent.*;import org.apache.lucene.util.*;import org.elasticsearch.core.internal.io.*;import java.io.*; public class LicenseVerifier{    public static boolean verifyLicense(final License license, final byte[] publicKeyData) { /*               byte[] signedContent = null;        byte[] publicKeyFingerprint = null;        try {            final byte[] signatureBytes = Base64.getDecoder().decode(license.signature());            final ByteBuffer byteBuffer = ByteBuffer.wrap(signatureBytes);            final int version = byteBuffer.getInt();            final int magicLen = byteBuffer.getInt();            final byte[] magic = new byte[magicLen];            byteBuffer.get(magic);            final int hashLen = byteBuffer.getInt();            publicKeyFingerprint = new byte[hashLen];            byteBuffer.get(publicKeyFingerprint);            final int signedContentLen = byteBuffer.getInt();            signedContent = new byte[signedContentLen];            byteBuffer.get(signedContent);            final XContentBuilder contentBuilder = XContentFactory.contentBuilder(XContentType.JSON);            license.toXContent(contentBuilder, (ToXContent.Params)new ToXContent.MapParams((Map)Collections.singletonMap("license_spec_view", "true")));            final Signature rsa = Signature.getInstance("SHA512withRSA");            rsa.initVerify(CryptUtils.readPublicKey(publicKeyData));            final BytesRefIterator iterator = BytesReference.bytes(contentBuilder).iterator();            BytesRef ref;            while ((ref = iterator.next()) != null) {                rsa.update(ref.bytes, ref.offset, ref.length);            }            return rsa.verify(signedContent);        }        catch (IOException ex) {}        catch (NoSuchAlgorithmException ex2) {}        catch (SignatureException ex3) {}        catch (InvalidKeyException e) {            throw new IllegalStateException(e);        }        finally {            if (signedContent != null) {                Arrays.fill(signedContent, (byte)0);            }        }*/        return true;    }        public static boolean verifyLicense(final License license) {        /*        byte[] publicKeyBytes;        try {            final InputStream is = LicenseVerifier.class.getResourceAsStream("/public.key");            try {                final ByteArrayOutputStream out = new ByteArrayOutputStream();                Streams.copy(is, (OutputStream)out);                publicKeyBytes = out.toByteArray();                if (is != null) {                    is.close();                }            }            catch (Throwable t) {                if (is != null) {                    try {                        is.close();                    }                    catch (Throwable t2) {                        t.addSuppressed(t2);                    }                }                throw t;            }        }        catch (IOException ex) {            throw new IllegalStateException(ex);        }        //return verifyLicense(license, publicKeyBytes);        */        return true;    }}
+```
+
+- org/elasticsearch/xpack/core/XPackBuild.class
+
+```java
+package org.elasticsearch.xpack.core; import org.elasticsearch.common.io.*;import java.net.*;import org.elasticsearch.common.*;import java.nio.file.*;import java.io.*;import java.util.jar.*; public class XPackBuild{    public static final XPackBuild CURRENT;    private String shortHash;    private String date;        @SuppressForbidden(reason = "looks up path of xpack.jar directly")    static Path getElasticsearchCodebase() {        final URL url = XPackBuild.class.getProtectionDomain().getCodeSource().getLocation();        try {            return PathUtils.get(url.toURI());        }        catch (URISyntaxException bogus) {            throw new RuntimeException(bogus);        }    }        XPackBuild(final String shortHash, final String date) {        this.shortHash = shortHash;        this.date = date;    }        public String shortHash() {        return this.shortHash;    }        public String date() {        return this.date;    }        static {        final Path path = getElasticsearchCodebase();        String shortHash = null;        String date = null;        Label_0109: {/*            if (path.toString().endsWith(".jar")) {                try {                    final JarInputStream jar = new JarInputStream(Files.newInputStream(path, new OpenOption[0]));                    try {                        final Manifest manifest = jar.getManifest();                        shortHash = manifest.getMainAttributes().getValue("Change");                        date = manifest.getMainAttributes().getValue("Build-Date");                        jar.close();                    }                    catch (Throwable t) {                        try {                            jar.close();                        }                        catch (Throwable t2) {                            t.addSuppressed(t2);                        }                        throw t;                    }                    break Label_0109;                }                catch (IOException e) {                    throw new RuntimeException(e);                }            }*/            shortHash = "Unknown";            date = "Unknown";        }        CURRENT = new XPackBuild(shortHash, date);    }}
+```
+
+3. 重新打包 x-pack-core-6.3.2.jar 后替换原有jar
+4. 申请试用 [地址](https://license.elastic.co/registration)
+5. 修改license type改为platinum、expiry\_date\_in\_millis改为253402271999000（9999年）
+6. 在kibana导入license 即可
+
+
+
+---
+
+
+
+# **elasticsearch7.0 Cluster Setup and x-pack crack**
+
+## **surroundings**
+
+Centos7  
+Elasticsearch-7.0.1  
+Kibana-7.0.1
+
+## **Download, unzip es**
+
+```
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.0.1-linux-x86_64.tar.gz
+解压elasticsearch.tar.gz
+tar zxvf elasticsearch-7.0.1-linux-x86_64.tar.gz
+```
+
+## **Crack x-pack**
+
+```
+1. 下载java反编译工具
+这个反编译的工具蛮多，推荐Luyten，下载地址： https://github.com/deathmarine/Luyten/releases
+下载对应的windows版本到本地，然后安装。
+2. 将elasticsearch-7.0.1-linux-x86_64.tar.gz解压后复制elasticsearch-7.0.1/modules/x-pack-core/x-pack-core-7.0.1.jar文件
+到windows机器，使用反编译工具打开
+3. 找到org.elasticsearch.license.LicenseVerifier 打开并且复制里面的内容，然后在我们的服务器上新建一个LicenseVerifier.java的文件，将复制的内容粘贴进去
+在LicenseVerifier中有两个静态方法，这就是验证授权文件是否有效的方法，我们把它修改为全部返回true. 并且将不需要的代码注释掉  这里使用/*  */来注释
+下面是修改后的内容：
+```
+
+```
+package org.elasticsearch.license;
+
+import java.nio.*;
+import org.elasticsearch.common.bytes.*;
+import java.security.*;
+import java.util.*;
+import org.elasticsearch.common.xcontent.*;
+import org.apache.lucene.util.*;
+import org.elasticsearch.core.internal.io.*;
+import java.io.*;
+
+public class LicenseVerifier
+{
+    public static boolean verifyLicense(final License license, final byte[] publicKeyData) {
+/*  #这里添加注释
+        byte[] signedContent = null;
+        byte[] publicKeyFingerprint = null;
+        try {
+            final byte[] signatureBytes = Base64.getDecoder().decode(license.signature());
+            final ByteBuffer byteBuffer = ByteBuffer.wrap(signatureBytes);
+            final int version = byteBuffer.getInt();
+            final int magicLen = byteBuffer.getInt();
+            final byte[] magic = new byte[magicLen];
+            byteBuffer.get(magic);
+            final int hashLen = byteBuffer.getInt();
+            publicKeyFingerprint = new byte[hashLen];
+            byteBuffer.get(publicKeyFingerprint);
+            final int signedContentLen = byteBuffer.getInt();
+            signedContent = new byte[signedContentLen];
+            byteBuffer.get(signedContent);
+            final XContentBuilder contentBuilder = XContentFactory.contentBuilder(XContentType.JSON);
+            license.toXContent(contentBuilder, (ToXContent.Params)new ToXContent.MapParams((Map)Collections.singletonMap("license_spec_view", "true")));
+            final Signature rsa = Signature.getInstance("SHA512withRSA");
+            rsa.initVerify(CryptUtils.readPublicKey(publicKeyData));
+            final BytesRefIterator iterator = BytesReference.bytes(contentBuilder).iterator();
+            BytesRef ref;
+            while ((ref = iterator.next()) != null) {
+                rsa.update(ref.bytes, ref.offset, ref.length);
+            }
+            return rsa.verify(signedContent);
+        }
+        catch (IOException ex) {}
+        catch (NoSuchAlgorithmException ex2) {}
+        catch (SignatureException ex3) {}
+        catch (InvalidKeyException e) {
+            throw new IllegalStateException(e);
+        }
+        finally {
+            if (signedContent != null) {
+                Arrays.fill(signedContent, (byte)0);
+            }
+        }
+*/  ##这里添加注释
+        return true;    #这里添加返回true
+}
+    
+    public static boolean verifyLicense(final License license) {
+/*   #这里添加注释
+        byte[] publicKeyBytes;
+        try {
+            final InputStream is = LicenseVerifier.class.getResourceAsStream("/public.key");
+            try {
+                final ByteArrayOutputStream out = new ByteArrayOutputStream();
+                Streams.copy(is, (OutputStream)out);
+                publicKeyBytes = out.toByteArray();
+                if (is != null) {
+                    is.close();
+                }
+            }
+            catch (Throwable t) {
+                if (is != null) {
+                    try {
+                        is.close();
+                    }
+                    catch (Throwable t2) {
+                        t.addSuppressed(t2);
+                    }
+                }
+                throw t;
+            }
+        }
+        catch (IOException ex) {
+            throw new IllegalStateException(ex);
+        }
+        return verifyLicense(license, publicKeyBytes);
+    */ #这里添加注释
+        return true;  #这里添加返回true
+    }
+}
+
+```
+
+1. Find org.elasticsearch.xpack.core.XPackBuild open and copy the contents inside, and then create a XPackBuild.java files on our server, copy and paste the contents into it  
+    we will try in the final block of code in a static part XPackBuild delete all, here is a comment by the method of this chapter to verify that the jar package has been modified.  
+    the following is the modified content:
+
+```
+package org.elasticsearch.xpack.core;
+
+import org.elasticsearch.common.io.*;
+import java.net.*;
+import org.elasticsearch.common.*;
+import java.nio.file.*;
+import java.io.*;
+import java.util.jar.*;
+
+public class XPackBuild
+{
+    public static final XPackBuild CURRENT;
+    private String shortHash;
+    private String date;
+    
+    @SuppressForbidden(reason = "looks up path of xpack.jar directly")
+    static Path getElasticsearchCodebase() {
+        final URL url = XPackBuild.class.getProtectionDomain().getCodeSource().getLocation();
+        try {
+            return PathUtils.get(url.toURI());
+        }
+        catch (URISyntaxException bogus) {
+            throw new RuntimeException(bogus);
+        }
+    }
+    
+    XPackBuild(final String shortHash, final String date) {
+        this.shortHash = shortHash;
+        this.date = date;
+    }
+    
+    public String shortHash() {
+        return this.shortHash;
+    }
+    
+    public String date() {
+        return this.date;
+    }
+    
+    static {
+        final Path path = getElasticsearchCodebase();
+        String shortHash = null;
+        String date = null;
+        Label_0109: {
+/*  #这里添加注释
+            if (path.toString().endsWith(".jar")) {
+                try {
+                    final JarInputStream jar = new JarInputStream(Files.newInputStream(path, new OpenOption[0]));
+                    try {
+                        final Manifest manifest = jar.getManifest();
+                        shortHash = manifest.getMainAttributes().getValue("Change");
+                        date = manifest.getMainAttributes().getValue("Build-Date");
+                        jar.close();
+                    }
+                    catch (Throwable t) {
+                        try {
+                            jar.close();
+                        }
+                        catch (Throwable t2) {
+                            t.addSuppressed(t2);
+                        }
+                        throw t;
+                    }
+                    break Label_0109;
+                }
+                catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+*/  #这里添加注释
+            shortHash = "Unknown";
+            date = "Unknown";
+        }
+        CURRENT = new XPackBuild(shortHash, date);
+    }
+}
+```
+
+```
+5. 使用javac将刚刚创建的LicenseVerifier.java和XPackBuild.java文件编译成class文件,这里需要注意自己的目录结构
+javac -cp "/data/soft/elasticsearch-7.0.1/lib/elasticsearch-7.0.1.jar:/data/soft/elasticsearch-7.0.1/lib/lucene-core-8.0.0.jar:/data/soft/elasticsearch-7.0.1/modules/x-pack-core/x-pack-core-7.0.1.jar:/data/soft/elasticsearch-7.0.1/modules/x-pack-core/netty-common-4.1.32.Final.jar:/data/soft/elasticsearch-7.0.1/lib/elasticsearch-core-7.0.1.jar" ./LicenseVerifier.java
+javac -cp "/data/soft/elasticsearch-7.0.1/lib/elasticsearch-7.0.1.jar:/data/soft/elasticsearch-7.0.1/lib/lucene-core-8.0.0.jar:/data/soft/elasticsearch-7.0.1/modules/x-pack-core/x-pack-core-7.0.1.jar:/data/soft/elasticsearch-7.0.1/modules/x-pack-core/netty-common-4.1.32.Final.jar:/data/soft/elasticsearch-7.0.1/lib/elasticsearch-core-7.0.1.jar" ./XPackBuild.java
+
+执行完后当前目录下会生成两个class文件
+LicenseVerifier.class
+XPackBuild.class
+
+6. 将x-pack-core-7.0.1.jar 拷贝到一个空目录中解压x-pack-core-7.0.1.jar
+$ jar -xvf x-pack-core-7.0.1.jar
+然后替换class文件
+cp -a ../XPackBuild.class  org/elasticsearch/xpack/core/
+cp -a ../LicenseVerifier.class org/elasticsearch/license/
+
+7. 打包新x-pack-core-7.0.1.jar文件
+进入到在刚刚x-pack-core-7.0.1.jar解压的目录中删除x-pack-core-7.0.1.jar源文件，然后重新打包：
+jar cvf x-pack-core-7.0.1.jar .
+
+8. 将新生成的x-pack-core-7.0.1.jar文件替换到es中
+cp -a x-pack-core-7.0.1.jar /data/soft/elasticsearch-7.0.1/modules/x-pack-core/
+
+9. 配置elasticsearch安全协议
+完成以上所有操作在启动elasticsearch前，我们需要配置elasticsearch的SSL/TLS安全协议,如果不配置的话，需要禁止security才能配置License。
+当License配置完成后我们需要再开启security，并开启SSL\TLS。
+
+# 加载License到elasticsearch之前操作
+$ echo "xpack.security.enabled: false" >> /data/soft/elasticsearch-7.0.1/config/elasticsearch.yml
+$ ./bin/elasticsearch -d   # 后台方式启动elasticsearch
+
+10. 申请license
+登录elastic官网申请一个license, [License申请地址](https://license.elastic.co/registration)，申请完成后，下载下来的License格式为json格式。并将该License的`type`、`expiry_date_in_millis`、`max_nodes`分别修改成`platinum`、`2524579200999`、`1000`。如下：
+没有7的选项，下载6的也可以，时间的转换是毫秒级
+license的内容如下：
+{
+    "license":{
+        "uid":"10bdea8f-f3fc-421d-9354-b47315d5ba47",
+        "type":"platinum",
+        "issue_date_in_millis":1565481600000,
+        "expiry_date_in_millis":2524579200999,
+        "max_nodes":1000,
+        "issued_to":"wang xiao (???????)",
+        "issuer":"Web Form",
+        "signature":"AAAAAwAAAA1nyWcAXdBAA2klkzrZAAABmC9ZN0hjZDBGYnVyRXpCOW5Bb3FjZDAxOWpSbTVoMVZwUzRxVk1PSmkxaktJRVl5MUYvUWh3bHZVUTllbXNPbzBUemtnbWpBbmlWRmRZb25KNFlBR2x0TXc2K2p1Y1VtMG1UQU9TRGZVSGRwaEJGUjE3bXd3LzRqZ05iLzRteWFNekdxRGpIYlFwYkJiNUs0U1hTVlJKNVlXekMrSlVUdFIvV0FNeWdOYnlESDc3MWhlY3hSQmdKSjJ2ZTcvYlBFOHhPQlV3ZHdDQ0tHcG5uOElCaDJ4K1hob29xSG85N0kvTWV3THhlQk9NL01VMFRjNDZpZEVXeUtUMXIyMlIveFpJUkk2WUdveEZaME9XWitGUi9WNTZVQW1FMG1DenhZU0ZmeXlZakVEMjZFT2NvOWxpZGlqVmlHNC8rWVVUYzMwRGVySHpIdURzKzFiRDl4TmM1TUp2VTBOUlJZUlAyV0ZVL2kvVk10L0NsbXNFYVZwT3NSU082dFNNa2prQ0ZsclZ4NTltbU1CVE5lR09Bck93V2J1Y3c9PQAAAQAGLq3NLsOn2u1mkOfdXR6oyixJl8/kZu/godGNtR1F6fvutn4mMKdvPPB4n8pQxa4kAFJn731D5I5kUwNqxmuTsGlvf+V8G4bj1O3nyMK7p3vxy0TzO0vEb+WskvGoJr8axPOPU7h8xh4POTYJVplaABtjqaR+1SGS5ki422xIhXCNah99YuY8fct83M0U1iEJaSST26Ew3PCQ6n5yKrht8zk+yBIG32hgOhbhzgPOa4cVy1rQr7Z7ZxJIY8OyN6sfqItt8dzB2m+G8Eu/xP6Z9nmpG6y+Ty9BpJhre7TExrgObTju313IcFo1ZAkY70UscLamYbpRDJuS2EY7Qmow",
+        "start_date_in_millis":1565481600000
+    }
+}
+我们将过期时间写到2050年，type改为platinum 白金版，这样我们就会拥有全部的x-pack功能。
+11. 加载License到elasticsearch
+
+$ curl -XPUT -u elastic 'http://10.0.0.4:9200/_xpack/license' -H "Content-Type: application/json" -d @license.json
+Enter host password for user 'elastic':           # 提示输入elastic用户密码，当前无密码，所以直接回车
+{"acknowledged":true,"license_status":"valid"}    # license写入成功
+
+12. 修改配置，重启es
+echo "xpack.security.transport.ssl.enabled: true" >> /data/soft/elasticsearch-7.0.1/config/elasticsearch.yml
+sed -i 's/xpack.security.enabled: false/xpack.security.enabled: true/g' /data/soft/elasticsearch-7.0.1/config/elasticsearch.yml
+kill -9 13023 && ./bin/elasticsearch -d   # 重启elasticsearch
+
+
+此时的配置如下：
+[root@heaven-01 soft]# cat elasticsearch-7.0.1/config/elasticsearch.yml
+
+path.data: /data/soft/elasticsearch-7.0.1/data
+path.logs: /data/soft/elasticsearch-7.0.1/logs
+xpack.security.enabled: true
+xpack.security.transport.ssl.enabled: true
+
+
+查看License
+[root@heaven-01 soft]# curl -XGET -u elastic  http://10.0.0.4:9200/_license  #提示输入elastic用户密码，当前无密码，所以直接回车
+{
+  "license" : {
+    "status" : "active",
+    "uid" : "10bdea8f-f3fc-421d-9354-b47315d5ba47",
+    "type" : "platinum",
+    "issue_date" : "2019-08-11T00:00:00.000Z",
+    "issue_date_in_millis" : 1565481600000,
+    "expiry_date" : "2049-12-31T16:00:00.999Z",
+    "expiry_date_in_millis" : 2524579200999,
+    "max_nodes" : 100,
+    "issued_to" : "wang xiao (???????)",
+    "issuer" : "Web Form",
+    "start_date_in_millis" : 1565481600000
+  }
+}
+破解成功
+
+12. 设置密码
+执行下列命令设置其他组建连接es所需账号及密码：
+bin/elasticsearch-setup-passwords interactive
+
+```
+
+## es cluster deployment and kibana (es here to three nodes for example):
+
+If we deploy es is the above configuration to a single node, if it is es cluster will also need the following operations:
+
+```
+1. 由于在es的集群中如果使用x-pack的安全功能则必须要基于TLS/SSL的安全传输，因此需要配置认证文件
+bin/elasticsearch-certutil cert -out config/elastic-certificates.p12 -pass ""
+
+这个时候会在config目录下生成elastic-certificates.p12文件，修改文件权限
+chown elk:elk config/elastic-certificates.p12
+
+2. 将破解好的es-01复制两个分别命名为es-02  es-03，然后清理掉es-02 es-03中的data及logs目录（很中要，尤其是data目录否则会报错）
+3. 修改es配置
+
+es-01的配置如下：
+
+[root@heaven-01 soft]# cat es-01/config/elasticsearch.yml  | grep -v "#"
+cluster.name: es-cluster
+node.name: node-master-01
+node.master: true
+node.data: true
+path.data: /data/soft/es-01/data
+path.logs: /data/soft/es-01/logs
+network.host: 10.0.0.4
+http.port: 9200
+transport.tcp.compress: true
+http.cors.enabled: true
+http.cors.allow-origin: "*"
+
+bootstrap.memory_lock: true
+discovery.seed_hosts: ["10.0.0.4:9300","10.0.0.4:9301","10.0.0.4:9302"]
+cluster.initial_master_nodes: ["10.0.0.4:9300"]
+
+xpack.security.enabled: true
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.verification_mode: certificate
+xpack.security.transport.ssl.keystore.path: /data/soft/es-01/config/elastic-certificates.p12
+xpack.security.transport.ssl.truststore.path: /data/soft/es-01/config/elastic-certificates.p12
+
+
+es-02的配置如下：
+
+[root@heaven-01 soft]# cat es-02/config/elasticsearch.yml  | grep -v "#"
+cluster.name: es-cluster
+node.name: node-data-01
+node.master: false
+node.data: true
+path.data: /data/soft/es-02/data
+path.logs: /data/soft/es-02/logs
+network.host: 10.0.0.4
+http.port: 9201
+transport.tcp.compress: true
+http.cors.enabled: true
+http.cors.allow-origin: "*"
+
+bootstrap.memory_lock: true
+discovery.seed_hosts: ["10.0.0.4:9300","10.0.0.4:9301","10.0.0.4:9302"]
+cluster.initial_master_nodes: ["10.0.0.4:9300"]
+
+xpack.security.enabled: true
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.verification_mode: certificate
+xpack.security.transport.ssl.keystore.path: /data/soft/es-02/config/elastic-certificates.p12
+xpack.security.transport.ssl.truststore.path: /data/soft/es-02/config/elastic-certificates.p12
+
+es-03的配置如下：
+[root@heaven-01 soft]# cat es-03/config/elasticsearch.yml  | grep -v "#"
+cluster.name: es-cluster
+node.name: node-data-02
+node.master: false
+node.data: true
+path.data: /data/soft/es-03/data
+path.logs: /data/soft/es-03/logs
+network.host: 10.0.0.4
+http.port: 9202
+transport.tcp.compress: true
+http.cors.enabled: true
+http.cors.allow-origin: "*"
+
+bootstrap.memory_lock: true
+discovery.seed_hosts: ["10.0.0.4:9300","10.0.0.4:9301","10.0.0.4:9302"]
+cluster.initial_master_nodes: ["10.0.0.4:9300"]
+
+xpack.security.enabled: true
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.verification_mode: certificate
+xpack.security.transport.ssl.keystore.path: /data/soft/es-03/config/elastic-certificates.p12
+xpack.security.transport.ssl.truststore.path: /data/soft/es-03/config/elastic-certificates.p12
+
+
+4. 分别启动三个es
+sudo -u elk /data/soft/es-01/bin/elasticsearch -d
+sudo -u elk /data/soft/es-02/bin/elasticsearch -d
+sudo -u elk /data/soft/es-03/bin/elasticsearch -d
+
+5. 下载配置kibana
+
+wget   https://artifacts.elastic.co/downloads/kibana/kibana-7.0.1-x86_64.rpm
+rpm -ivh kibana-7.0.1-x86_64.rpm
+
+修改配置如下：
+
+cat /etc/kibana/kibana.yml
+server.port: 5601
+server.host: "10.0.0.4"
+elasticsearch.hosts: ["http://10.0.0.4:9200"]
+elasticsearch.username: "elastic"
+elasticsearch.password: "123456"
+xpack.security.encryptionKey: "something_at_least_32_characters"
+
+启动kibana
+
+/etc/init.d/kibana start
+
+6.  访问（使用设置的的elastic用户及密码登录）
+http://10.0.0.4:5601
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#elasticsearch reset password
+
+```
+[esuser@esuser-oracle-9e96168-prd bin]$ ./elasticsearch-setup-passwords interactive                                                                          
+Initiating the setup of passwords for reserved users elastic,apm_system,kibana,logstash_system,beats_system,remote_monitoring_user.
+You will be prompted to enter passwords as the process progresses.
+Please confirm that you would like to continue [y/N]y
+
+
+Enter password for [elastic]:
+Reenter password for [elastic]:
+Enter password for [apm_system]:
+Reenter password for [apm_system]:
+Enter password for [kibana]:
+Reenter password for [kibana]:
+Enter password for [logstash_system]:
+Reenter password for [logstash_system]:
+Enter password for [beats_system]:
+Reenter password for [beats_system]:
+Enter password for [remote_monitoring_user]:
+Reenter password for [remote_monitoring_user]:
+Changed password for user [apm_system]
+Changed password for user [kibana]
+Changed password for user [logstash_system]
+Changed password for user [beats_system]
+Changed password for user [remote_monitoring_user]
+Changed password for user [elastic]
+
+```
+
+for generate password automatically:
+```
+[esuser@esuser-oracle-9e96168-prd bin]$ ./elasticsearch-setup-passwords auto                                                                        
+
+```
+

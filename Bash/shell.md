@@ -2394,3 +2394,134 @@ Server receiving file:
 server$ socat -u TCP-LISTEN:9876,reuseaddr OPEN:out.txt,creat && cat out.txt
 client$ socat -u FILE:test.txt TCP:127.0.0.1:9876
 ```
+
+
+
+
+
+#yum check version
+
+
+```
+[root@localhost ~]# yum info nodejs
+Repository AppStream is listed more than once in the configuration
+Repository extras is listed more than once in the configuration
+Repository PowerTools is listed more than once in the configuration
+Repository centosplus is listed more than once in the configuration
+Last metadata expiration check: 0:02:51 ago on Thu 14 May 2020 11:05:24 PM EDT.
+Available Packages
+Name         : nodejs
+Epoch        : 1
+Version      : 10.19.0
+Release      : 2.module_el8.1.0+296+bef51246
+Architecture : x86_64
+Size         : 9.0 M
+Source       : nodejs-10.19.0-2.module_el8.1.0+296+bef51246.src.rpm
+Repository   : AppStream
+Summary      : JavaScript runtime
+URL          : http://nodejs.org/
+License      : MIT and ASL 2.0 and ISC and BSD
+Description  : Node.js is a platform built on Chrome's JavaScript runtime
+             : for easily building fast, scalable network applications.
+             : Node.js uses an event-driven, non-blocking I/O model that
+             : makes it lightweight and efficient, perfect for data-intensive
+             : real-time applications that run across distributed devices.
+```
+this will expose the version of the software
+
+
+
+
+
+
+
+
+
+
+#centos repo redirect to aliyun
+sh
+
+```
+#! /bin/bash
+
+#获取当前系统的发行版本
+VERSION=$(cat /etc/centos-release)
+
+#提取当前系统的版本号
+V_NUM=${VERSION:21:1}
+
+BASE_REPO="/etc/yum.repos.d/CentOS-Base.repo"
+ALI_REPO="http://mirrors.aliyun.com/repo/Centos-${V_NUM}.repo"
+
+echo "备份当前软件源..."
+mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+echo "备份完成: /etc/yum.repos.d/CentOS-Base.repo.backup"
+
+echo "下载阿里云镜像源..."
+wget -O ${BASE_REPO} ${ALI_REPO} || curl -o ${BASE_REPO} ${ALI_REPO}
+
+#补丁程序, 防止出现 Couldn't resolve host 'mirrors.cloud.aliyuncs.com' 信息
+sed -i -e '/mirrors.cloud.aliyuncs.com/d' -e '/mirrors.aliyuncs.com/d' /etc/yum.repos.d/CentOS-Base.repo
+
+echo "清除缓存..."
+yum clean all
+echo "缓存清除成功,OK"
+
+echo "生成缓存..."
+yum makecache
+echo "生成缓存成功, OK"
+```
+
+with yum upgrade
+
+```
+#! /bin/bash
+# ======================================
+# author: qiuyeyijian
+# ======================================
+
+#获取当前系统的发行版本
+VERSION=$(cat /etc/centos-release)
+
+#提取当前系统的版本号
+V_NUM=${VERSION:21:1}
+
+BASE_REPO="/etc/yum.repos.d/CentOS-Base.repo"
+ALI_REPO="http://mirrors.aliyun.com/repo/Centos-${V_NUM}.repo"
+
+echo "备份当前软件源..."
+mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+echo "备份完成: /etc/yum.repos.d/CentOS-Base.repo.backup"
+
+echo "下载阿里云镜像源..."
+wget -O ${BASE_REPO} ${ALI_REPO} || curl -o ${BASE_REPO} ${ALI_REPO}
+
+#补丁程序, 防止出现 Couldn't resolve host 'mirrors.cloud.aliyuncs.com' 信息
+sed -i -e '/mirrors.cloud.aliyuncs.com/d' -e '/mirrors.aliyuncs.com/d' /etc/yum.repos.d/CentOS-Base.repo
+
+echo "清除缓存..."
+yum clean all
+echo "缓存清除成功,OK"
+
+echo "生成缓存..."
+yum makecache
+echo "生成缓存成功, OK"
+
+echo "更新软件..."
+yum update -y
+echo "软件更新完毕, OK"
+
+echo "是否需要自动删除不需要的安装包"
+read -p "Enter your choice: y/n(默认y):" CHOICE
+case "${CHOICE}" in
+	[yY] | [yY][eE][sS])
+		yum autoremove -y
+		;;
+	[nN] | [nN][oO])
+		echo "现在你可以飞快地安装软件了:)"
+		;;
+	*)
+		yum autoremove -y
+		;;
+esac
+```
