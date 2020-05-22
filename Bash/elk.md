@@ -181,6 +181,21 @@ res
 ```
 
 
+- req
+```
+http://192.168.40.234:9200/_xpack
+```
+- res
+```
+{"build":{"hash":"Unknown","date":"Unknown"},"license":{"uid":"10bdea8f-f3fc-421d-9354-b47315d5ba47","type":"platinum","mode":"platinum","status":"active","expiry_date_in_millis":2524579200999},"features":{"analytics":{"available":true,"enabled":true},"ccr":{"available":true,"enabled":true},"enrich":{"available":true,"enabled":true},"flattened":{"available":true,"enabled":true},"frozen_indices":{"available":true,"enabled":true},"graph":{"available":true,"enabled":true},"ilm":{"available":true,"enabled":true},"logstash":{"available":true,"enabled":true},"ml":{"available":true,"enabled":true,"native_code_info":{"version":"7.6.2","build_hash":"e06ef9d86d5332"}},"monitoring":{"available":true,"enabled":true},"rollup":{"available":true,"enabled":true},"security":{"available":true,"enabled":true},"slm":{"available":true,"enabled":true},"spatial":{"available":true,"enabled":true},"sql":{"available":true,"enabled":true},"transform":{"available":true,"enabled":true},"vectors":{"available":true,"enabled":true},"voting_only":{"available":true,"enabled":true},"watcher":{"available":true,"enabled":true}},"tagline":"You know, for X"}
+```
+
+- req
+```
+http://localhost:9200/_cat/health
+http://localhost:9200/_cat/nodes
+http://localhost:9200/_cluster/health
+```
 
 
 #issue
