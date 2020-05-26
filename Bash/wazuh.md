@@ -1547,6 +1547,17 @@ headless_shell-linux  optimize  uuid
 /var/lib/kibana
 ```
 
+- wazuh api log
+
+```
+/var/ossec/logs/api.log
+```
+
+- wazuh-api config
+Steps to reproduce
+Execute: configure_api.sh
+default port (55000)
+
 ***chrome headless error*** in kibana.stdout
 
 ```yum install nss```
@@ -1573,13 +1584,450 @@ ossec-ana 2311 ossec   11w   REG  253,0  4736703 17361606 /var/ossec/logs/alerts
 
 
 
-check wazuh-api service status
+1.check wazuh-api service status
 
 ```
 service wazuh-api status
 ```
 
+
+- The API log is stored on the manager as `/var/ossec/logs/api.log`. The API logs are rotated daily. The rotations are stored in `/var/ossec/logs/api/<year>/<month>` and compressed using `gzip`.
+- All API requests will be aborted if no response is received after a certain amount of time. The parameter `wait_for_complete` can be used to disable this timeout. This is useful for calls that could take more time than expected, such as [PUT/agents/:agent\_id/upgrade](https://documentation.wazuh.com/3.7/user-manual/api/reference.html#api-reference).
+
+
+2.check filebeat pipeline
+
+req
+```
+GET _ingest/pipeline
+```
+res
+```
+{
+  "filebeat-7.7.0-wazuh-alerts-pipeline" : {
+    "description" : "Wazuh alerts pipeline",
+    "processors" : [
+      {
+        "json" : {
+          "add_to_root" : true,
+          "field" : "message"
+        }
+      },
+      {
+        "geoip" : {
+          "ignore_missing" : true,
+          "ignore_failure" : true,
+          "field" : "data.srcip",
+          "target_field" : "GeoLocation",
+          "properties" : [
+            "city_name",
+            "country_name",
+            "region_name",
+            "location"
+          ]
+        }
+      },
+      {
+        "geoip" : {
+          "properties" : [
+            "city_name",
+            "country_name",
+            "region_name",
+            "location"
+          ],
+          "ignore_missing" : true,
+          "ignore_failure" : true,
+          "field" : "data.win.eventdata.ipAddress",
+          "target_field" : "GeoLocation"
+        }
+      },
+      {
+        "geoip" : {
+          "field" : "data.aws.sourceIPAddress",
+          "target_field" : "GeoLocation",
+          "properties" : [
+            "city_name",
+            "country_name",
+            "region_name",
+            "location"
+          ],
+          "ignore_missing" : true,
+          "ignore_failure" : true
+        }
+      },
+      {
+        "date" : {
+          "field" : "timestamp",
+          "target_field" : "@timestamp",
+          "formats" : [
+            "ISO8601"
+          ],
+          "ignore_failure" : false
+        }
+      },
+      {
+        "date_index_name" : {
+          "field" : "timestamp",
+          "date_rounding" : "d",
+          "index_name_prefix" : "{{fields.index_prefix}}",
+          "index_name_format" : "yyyy.MM.dd",
+          "ignore_failure" : false
+        }
+      },
+      {
+        "remove" : {
+          "field" : "message",
+          "ignore_missing" : true,
+          "ignore_failure" : true
+        }
+      },
+      {
+        "remove" : {
+          "field" : "ecs",
+          "ignore_missing" : true,
+          "ignore_failure" : true
+        }
+      },
+      {
+        "remove" : {
+          "field" : "beat",
+          "ignore_missing" : true,
+          "ignore_failure" : true
+        }
+      },
+      {
+        "remove" : {
+          "field" : "input_type",
+          "ignore_missing" : true,
+          "ignore_failure" : true
+        }
+      },
+      {
+        "remove" : {
+          "ignore_missing" : true,
+          "ignore_failure" : true,
+          "field" : "tags"
+        }
+      },
+      {
+        "remove" : {
+          "field" : "count",
+          "ignore_missing" : true,
+          "ignore_failure" : true
+        }
+      },
+      {
+        "remove" : {
+          "field" : "@version",
+          "ignore_missing" : true,
+          "ignore_failure" : true
+        }
+      },
+      {
+        "remove" : {
+          "field" : "log",
+          "ignore_missing" : true,
+          "ignore_failure" : true
+        }
+      },
+      {
+        "remove" : {
+          "field" : "offset",
+          "ignore_missing" : true,
+          "ignore_failure" : true
+        }
+      },
+      {
+        "remove" : {
+          "field" : "type",
+          "ignore_missing" : true,
+          "ignore_failure" : true
+        }
+      },
+      {
+        "remove" : {
+          "ignore_failure" : true,
+          "field" : "host",
+          "ignore_missing" : true
+        }
+      },
+      {
+        "remove" : {
+          "ignore_failure" : true,
+          "field" : "fields",
+          "ignore_missing" : true
+        }
+      },
+      {
+        "remove" : {
+          "field" : "event",
+          "ignore_missing" : true,
+          "ignore_failure" : true
+        }
+      },
+      {
+        "remove" : {
+          "field" : "fileset",
+          "ignore_missing" : true,
+          "ignore_failure" : true
+        }
+      },
+      {
+        "remove" : {
+          "ignore_missing" : true,
+          "ignore_failure" : true,
+          "field" : "service"
+        }
+      }
+    ],
+    "on_failure" : [
+      {
+        "drop" : { }
+      }
+    ]
+  },
+  "xpack_monitoring_6" : {
+    "description" : "This pipeline upgrades documents from the older version of the Monitoring API to the newer version (7) by fixing breaking changes in those older documents before they are indexed from the older version (6).",
+    "version" : 7000199,
+    "processors" : [
+      {
+        "script" : {
+          "source" : "ctx._type = null"
+        }
+      },
+      {
+        "gsub" : {
+          "field" : "_index",
+          "pattern" : """(.monitoring-\w+-)6(-.+)""",
+          "replacement" : "$17$2"
+        }
+      }
+    ]
+  },
+  "xpack_monitoring_7" : {
+    "description" : "This is a placeholder pipeline for Monitoring API version 7 so that future versions may fix breaking changes.",
+    "version" : 7000199,
+    "processors" : [ ]
+  }
+}
+
+```
+
+
+3.check filebeat status
+
+found these warn in filebeat service status
+```
+ Cannot index event publisher
+```
+
+- maybe issue about template not upate
+>https://www.elastic.co/guide/en/beats/filebeat/7.7/filebeat-template.html
+>https://discuss.elastic.co/t/filebeat-no-more-working-can-not-index-event-status-400/61227/2
+
+- maybe xpack didn't enable the specific index you used:
+```
+sher.EventCache{m:common.MapStr(nil)}} (status=404): {"type":"index_not_found_exception","reason":"no such index [<wazuh-alerts-3.x-{2020.05.26||/d{yyyy.MM.dd|UTC}}>] and [action.auto_create_index] ([.monitoring*,.watches,.triggered_watches,.watcher-history*,.ml*,wazuh-alerts-3.x-*,wazuh-monitoring-3.x-*]) doesn't match","index_uuid":"_na_","index":"<wazuh-alerts-3.x-{2020.05.26||/d{yyyy.MM.dd|UTC}}>"}
+```
+to config this,edit /etc/elasticsearch/elasticsearch.yml
+add specific index you used,in this example it's wazuh-alerts and monitoring
+```
+action.auto_create_index: .monitoring*,.watches,.triggered_watches,.watcher-history*,.ml*,wazuh-alerts-3.x-*,wazuh-monitoring-3.x-*
+```
+
+- in filebeat7.7+,mapping error may showed as cannot index event publisher error  
+>https://groups.google.com/forum/#!topic/wazuh/zwNbmnfPwe0
+
+error like
+
+```
+Rejecting mapping update to as the final mapping would have more than 1 type: [log, doc]
+Rejecting mapping update to [] as the final mapping would have more than 1 type: [_doc, doc]
+```
+
+```
+Hi Venkatesh,
+
+The multi-type will be invalid en Elastic 7, right now you should see only a warning but not the error: "Could not index event to Elasticsearch".
+
+I think this could be happening for 2 reasons:
+You indexed events in Elasticsearch before applying the Wazuh template.
+You have several templates that apply to the same index pattern.
+You can check the template that applied to an index from the UI
+```
+
+
+how to create a index manually(it will give you a error but seems successful created target index)
+
+```
+PUT /wazuh-alerts-3.x-2020.05.26/wazuh/sample
+{
+  "@timestamp": "2015-03-18T15:55:55.000Z",
+  "AlertsFile": "sample",
+  "full_log": "sample",
+  "location": "sample",
+  "agent": {
+    "name": "sample"
+  },
+  "data": {
+    "title": "sample",
+    "protocol": "sample",
+    "action": "sample",
+    "srcip": "sample",
+    "dstip": "sample",
+    "srcport": "sample",
+    "dstport": "sample",
+    "srcuser": "sample",
+    "dstuser": "sample",
+    "id": "sample",
+    "status": "sample",
+    "data": "sample",
+    "system_name": "sample",
+    "url": "sample",
+	  "audit": {
+      "command": "sample",
+      "type": "sample",
+      "egid": "sample",
+      "euid": "sample",
+      "exe": "sample",
+      "gid": "sample",
+      "uid": "sample",
+      "directory": {
+        "name": "sample"
+      },
+      "file": {
+        "mode": "sample",
+        "name": "sample"
+      }
+	  },
+	  "oscap": {
+      "check": {
+        "result": "sample",
+        "severity": "sample",
+        "title": "sample"
+      },
+      "scan": {
+        "id": "sample",
+        "content": "sample",
+        "score": 1.55,
+        "profile": {
+          "title": "sample"
+        }
+      }
+    },
+    "vulnerability": {
+      "package": {
+        "name": "sample",
+        "version": "sample"
+      },
+      "cve":"sample",
+      "published":"2015-03-18T15:55:55.000Z",
+      "rationale":"sample",
+      "reference":"sample",
+      "severity":"sample",
+      "state":"sample",
+      "title":"sample",
+      "updated":"2015-03-18T15:55:55.000Z"
+    },
+    "aws": {
+      "eventName": "sample",
+      "userIdentity": {
+        "userName": "sample"
+      },
+      "eventSource": "sample"
+    },
+    "virustotal": {
+      "source": {
+        "file":"sample",
+        "md5":"sample",
+        "agent": {
+          "name":"sample"
+        }
+      },
+      "permalink": "sample",
+      "malicious": 1,
+      "positives": 20
+    }
+  },
+  "rule": {
+    "cis": ["sample"],
+    "description": "sample",
+    "groups": ["sample"],
+    "id": "sample",
+    "level": 0,
+    "pci_dss": ["sample"]
+  },
+  "syscheck": {
+    "gname_after": "sample",
+    "gname_before": "sample",
+    "guid_after": "sample",
+    "guid_before": "sample",
+    "md5_after": "sample",
+    "md5_before": "sample",
+    "path": "sample",
+    "perm_after": "sample",
+    "perm_before": "sample",
+    "uid_after": "sample",
+    "uid_before": "sample",
+    "uname_after": "sample",
+    "uname_before": "sample",
+    "event": "sample"
+  }
+}
+```
+>https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic-mapping.html
+>the great auto index
+
+
+to check all templates in es:
+req
+```
+GET /_cat/templates?v&s=name
+```
+response:
+```
+name                            index_patterns                             order      version
+.logstash-management            [.logstash]                                0          
+.management-beats               [.management-beats]                        0          70000
+.ml-anomalies-                  [.ml-anomalies-*]                          0          7070099
+.ml-config                      [.ml-config]                               0          7070099
+.ml-inference-000001            [.ml-inference-000001]                     0          7070099
+.ml-meta                        [.ml-meta]                                 0          7070099
+.ml-notifications-000001        [.ml-notifications-000001]                 0          7070099
+.ml-state                       [.ml-state*]                               0          7070099
+.ml-stats                       [.ml-stats-*]                              0          7070099
+.monitoring-alerts-7            [.monitoring-alerts-7]                     0          7000199
+.monitoring-beats               [.monitoring-beats-7-*]                    0          7000199
+.monitoring-es                  [.monitoring-es-7-*]                       0          7000199
+.monitoring-kibana              [.monitoring-kibana-7-*]                   0          7000199
+.monitoring-logstash            [.monitoring-logstash-7-*]                 0          7000199
+.slm-history                    [.slm-history-2*]                          2147483647 2
+.transform-internal-005         [.transform-internal-005]                  0          7070099
+.transform-notifications-000002 [.transform-notifications-*]               0          7070099
+.triggered_watches              [.triggered_watches*]                      2147483647 11
+.watch-history-11               [.watcher-history-11*]                     2147483647 11
+.watches                        [.watches*]                                2147483647 11
+filebeat-7.7.0                  [filebeat-7.7.0-*]                         1          
+ilm-history                     [ilm-history-2*]                           2147483647 2
+wazuh                           [wazuh-alerts-3.x-*, wazuh-archives-3.x-*] 0          1
+wazuh-agent                     [wazuh-monitoring-3.x-*]                   0          
+
+```
+
+- you may got outof disk,check available disk space on your system
+
+- sometimes it can be a wrong logstash config 
+>https://discuss.elastic.co/t/warn-elasticsearch-client-go-520-cannot-index-event-publisher-event/155683
+
+
 ***wazuh app plugin(in kibana)***
+
+1.the change in /etc/kibana/kibana.yml may not apply if you only restart kibana service,you need to remove the file cache in 
+```
+[root@ssl optimize]# pwd
+/usr/share/kibana/optimize
+```
+this kibana cache folder too.
 
 ```
 [root@wazuh kibana]# cat /usr/share/kibana/optimize/wazuh/logs/wazuhapp
@@ -1654,6 +2102,12 @@ bin  kibana  LICENSE.txt  module  NOTICE.txt  README.md
 /usr/share/filebeat
 ```
 
+```
+Home path: [/usr/share/filebeat] 
+Config path: [/etc/filebeat] 
+Data path: [/var/lib/filebeat] 
+Logs path: [/var/log/filebeat]
+```
 
 Wazuh logs: */var/ossec/logs/ossec.log*
 Filebeat logs:* /var/log/filebeat/**
@@ -1680,3 +2134,217 @@ curl https://raw.githubusercontent.com/wazuh/wazuh/3.2/extensions/elasticsearch/
 You can find an updated installation guide (for the Elastic Stack part of the Wazuh installation) here: https://documentation.wazuh.com/current/installation-guide/installing-elastic-stack/index.html
 ```
  check wazuh-alerts-3.x,remember to change the date field
+
+
+
+
+#agent behind NAT
+
+>https://github.com/wazuh/wazuh/issues/3994
+
+[@Eowin78](https://github.com/Eowin78) of course, you can register multiple hosts with the same public IP.
+
+By default, the manager attaches an agent to its public IP. More concretely, it attaches an agent to the visible IP of the agent. If your manager or your agents are behind a NAT, you can register only one agent.
+
+You need to add your agent with a "wildcard" IP address: "_any_". Simply add the option `-I any` to the registration command in your agent's host:
+```
+$ /var/ossec/bin/agent-auth -m <manager IP\> -I any
+```
+Indeed, "_any_" works as "_0.0.0.0/0_".
+
+On the other hand, you can set up this behavior by default in the manager so that it will register the agents with the "_any_" address.
+
+Set this configuration in your manager's "_/var/ossec/etc/ossec.conf_":
+```
+<ossec\_config\>
+  <auth\>
+    <use\_source\_ip\>no</use\_source\_ip\>
+  </auth\>
+</ossec\_config\>
+```
+That option lets the manager assign the "_any_" address to the agents by default. You need to restart the manager to apply the configuration. The agent's option `-I` overwrites that setting.
+
+For further information, please read:
+
+- [`agent-auth` manual](https://documentation.wazuh.com/3.10/user-manual/reference/tools/agent-auth.html).
+- [Manager's Auth daemon settings](https://documentation.wazuh.com/3.10/user-manual/reference/ossec-conf/auth.html).
+
+Hope that helps.  
+Best regards.
+
+
+
+#wazuh api auth kibana configuration
+
+When you click on the "gear" icon, the Wazuh App should show a page with a guide explaining how to configure the Wazuh App credentials.
+To modify those credentials you will have to edit the wazuh.yml which is located here: /usr/share/kibana/plugins/wazuh/wazuh.yml.
+In that file you will find a section with this structure:
+
+```
+hosts:  
+  - <id>:
+     url: <api_url>
+     port: <api_port>
+     user: <api_user>
+     password: <api_password>
+```
+
+so you can add there all the API credentials you need and specify the url/port of the Wazuh API. The field can be whatever value you want, but it must be unique.
+
+
+
+
+
+#authcation failed
+
+>https://groups.google.com/forum/#!topic/wazuh/xOgcvQlQmfg
+
+1.Wazuh Authentication Error. Wrong key from 'any'
+```
+It seems that your agent has a wrong key. Please, review if the key of your agent matches with the key in your manager. In order to do that:
+Check the agent key: cat /var/ossec/etc/client.keys
+Search that key in the manager: cat /var/ossec/etc/client.keys | grep <agent_id> 
+What is Wazuh version are you running? Do you have a cluster of Wazuh manager?
+
+On the other hand, the owners of api.log are wrong. I don't understand how your installation ends up with those owners. It should be:
+-rw-r----- 1 ossec  ossec
+
+I hope it helps.
+
+Regards.
+```
+
+
+
+#fucking shit
+
+how to setup xpack
+>https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-xpack.html
+
+
+
+
+#the index used in es by wazuh
+
+
+>https://documentation.wazuh.com/3.9/user-manual/kibana-app/reference/elasticsearch.html
+
+.. Copyright (C) 2020 Wazuh, Inc.
+
+.. _elasticsearch:
+
+Elasticsearch indices
+=====================
+
+Once you've installed the Wazuh app some new indices will be generated in Elasticsearch. Let's see a more in deep view about them.
+The user shouldn't take care about them and shouldn't modify them unless the Wazuh team suggest it.
+
+The ``.wazuh`` index
+--------------------
+
+This index is used by the Wazuh app to store Wazuh API credentials and useful information about the Wazuh manager currently being used.
+The next document example shows you how we store a Wazuh API entry. This index could grow up if you add more Wazuh API entries.
+
+.. code-block:: json
+
+    {
+        "api_user" : "foo",
+        "api_password" : "YmFy",
+        "url" : "http://localhost",
+        "api_port" : "55000",
+        "insecure" : "true",
+        "component" : "API",
+        "cluster_info" : {
+            "manager" : "osboxes",
+            "cluster" : "Disabled",
+            "status" : "disabled"
+        },
+        "extensions" : {
+        "audit" : true,
+        "pci" : false,
+        "gdpr" : true,
+        "oscap" : true,
+        "aws" : false,
+        "virustotal" : false
+        }
+    }
+
+
+The ``.wazuh-version`` index
+----------------------------
+
+This index has only one document and it includes useful information and it's being used by internal Wazuh app purposes. It includes information such as your current version or your installation date. The next example shows you how we store that information.
+
+.. code-block:: json
+
+    {
+        "name" : "Wazuh app",
+        "app-version" : "3.2.2",
+        "revision" : "0390",
+        "installationDate" : "2018-04-27T08:56:16.088Z",
+        "lastRestart" : "2018-05-22T07:13:30.327Z"
+    }
+
+The ``.kibana`` index
+---------------------
+
+This index is mainly used by Kibana itself. It's useful to tell Kibana how are the index patterns we are using along other technical details. This index should be similar for any user and it's a bit long to show its content here. Also its content is useless for the user knowledge.
+
+The ``wazuh-alerts-3.x-`` indices
+---------------------------------
+
+They are auto-generated and they store the Wazuh alerts. Filebeat will send data to Elasticsearch and will create an index per day.
+
+If you want to change the name of these indices with a custom one, you can follow :ref:`this guide <kibana_configure_indices>`.
+
+The ``wazuh-monitoring-3.x-`` indices
+-------------------------------------
+
+They are auto-generated and they store the Wazuh agents statuses periodically. The Wazuh app is which will send data to Elasticsearch and will create an index per day. This feature can be disabled. You can also adjust the insertion frequency. These indices are mainly used by the ``Agents status`` visualization from the Overview dashboard in the Wazuh app.
+
+More information
+----------------
+
+- `Elasticsearch documentation - Exploring Your Cluster <https://www.elastic.co/guide/en/elasticsearch/reference/6.x/getting-started-explore.html>`_
+
+
+
+
+#FORBIDDEN/12/index read-only / allow delete (api)
+
+>https://discuss.elastic.co/t/forbidden-12-index-read-only-allow-delete-api/110282
+
+
+This is the message:
+logstash.outputs.elasticsearch] retrying failed action with response code: 403 ({"type"=>"cluster_block_exception", "reason"=>"blocked by: [FORBIDDEN/12/index read-only / allow delete (api)]
+
+
+- solve
+For me, the issue started occurring after the file system of the server running Elasticsearch had been over its threshold. I tried restarting the cluster (currently a single node), but to no avail.
+The only thing that helped was reindexing the data in order not to lose anything, then deleting the existing indices.
+
+Same issue here. gone crazy trying to solve.
+
+Edit: i think my problem is low storage. just check your storage first. when it's low, kibana auto changes its config to read-only mode. to deal with it, go to your dev tools console and
+run below command:
+```
+PUT .kibana/_settings
+{
+"index": {
+"blocks": {
+"read_only_allow_delete": "false"
+}
+}
+}
+```
+
+
+
+#disable auto index in es
+
+
+Set this in your elasticsearch.yml configs for the cluster:
+```
+action.auto_create_index: false 
+```
+That will prevent indices from being automatically created.

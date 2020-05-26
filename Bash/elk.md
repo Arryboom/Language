@@ -265,7 +265,7 @@ elasticsearch: http://192.168.40.234:9200...
 
 
 ```
-/usr/share/filebeat/bin/filebeat test config
+/usr/share/filebeat/bin/filebeat test config -e
 ```
 
 
@@ -530,6 +530,10 @@ logstash tag
 /usr/share/elasticsearch/jdk/bin/javac -cp "./lib/*" ./LicenseVerifier.java
 ```
 
+>for testing.it should be 
+```
+[root@ssl elasticsearch]# /usr/share/elasticsearch/jdk/bin/javac -cp "./lib/*:./modules/x-pack-core/*" ./LicenseVerifier.java
+```
 
 
 
