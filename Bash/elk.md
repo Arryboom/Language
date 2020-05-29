@@ -1089,7 +1089,7 @@ systemctl start kibana
 
 
 
-###
+###{"type":"audit", "timestamp":"2020-05-29T19:50:00,619+0800", "node.id":"s9cmGA6ZSF6LgU9zngYAQA", "event.type":"transport", "event.action":"access_denied", "user.name":"elastic", "user.realm":"reserved", "user.roles":["superuser"], "origin.type":"rest", "origin.address":"192.168.40.243:46532", "request.id":"aU8oObU3Sv2ez_WNnUSw0g", "action":"indices:data/read/field_caps", "request.name":"FieldCapabilitiesRequest", "indices":["wazuh-alerts-3.x-*"]}
 
 The Kibana index is created once an object has been persisted, in your case it was the index pattern. Since you have disabled this, and the Kibana index has been successfully created, you should be able to again disable this setting. It's also possible to use a pattern based white/black list for this setting. For example `action.auto_create_index: +.kibana*, -*` (+ meaning allowed, and - meaning disallowed)
 
@@ -1154,3 +1154,33 @@ PUT _cluster/settings
 ```
 
 thanks!
+
+
+
+
+#enable es logging for debug
+
+Let’s see more details about your deployment:
+
+Journal for the user elasticsearch
+```
+journalctl -u elasticsearch > /tmp/output.txt && cat /tmp/output.txt
+```
+Logs from Elasticsearch
+```
+tail -80 /var/log/elasticsearch/<elasticsearch|cluster-name>.log
+```
+
+Add this line to your logging settings:
+```
+echo 'rootLogger.level = debug' >> /etc/elasticsearch/log4j2.properties
+```
+Now restart Elasticsearch.
+
+Now if you can send me a file with the content of at least 200 lines of your Elasticsearch log it would be helpful.
+
+With the above modification the log file will be more verbose, so please after your node is crashed again, execute the next command:
+```
+tail -200 /var/log/elasticsearch/elasticsearch.log > /tmp/output.txt
+```
+Then, send me the /tmp/output.txt content or the file so I can look for other technical logs that may help here.
