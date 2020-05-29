@@ -484,7 +484,18 @@ Another option is to use mlockall on Linux/Unix systems, or VirtualLock on Windo
 
 bootstrap.memory_lock: true
 
+###4
+Configure jvm memory limit
+by default elasticsearch will use 1GB memory,if you got more you can add more for performance
 
+edit /etc/elasticsearch/jvm.options,add -Xms and -Xmx options,here is a 8GB example
+```
+# Xms represents the initial size of total heap space
+# Xmx represents the maximum size of total heap space
+
+-Xms8g
+-Xmx8g
+```
 
 
 ---
@@ -1039,3 +1050,107 @@ for generate password automatically:
 
 ```
 
+
+
+#Es 端口9300 9200
+1.9300端口： ES节点之间通讯使用
+2.9200端口： ES节点 和 外部 通讯使用
+9300是tcp通讯端口，集群间和TCPClient都走的它；9200是http协议的RESTful接口
+
+
+
+
+
+----
+
+#issue
+
+
+##kibana port 5601 in use
+
+kill every process with node and running under kibana privelege
+
+```
+ps -ef | grep node
+ps -ef | grep kibana
+```
+
+stop the service 
+
+```
+service kibana stop
+```
+
+restart it.
+
+```
+systemctl start kibana
+```
+
+
+
+###
+
+The Kibana index is created once an object has been persisted, in your case it was the index pattern. Since you have disabled this, and the Kibana index has been successfully created, you should be able to again disable this setting. It's also possible to use a pattern based white/black list for this setting. For example `action.auto_create_index: +.kibana*, -*` (+ meaning allowed, and - meaning disallowed)
+
+
+the doc for es6.2
+>https://www.elastic.co/guide/en/elasticsearch/reference/6.2/installing-xpack-es.html
+
+lead you to wrong way.
+
+things like:
+```
+action.auto_create_index: .monitoring*,.watches,.triggered_watches,.watcher-history*,.ml*,wazuh-alerts-3.x-*,wazuh-monitoring-3.x-*
+```
+
+won't work,and cause certain outside tool like filebeat failed to create wazuh-alerts-3.x-YYYY.DD.MM index.
+
+
+
+###and another thing may need to notice here.
+
+Ok, thanks! That seems to affect both
+
+```
+"persistent": {
+        "action.auto_create_index": "false" 
+    }
+```
+
+and
+
+```
+"transient": {
+        "action.auto_create_index": "false" 
+    }
+```
+
+so perhaps that was the answer I was looking for.
+
+In other words: this is not enough:
+
+```
+PUT _cluster/settings
+{
+    "persistent": {
+        "action.auto_create_index": "false" 
+    }
+}
+```
+
+This should be correct:
+
+```
+PUT _cluster/settings
+{
+    "persistent": {
+        "action.auto_create_index": "false" 
+    },
+  "transient": {
+        "action.auto_create_index": "false" 
+    }
+}
+```
+
+thanks!
