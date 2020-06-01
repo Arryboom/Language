@@ -1184,3 +1184,717 @@ With the above modification the log file will be more verbose, so please after y
 tail -200 /var/log/elasticsearch/elasticsearch.log > /tmp/output.txt
 ```
 Then, send me the /tmp/output.txt content or the file so I can look for other technical logs that may help here.
+
+
+
+
+
+
+
+#elastic search HA
+
+>https://logz.io/blog/elasticsearch-cluster-tutorial/
+
+Unless you are using [Elasticsearch](https://logz.io/blog/elasticsearch-tutorial/) for development and testing, creating and maintaining an Elasticsearch cluster will be a task that will occupy quite a lot of your time. Elasticsearch is an extremely powerful search and analysis engine, and part of this power lies in the ability to scale it for better performance and stability.
+
+This tutorial will provide some information on how to set up an Elasticsearch cluster, and will add some operational tips and best practices to help you get started. It should be stressed though that each Elasticsearch setup will likely differ from one another depending on multiple factors, including the workload on the servers, the amount of indexed data, hardware specifications, and even the experience of the operators.
+
+## What is an Elasticsearch cluster?
+
+As the name implies, an Elasticsearch cluster is a group of one or more Elasticsearch nodes instances that are connected together. The power of an Elasticsearch cluster lies in the distribution of tasks, searching and indexing, across all the nodes in the cluster.
+
+The nodes in the Elasticsearch cluster can be assigned different jobs or responsibilities:
+
+- Data nodes — stores data and executes data-related operations such as search and aggregation
+- Master nodes — in charge of cluster-wide management and configuration actions such as adding and removing nodes
+- Client nodes — forwards cluster requests to the master node and data-related requests to data nodes
+- Ingest nodes — for pre-processing documents before indexing
+- _\*Note: Tribe nodes, which were similar to cross-cluster or federated nodes, were deprecated with Elasticsearch 5.4_
+
+By default, each node is automatically assigned a unique identifier, or name, that is used for management purposes and becomes even more important in a multi-node, or clustered, environment.
+
+When installed, a single Elasticsearch node will form a new single-node cluster entitled “elasticsearch,” but as we shall see later on in this article it can also be configured to join an existing cluster using the cluster name. Needless to say, these nodes need to be able to identify each other to be able to connect.
+
+## Installing an Elasticsearch Cluster
+
+As always, there are multiple ways of setting up an Elasticsearch cluster. You can use a configuration management tool such as Puppet or Ansible to automate the process. In this case, though, we will be showing you how to manually set up a cluster consisting of one master node and two data nodes, all on Ubuntu 16.04 instances on AWS EC2 running in the same VPC. The security group was configured to enable access from anywhere using SSH and TCP 5601 (Kibana).
+
+### Installing Java
+
+Elasticsearch is built on Java and requires at least Java 8 (1.8.0\_131 or later) to run. Our first step, therefore, is to install Java 8 on all the nodes in the cluster. Please note that the same version should be installed on all Elasticsearch nodes in the cluster.
+
+**Repeat the following steps on all the servers designated for your cluster.**
+
+First, update your system:
+
+sudo apt-get update
+
+Copy
+
+Then, install Java with:
+
+sudo apt-get install default-jre
+
+Copy
+
+Checking your Java version now should give you the following output or similar:
+
+openjdk version "1.8.0\_151"
+OpenJDK Runtime Environment (build 1.8.0\_151-8u151-b12-0ubuntu0.16.04.2-b12)
+OpenJDK 64-Bit Server VM (build 25.151-b12, mixed mode)
+
+Copy
+
+### Installing Elasticsearch nodes
+
+Our next step is to install Elasticsearch. **As before, repeat the steps in this section on all your servers.**
+
+First, you need to add Elastic’s signing key so that the downloaded package can be verified (skip this step if you’ve already installed packages from Elastic):
+
+wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+
+Copy
+
+For Debian, we need to then install the apt-transport-https package:
+
+sudo apt-get install apt-transport-https
+
+Copy
+
+The next step is to add the repository definition to your system:
+
+echo "deb https://artifacts.elastic.co/packages/6.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-6.x.list
+
+Copy
+
+All that’s left to do is to update your repositories and install Elasticsearch:
+
+sudo apt-get update 
+sudo apt-get install elasticsearch
+
+Copy
+
+## Configuring the Elasticsearch cluster
+
+Our next step is to set up the cluster so that the nodes can connect and communicate with each other.
+
+**For each node**, open the Elasticsearch configuration file:
+
+sudo vim /etc/elasticsearch/elasticsearch.yml
+
+Copy
+
+This file is quite long, and contains multiple settings for different sections. Browse through the file, and enter the following configurations (replace the IPs with your node IPs):
+
+#give your cluster a name.
+cluster.name: my-cluster
+
+#give your nodes a name (change node number from node to node).
+node.name: "es-node-1"
+
+#define node 1 as master-eligible:
+node.master: true
+
+#define nodes 2 and 3 as data nodes:
+node.data: true
+
+#enter the private IP and port of your node:
+network.host: 172.11.61.27
+http.port: 9200
+
+#detail the private IPs of your nodes:
+discovery.zen.ping.unicast.hosts: \["172.11.61.27", "172.31.22.131","172.31.32.221"\]
+
+Copy
+
+Save and exit.
+
+## Running your Elasticsearch cluster
+
+You are now ready to start your Elasticsearch nodes and verify they are communicating with each other as a cluster.
+
+**For each instance**, run the following command:
+
+sudo service elasticsearch start
+
+Copy
+
+If everything was configured correctly, your Elasticsearch cluster should be up and running. To verify everything is working as expected, query Elasticsearch from any of the cluster nodes:
+
+curl -XGET 'http://localhost:9200/\_cluster/state?pretty'
+
+Copy
+
+The response should detail the cluster and its nodes:
+
+{
+  "cluster\_name" : "my-cluster",
+  "compressed\_size\_in\_bytes" : 351,
+  "version" : 4,
+  "state\_uuid" : "3LSnpinFQbCDHnsFv-Z8nw",
+  "master\_node" : "IwEK2o1-Ss6mtx50MripkA",
+  "blocks" : { },
+  "nodes" : {
+    "IwEK2o1-Ss6mtx50MripkA" : {
+      "name" : "es-node-2",
+      "ephemeral\_id" : "x9kUrr0yRh--3G0ckESsEA",
+      "transport\_address" : "172.31.50.123:9300",
+      "attributes" : { }
+    },
+    "txM57a42Q0Ggayo4g7-pSg" : {
+      "name" : "es-node-1",
+      "ephemeral\_id" : "Q370o4FLQ4yKPX4\_rOIlYQ",
+      "transport\_address" : "172.31.62.172:9300",
+      "attributes" : { }
+    },
+    "6YNZvQW6QYO-DX31uIvaBg" : {
+      "name" : "es-node-3",
+      "ephemeral\_id" : "mH034-P0Sku6Vr1DXBOQ5A",
+      "transport\_address" : "172.31.52.220:9300",
+      "attributes" : { }
+    }
+  },
+ …
+
+Copy
+
+## Elasticsearch cluster configurations for production
+
+We already defined the different roles for the nodes in our cluster, but there are some additional recommended settings for a cluster running in a production environment.
+
+### Avoiding “Split Brain”
+
+A “split-brain” situation is when communication between nodes in the cluster fails due to either a network failure or an internal failure with one of the nodes. In this kind of scenario, more than one node might believe it is the master node, leading to a state of data inconsistency.
+
+For avoiding this situation, we can make changes to the _discovery.zen.minimum\_master\_nodes_ directive in the Elasticsearch configuration file which determines how many nodes need to be in communication (quorum) to elect a master.
+
+A best practice to determine this number is to use the following formula to decide this number: N/2 + 1. N is the number of master eligible nodes in the cluster. You then round down the result to the nearest integer.
+
+In the case of a cluster with three nodes, then:
+
+discovery.zen.minimum\_master\_nodes: 2
+
+Copy
+
+### Adjusting JVM heap size
+
+To ensure Elasticsearch has enough operational leeway, the default JVM heap size (min/max 1 GB) should be adjusted.
+
+As a rule of the thumb, the maximum heap size should be set up to 50% of your RAM, but no more than 32GB (due to Java pointer inefficiency in larger heaps). Elastic also recommends that the value for maximum and minimum heap size be identical.
+
+These value can be configured using the Xmx and Xms settings in the _jvm.options_ file.
+
+On DEB:
+
+sudo vim /etc/elasticsearch/jvm.options
+
+-Xms2g
+-Xmx2g
+
+Copy
+
+### Disabling swapping
+
+Swapping out unused memory is a known behavior but in the context of Elasticsearch can result in disconnects, bad performance and in general — an unstable cluster.
+
+To avoid swapping you can either disable all swapping (recommended if Elasticsearch is the only service running on the server), or you can use _mlockall_ to lock the Elasticsearch process to RAM.
+
+To do this, open the Elasticsearch configuration file on all nodes in the cluster:
+
+sudo vim /etc/elasticsearch/elasticsearch.yml
+
+Copy
+
+Uncomment the following line:
+
+bootstrap.mlockall: true
+
+Copy
+
+Next, open the /etc/default/elasticsearch file:
+
+sudo vim /etc/default/elasticsearch
+
+Copy
+
+Make the following configurations:
+
+MAX\_LOCKED\_MEMORY=unlimited
+
+Copy
+
+Restart Elasticsearch when you’re done.
+
+### Adjusting virtual memory
+
+To avoid running out of virtual memory, increase the amount of limits on mmap counts:
+
+sudo vim /etc/sysctl.conf
+
+Copy
+
+Update the relevant setting accordingly:
+
+vm.max\_map\_count=262144
+
+Copy
+
+On DEB/RPM, this setting is configured automatically.
+
+### Increasing open file descriptor limit
+
+Another important configuration is the limit of open file descriptors. Since Elasticsearch makes use of a large amount of file descriptors, you must ensure the defined limit is enough otherwise you might end up losing data.
+
+The common recommendation for this setting is 65,536 and higher. On DEB/RPM the default settings are already configured to suit this requirement but you can of course fine tune it.
+
+sudo vim  /etc/security/limits.conf
+
+Copy
+
+Set the limit:
+
+  - nofile 65536
+
+Copy
+
+## Elasticsearch Cluster APIs
+
+Elasticsearch supports a large number of cluster-specific API operations that allow you to manage and monitor your Elasticsearch cluster. Most of the APIs allow you to define which Elasticsearch node to call using either the internal node ID, its name or its address. 
+
+Below is a list of a few of the more basic API operations you can use. For advanced usage of cluster APIs, [read this blog post](https://logz.io/blog/elasticsearch-cheat-sheet/). 
+
+### Cluster Health
+
+This API can be used to see general info on the cluster and gauge its health:
+
+curl -XGET 'localhost:9200/\_cluster/health?pretty'
+
+Copy
+
+Response:
+
+{
+  "cluster\_name" : "my-cluster",
+  "status" : "green",
+  "timed\_out" : false,
+  "number\_of\_nodes" : 3,
+  "number\_of\_data\_nodes" : 3,
+  "active\_primary\_shards" : 0,
+  "active\_shards" : 0,
+  "relocating\_shards" : 0,
+  "initializing\_shards" : 0,
+  "unassigned\_shards" : 0,
+  "delayed\_unassigned\_shards" : 0,
+  "number\_of\_pending\_tasks" : 0,
+  "number\_of\_in\_flight\_fetch" : 0,
+  "task\_max\_waiting\_in\_queue\_millis" : 0,
+  "active\_shards\_percent\_as\_number" : 100.0
+}
+
+Copy
+
+### Cluster State
+
+This API can be sued to see a detailed status report on your entire cluster. You can filter results by specifying parameters in the call URL.
+
+curl -XGET 'localhost:9200/\_cluster/state?pretty'
+
+Copy
+
+Response:
+
+{
+  "cluster\_name" : "my-cluster",
+  "compressed\_size\_in\_bytes" : 347,
+  "version" : 4,
+  "state\_uuid" : "uMi5OBtAS8SSRJ9hw1-gUg",
+  "master\_node" : "sqT\_y5ENQ9SdjHiE0oco\_g",
+  "blocks" : { },
+  "nodes" : {
+    "sqT\_y5ENQ9SdjHiE0oco\_g" : {
+      "name" : "node-1",
+      "ephemeral\_id" : "-HDzovR0S0e-Nn8XJ-GWPA",
+      "transport\_address" : "172.31.56.131:9300",
+      "attributes" : { }
+    },
+    "mO0d0hYiS1uB--NoWuWyHg" : {
+      "name" : "node-3",
+      "ephemeral\_id" : "LXjx86Q5TrmefDoq06MY1A",
+      "transport\_address" : "172.31.58.61:9300",
+      "attributes" : { }
+    },
+    "it1V-5bGT9yQh19d8aAO0g" : {
+      "name" : "node-2",
+      "ephemeral\_id" : "lCJja\_QtTYauP3xEWg5NBQ",
+      "transport\_address" : "172.31.62.65:9300",
+      "attributes" : { }
+    }
+  },
+  "metadata" : {
+    "cluster\_uuid" : "8AqSmmKdQgmRVPsVxyxKrw",
+    "templates" : { },
+    "indices" : { },
+    "index-graveyard" : {
+      "tombstones" : \[ \]
+    }
+  },
+  "routing\_table" : {
+    "indices" : { }
+  },
+  "routing\_nodes" : {
+    "unassigned" : \[ \],
+    "nodes" : {
+      "it1V-5bGT9yQh19d8aAO0g" : \[ \],
+      "sqT\_y5ENQ9SdjHiE0oco\_g" : \[ \],
+      "mO0d0hYiS1uB--NoWuWyHg" : \[ \]
+    }
+  },
+  "snapshots" : {
+    "snapshots" : \[ \]
+  },
+  "restore" : {
+    "snapshots" : \[ \]
+  },
+  "snapshot\_deletions" : {
+    "snapshot\_deletions" : \[ \]
+  }
+}
+
+Copy
+
+### Cluster Stats
+
+Extremely useful for monitoring performance metrics on your entire cluster:
+
+curl -XGET 'localhost:9200/\_cluster/stats?human&pretty'
+
+Copy
+
+Response:
+
+{
+  "\_nodes" : {
+    "total" : 3,
+    "successful" : 3,
+    "failed" : 0
+  },
+  "cluster\_name" : "my-cluster",
+  "timestamp" : 1517224098451,
+  "status" : "green",
+  "indices" : {
+    "count" : 0,
+    "shards" : { },
+    "docs" : {
+      "count" : 0,
+      "deleted" : 0
+    },
+    "store" : {
+      "size" : "0b",
+      "size\_in\_bytes" : 0
+    },
+    "fielddata" : {
+      "memory\_size" : "0b",
+      "memory\_size\_in\_bytes" : 0,
+      "evictions" : 0
+    },
+    "query\_cache" : {
+      "memory\_size" : "0b",
+      "memory\_size\_in\_bytes" : 0,
+      "total\_count" : 0,
+      "hit\_count" : 0,
+      "miss\_count" : 0,
+      "cache\_size" : 0,
+      "cache\_count" : 0,
+      "evictions" : 0
+    },
+    "completion" : {
+      "size" : "0b",
+      "size\_in\_bytes" : 0
+    },
+    "segments" : {
+      "count" : 0,
+      "memory" : "0b",
+      "memory\_in\_bytes" : 0,
+      "terms\_memory" : "0b",
+      "terms\_memory\_in\_bytes" : 0,
+      "stored\_fields\_memory" : "0b",
+      "stored\_fields\_memory\_in\_bytes" : 0,
+      "term\_vectors\_memory" : "0b",
+      "term\_vectors\_memory\_in\_bytes" : 0,
+      "norms\_memory" : "0b",
+      "norms\_memory\_in\_bytes" : 0,
+      "points\_memory" : "0b",
+      "points\_memory\_in\_bytes" : 0,
+      "doc\_values\_memory" : "0b",
+      "doc\_values\_memory\_in\_bytes" : 0,
+      "index\_writer\_memory" : "0b",
+      "index\_writer\_memory\_in\_bytes" : 0,
+      "version\_map\_memory" : "0b",
+      "version\_map\_memory\_in\_bytes" : 0,
+      "fixed\_bit\_set" : "0b",
+      "fixed\_bit\_set\_memory\_in\_bytes" : 0,
+      "max\_unsafe\_auto\_id\_timestamp" : -9223372036854775808,
+      "file\_sizes" : { }
+    }
+  },
+  "nodes" : {
+    "count" : {
+      "total" : 3,
+      "data" : 3,
+      "coordinating\_only" : 0,
+      "master" : 3,
+      "ingest" : 3
+    },
+    "versions" : \[
+      "6.1.2"
+    \],
+    "os" : {
+      "available\_processors" : 3,
+      "allocated\_processors" : 3,
+      "names" : \[
+        {
+          "name" : "Linux",
+          "count" : 3
+        }
+      \],
+      "mem" : {
+        "total" : "10.4gb",
+        "total\_in\_bytes" : 11247157248,
+        "free" : "4.5gb",
+        "free\_in\_bytes" : 4915200000,
+        "used" : "5.8gb",
+        "used\_in\_bytes" : 6331957248,
+        "free\_percent" : 44,
+        "used\_percent" : 56
+      }
+    },
+    "process" : {
+      "cpu" : {
+        "percent" : 10
+      },
+      "open\_file\_descriptors" : {
+        "min" : 177,
+        "max" : 178,
+        "avg" : 177
+      }
+    },
+    "jvm" : {
+      "max\_uptime" : "6m",
+      "max\_uptime\_in\_millis" : 361766,
+      "versions" : \[
+        {
+          "version" : "1.8.0\_151",
+          "vm\_name" : "OpenJDK 64-Bit Server VM",
+          "vm\_version" : "25.151-b12",
+          "vm\_vendor" : "Oracle Corporation",
+          "count" : 3
+        }
+      \],
+      "mem" : {
+        "heap\_used" : "252.1mb",
+        "heap\_used\_in\_bytes" : 264450008,
+        "heap\_max" : "2.9gb",
+        "heap\_max\_in\_bytes" : 3195076608
+      },
+      "threads" : 63
+    },
+    "fs" : {
+      "total" : "23.2gb",
+      "total\_in\_bytes" : 24962703360,
+      "free" : "19.4gb",
+      "free\_in\_bytes" : 20908818432,
+      "available" : "18.2gb",
+      "available\_in\_bytes" : 19570003968
+    },
+    "plugins" : \[ \],
+    "network\_types" : {
+      "transport\_types" : {
+        "netty4" : 3
+      },
+      "http\_types" : {
+        "netty4" : 3
+      }
+    }
+  }
+}
+
+Copy
+
+You can also target specific groups of nodes with node filters.
+
+### Nodes Stats
+
+If you want to inspect metrics for specific nodes in the cluster, use this API. You can see info for all nodes, a specific node, or ask to see only index or OS/process specific stats.
+
+All nodes:
+
+curl -XGET 'localhost:9200/\_nodes/stats?pretty'
+
+Copy
+
+A specific node:
+
+curl -XGET 'localhost:9200/\_nodes/node-1/stats?pretty'
+
+Copy
+
+Index-only stats:
+
+curl -XGET 'localhost:9200/\_nodes/stats/indices?pretty'
+
+Copy
+
+You can get any of the specific metrics for any single node with the following structure:
+
+curl -XGET 'localhost:9200/\_nodes/stats/ingest?pretty'
+
+Copy
+
+Or multiple nodes with the following structure:
+
+curl -XGET 'localhost:9200/\_nodes/stats/ingest,fs?pretty'
+
+Copy
+
+Or all metrics with either of these two formats:
+
+curl -XGET 'localhost:9200/\_nodes/stats/\_all?pretty'
+
+curl -XGET 'localhost:9200/\_nodes/stats?metric=\_all?pretty'
+
+Copy
+
+### Nodes Info
+
+If you want to collect information on any or all of your cluster nodes, use this API.
+
+Retrieve for a single node:  
+
+curl -XGET ‘localhost:9200/\_nodes/?pretty’
+
+Copy
+
+Or multiple nodes:
+
+curl -XGET ‘localhost:9200/\_nodes/node1,node2?pretty’
+
+Copy
+
+Retrieve data on plugins or ingest:
+
+curl -XGET ‘localhost:9200/\_nodes/plugins
+
+Copy
+
+curl -XGET ‘localhost:9200/\_nodes/ingest
+
+Copy
+
+Information about ingest processors should appear like this (with many more than the three types shown in the example):
+
+{
+  "\_nodes": …
+  "cluster\_name": "elasticsearch",
+  "nodes": {
+   "toTaLLyran60m5amp13": {
+	"ingest": {
+	   "processors": \[
+	     {
+	       "type": "uppercase"
+	     },
+	     {
+	       "type": "lowercase"
+	     },
+	     {
+	       "type": "append"
+	     }
+	   \]
+	 }
+    }
+  }
+}
+
+Copy
+
+### Pending Cluster Tasks
+
+This API tracks changes at the cluster level, including but not limited to updated mapping, failed sharding, and index creation.
+
+The following GET should return a list of tasks:  
+
+curl -XGET ‘localhost:9200/\_cluster/pending\_tasks?pretty’
+
+Copy
+
+### Task Management
+
+Similar to the Pending Cluster Tasks API, the Task Management API will get data on currently running tasks on respective nodes.
+
+To get info on all currently executing tasks, enter:  
+
+curl -XGET "localhost:9200/\_tasks
+
+Copy
+
+To get current tasks by specific nodes, AND additionally cluster-related tasks, enter the node names as such and then append &actions to the GET:  
+
+curl -XGET ‘localhost:9200/\_tasks?nodes=node1,node2&actions=cluster:\*&pretty’
+
+Copy
+
+Retrieve info about a specific task (or its child tasks) by entering \_tasks/ and then the task’s individual ID:
+
+curl -XGET ‘localhost:9200/\_tasks/43r315an3xamp13’
+
+Copy
+
+And for child tasks:  
+
+curl -XGET ‘localhost:9200/\_tasks?parent\_task\_id=43r315an3xamp13’
+
+Copy
+
+This API also supports reindexing, search, task grouping and task cancelling.
+
+### Remote Cluster Info
+
+Get remote cluster info with:
+
+curl -XGET 'localhost:9200/\_remote/info?pretty'
+
+Copy
+
+### Voting Configuration Exclusions
+
+This will remove master-eligible nodes.  
+Remove all exclusions by:
+
+curl -X DELETE ‘localhost:9200/\_cluster/voting\_config\_exclusions?pretty’
+
+Copy
+
+Or add a node to the exclusions list:
+
+curl -X POST ‘localhost:9200/\_cluster/voting\_config\_exclusions/node1?pretty’
+
+Copy
+
+## What next?
+
+“When all else fails, read the fuc%^&\* manual” goes the famous saying. Thing is, the manual in question, and the technology it documents, are not straightforward to say the least.
+
+More on the subject:
+
+- [Elasticsearch Tutorial](https://logz.io/blog/elasticsearch-tutorial/)
+- [Logstash Tutorial](https://logz.io/blog/logstash-tutorial/)
+- [Kibana Tutorial](https://logz.io/blog/kibana-tutorial/)
+
+This tutorial made a brave attempt to provide users with the basics of setting up and configuring their first Elasticsearch cluster, knowing full well that it is virtually impossible to provide instructions that suit every environment and use case.
+
+Together with this tutorial, I strongly recommend doing additional research. Other than Elastic’s official documentation, here are some additional informative resources:
+
+- [Elasticsearch cluster setup and update: read, plan and test](https://logz.io/blog/elasticsearch-cluster-setup/)
+- [Elasticsearch performance monitoring](https://logz.io/blog/elasticsearch-performance-monitoring/)
+- [Designing the perfect Elasticsearch cluster](https://thoughts.t37.net/designing-the-perfect-elasticsearch-cluster-the-almost-definitive-guide-e614eabc1a87)
+
+Good luck!

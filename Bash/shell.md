@@ -2701,6 +2701,26 @@ save below file as pappp.txt
 
 
 
+#添加开机启动项
+
+###ubuntu
+/etc/rc.local
+
+from ubuntu 6.10,默认使用dash而不是bash，但Login Shell还是bash。于是查看了一下，发现 /bin/sh 链接到了 /bin/dash/ ,而rc.local脚本使用的正是/bin/sh，故脚本没有执行。/etc/init.d/rc.local执行了/etc/rc.local.
+
+1.create /etc/rc.local if it doesn't exits,then chmod +x to give it execute auth.
+2.using bash as interpreter,so the first line start with
+
+```
+#!/bin/bash
+```
+
+>方法一：将rc.local中的命令改成更加兼容的模式，将"#!/bin/sh"改为"#!/bin/bash"
+>方法二(不推荐)：将/bin/sh重新链接到/bin/bash，有两种方法：
+>1. 执行命令：
+>sudo dpkg-reconfigure dash选择no
+>3. 重新进行软连接，执行命令：
+>sudo rm /bin/sh sudo ln -s /bin/bash /bin/sh
 
 
 
