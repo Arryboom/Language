@@ -1898,3 +1898,41 @@ Together with this tutorial, I strongly recommend doing additional research. Oth
 - [Designing the perfect Elasticsearch cluster](https://thoughts.t37.net/designing-the-perfect-elasticsearch-cluster-the-almost-definitive-guide-e614eabc1a87)
 
 Good luck!
+
+
+
+
+#es cluster with xpack
+
+###best way to start with it
+
+> Strangely my head plugin which is installed as chrome extension is asking for the password to connect with ES before installing x-pack it was not asking for password.
+> 
+> Why ES is not starting properly and which password I am supposed to put in head so that it can fetch the ES information?
+
+Because by installing X-Pack with the defaults you have secured the REST API that your plugin previously spoke to unsecured.
+
+> I am not able to read the content of mentioned file.
+
+This is by design, it's an encrypted Java keystore meant to protect secrets.
+
+You can check which keys (but not their passwords) the keystore contains by entering
+
+`bin/elasticsearch-keystore list`
+
+in the path for that node (note it is _not_ the `x-pack` directory within `bin/`.
+
+As this is on your laptop, your easiest option is probably to stop your cluster, remove X-Pack from all 7 nodes with
+
+`bin/elasticsearch-plugin remove x-pack`
+
+double check a keystore is not present in any config path, then reinstall to _all_ nodes with
+
+`bin/elasticsearch-plugin install x-pack`
+
+then start the cluster back up and run
+
+`bin/x-pack/setup-passwords interactive`
+
+###if you already setup one node with xpack,now you gonna convert it into cluster
+
