@@ -189,6 +189,162 @@ To uninstall filebeat:
 
 
 
+#agent install.
+
+###ubuntu
+
+```
+apt-get install curl apt-transport-https lsb-release gnupg2
+curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | apt-key add -
+echo "deb https://packages.wazuh.com/3.x/apt/ stable main" | tee /etc/apt/sources.list.d/wazuh.list
+apt-get update
+WAZUH_MANAGER="10.0.0.2" apt-get install wazuh-agent
+```
+
+disable auto upgrade
+
+```
+sed -i "s/^deb/#deb/" /etc/apt/sources.list.d/wazuh.list
+apt-get update
+```
+
+
+deployment variables:
+>https://documentation.wazuh.com/3.12/installation-guide/installing-wazuh-agent/deployment_variables/linux/deployment_variables_apt.html#deployment-variables-apt
+
+Below you can find a table describing the variables used by Wazuh installers, and a few examples on how to use them.
+
+<table border="1" class="docutils"><colgroup><col width="16%"><col width="84%"></colgroup>
+
+<thead valign="bottom">
+
+<tr class="row-odd">
+
+<th class="head">Option</th>
+
+<th class="head">Description</th>
+
+</tr>
+
+</thead>
+
+<tbody valign="top">
+
+<tr class="row-even">
+
+<td>WAZUH_MANAGER</td>
+
+<td>Specifies the manager IP address or hostname. In case you want to specify multiple managers, you can add them separated by commas. See [<span class="std std-ref">address</span>](../../../../user-manual/reference/ossec-conf/client.html#server-address).</td>
+
+</tr>
+
+<tr class="row-odd">
+
+<td>WAZUH_MANAGER_PORT</td>
+
+<td>Specifies the manager’s connection port. See [<span class="std std-ref">port</span>](../../../../user-manual/reference/ossec-conf/client.html#server-port).</td>
+
+</tr>
+
+<tr class="row-even">
+
+<td>WAZUH_PROTOCOL</td>
+
+<td>Sets the communication protocol between the manager and the agent. Accepts UDP and TCP. Default is UDP. See [<span class="std std-ref">protocol</span>](../../../../user-manual/reference/ossec-conf/client.html#server-protocol).</td>
+
+</tr>
+
+<tr class="row-odd">
+
+<td>WAZUH_REGISTRATION_SERVER</td>
+
+<td>Specifies the Wazuh registration server, used for the agent registration. See [<span class="std std-ref">agent-auth options</span>](../../../../user-manual/reference/tools/agent-auth.html#agent-auth).</td>
+
+</tr>
+
+<tr class="row-even">
+
+<td>WAZUH_REGISTRATION_PORT</td>
+
+<td>Specifies the port used by the Wazuh registration server. See [<span class="std std-ref">agent-auth options</span>](../../../../user-manual/reference/tools/agent-auth.html#agent-auth).</td>
+
+</tr>
+
+<tr class="row-odd">
+
+<td>WAZUH_REGISTRATION_PASSWORD</td>
+
+<td>Sets the Wazuh registration server. See [<span class="std std-ref">agent-auth options</span>](../../../../user-manual/reference/tools/agent-auth.html#agent-auth).</td>
+
+</tr>
+
+<tr class="row-even">
+
+<td>WAZUH_KEEP_ALIVE_INTERVAL</td>
+
+<td>Sets the time between agent checks for manager connection. See [<span class="std std-ref">notify-time</span>](../../../../user-manual/reference/ossec-conf/client.html#notify-time).</td>
+
+</tr>
+
+<tr class="row-odd">
+
+<td>WAZUH_TIME_RECONNECT</td>
+
+<td>Sets the time interval for the agent to reconnect with the Wazuh manager when connectivity is lost. See [<span class="std std-ref">time-reconnect</span>](../../../../user-manual/reference/ossec-conf/client.html#time-reconnect).</td>
+
+</tr>
+
+<tr class="row-even">
+
+<td>WAZUH_REGISTRATION_CA</td>
+
+<td>Host SSL validation need of Certificate of Authority. This option specifies the CA path. See [<span class="std std-ref">agent-auth options</span>](../../../../user-manual/reference/tools/agent-auth.html#agent-auth).</td>
+
+</tr>
+
+<tr class="row-odd">
+
+<td>WAZUH_REGISTRATION_CERTIFICATE</td>
+
+<td>The SSL agent verification needs a CA signed certificate and the respective key. This option specifies the certificate path. See [<span class="std std-ref">agent-auth options</span>](../../../../user-manual/reference/tools/agent-auth.html#agent-auth).</td>
+
+</tr>
+
+<tr class="row-even">
+
+<td>WAZUH_REGISTRATION_KEY</td>
+
+<td>Specifies the key path completing the required variables with WAZUH_REGISTRATION_CERTIFICATE for the SSL agent verification process. See [<span class="std std-ref">agent-auth options</span>](../../../../user-manual/reference/tools/agent-auth.html#agent-auth).</td>
+
+</tr>
+
+<tr class="row-odd">
+
+<td>WAZUH_AGENT_NAME</td>
+
+<td>Designates the agent’s name. By default it will be the computer name. See [<span class="std std-ref">agent-auth options</span>](../../../../user-manual/reference/tools/agent-auth.html#agent-auth).</td>
+
+</tr>
+
+<tr class="row-even">
+
+<td>WAZUH_AGENT_GROUP</td>
+
+<td>Assigns the agent to one or more existing groups (separated by commas). See [<span class="std std-ref">agent-auth options</span>](../../../../user-manual/reference/tools/agent-auth.html#agent-auth).</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+
+####example
+
+```
+WAZUH_MANAGER="10.0.0.2" WAZUH_REGISTRATION_PASSWORD="TopSecret" \
+     WAZUH_AGENT_NAME="apt-agent" apt-get install wazuh-agent
+```
 
 ##bash history monitor
 
@@ -730,10 +886,10 @@ New File
 
 > Command:
 
-Copied to clipboard
+```
 
  # touch /home/malware.py
-
+```
 Alert::
 
  \*\* Alert 1487891161.28457: - audit,audit\_watch\_write,audit\_watch\_create,
@@ -1139,6 +1295,32 @@ If you don’t need to to access to the API externally, you should bind the API 
 config.host = "localhost";
 ```
 ELK xpack enable with ssl and password enabled
+
+
+##with passwd auth to register new agent.
+
+
+first edit the ossec.conf on manager:
+
+```
+<auth>
+  ...
+  <use_password>yes</use_password>
+  ...
+</auth>
+```
+then,get a passwd to /var/ossec/etc/authd.pass
+
+```
+echo "<custom_password>" > /var/ossec/etc/authd.pass
+```
+> if this file be null,ossec will generate a new password itself,which can be found by ``cat /var/ossec/logs/ossec.log | grep "Random password``
+then restart manager service and register agent with password:
+```
+/var/ossec/bin/agent-auth -m <manager_IP> -P "<custom_password>"
+```
+
+
 
 
 ##wazuh
@@ -2348,3 +2530,448 @@ Set this in your elasticsearch.yml configs for the cluster:
 action.auto_create_index: false 
 ```
 That will prevent indices from being automatically created.
+
+
+
+#WARNING: (1404): Authentication error. Wrong key or corrupt payload. Message received from agent
+
+```
+2020/06/03 01:32:38 ossec-remoted: WARNING: (1404): Authentication error. Wrong key or corrupt payload. Message received from agent '003' at 'any'.
+```
+>https://groups.google.com/forum/#!topic/wazuh/Vw3Kas7J0Iw
+
+In order to troubleshoot this, could you verify the manager version is now indeed 3.9.0 as these errors may arise when the manager is a version older than that of the agents:
+
+```
+
+sqlite3 /var/ossec/var/db/global.db 'select version from agent where id = 0;'
+
+```
+
+If this is correct, please provide the following information so we may further diagnose the issue:
+
+- Version from which the upgrade was done
+- Upgrade method (repositories, packages or self-compiled sources)
+- Manager's Operating System  
+    
+- Agent versions
+
+
+and another way
+
+To get more information would you be able to enable the debug mode for **remoted** and **agentd** daemons, under **/var/ossec/etc/internal\_options.conf**  :  
+  
+  
+For the Wazuh manager :  
+  
+
+```
+
+# Remoted (server debug)  
+remoted.debug=2
+
+```
+
+  
+For the Wazuh agent :  
+
+```
+# Unix agentd  
+
+agent.debug=2
+```
+
+  
+Restart your manager & agent to apply these changes.  
+  
+That should allow getting more relevant information in the **ossec.log** for both sides, Please share with us those logs.  
+  
+As well it would be helpful sharing your ossec.conf for both sides (Manager & agent), make sure to omit any sensible infos.
+
+
+
+#same ip register
+
+- By default, the registration service adds the agents with their static IP address. If you want to add them with a dynamic IP (like using `any` on the `manage_agents` tool), you must change the manager’s configuration file (`/var/ossec/etc/ossec.conf`):
+    
+    Copied to clipboard
+    
+    <auth>
+      <use\_source\_ip>no</use\_source\_ip>
+    </auth>ls
+    
+- Duplicate IPs are not allowed, so an agent won’t be added if there is already another agent registered with the same IP. By changing the configuration file, `ossec-authd` can be told to **force a registration** if it finds an older agent with the same IP address. This will make the older agent’s registration be deleted:
+    
+    Copied to clipboard
+    
+    <auth>
+      <force\_insert>yes</force\_insert>
+      <force\_time>0</force\_time>
+    </auth>
+    
+    The **0** on `<force-time>` means the minimum time, in seconds, since the last connection of the old agent (the one to be deleted). In this case, it means to delete the old agent’s registration regardless of how recently it has checked in.
+
+###here I think the option purge and force timewill be a big question
+
+```
+  <auth>
+    <disabled>no</disabled>
+    <port>1515</port>
+    <use_source_ip>no</use_source_ip>
+    <force_insert>yes</force_insert>
+    <force_time>0</force_time>
+    <purge>yes</purge>
+    <use_password>no</use_password>
+    <limit_maxagents>yes</limit_maxagents>
+    <ciphers>HIGH:!ADH:!EXP:!MD5:!RC4:!3DES:!CAMELLIA:@STRENGTH</ciphers>
+    <!-- <ssl_agent_ca></ssl_agent_ca> -->
+    <ssl_verify_host>no</ssl_verify_host>
+    <ssl_manager_cert>/var/ossec/etc/sslmanager.cert</ssl_manager_cert>
+    <ssl_manager_key>/var/ossec/etc/sslmanager.key</ssl_manager_key>
+    <ssl_auto_negotiate>no</ssl_auto_negotiate>
+  </auth>
+```
+### force\_time[¶](https://documentation.wazuh.com/3.7/user-manual/reference/ossec-conf/auth.html?highlight=purge#force-time "Permalink to this headline")
+
+When forcing to remove old agents with the same name or IP address, this options specifies that the deletion will be performed only if the agent’s keepalive has more than the defined number of seconds.
+
+  
+
+**Default value**
+
+0
+
+**Allowed values**
+
+- Positive number
+- 0
+
+Value `0` means to always force the deletion.
+
+### purge[¶](https://documentation.wazuh.com/3.7/user-manual/reference/ossec-conf/auth.html?highlight=purge#purge "Permalink to this headline")
+
+Toggles the deletion of client keys on or off when agents are removed.
+
+  
+
+**Default value**
+
+no
+
+**Allowed values**
+
+yes, no
+
+When set to `no`, removed agents will remain in the client keys file marked as removed. When set to `yes`, the client keys file will be purged.
+
+>https://documentation.wazuh.com/3.7/user-manual/reference/ossec-conf/auth.html?highlight=purge
+
+
+
+
+
+#osssec-agent status check tips2
+
+# ossec-agentd.state[¶](https://documentation.wazuh.com/3.12/user-manual/reference/statistics-files/ossec-agentd-state.html?highlight=keepalive#ossec-agentd-state "Permalink to this headline")
+
+The statistical file for **ossec-agentd** is located at `/var/ossec/var/run/ossec-agentd.state`.
+
+This file provides information about the agent as the number of generated events, last connection, agent status and some other useful information.
+
+By default, this file is updated every 5 seconds. This interval can be changed by modifying the `agent.state_interval` value from the [internal configuration](https://documentation.wazuh.com/3.12/user-manual/reference/internal-options.html#reference-internal-options) file.
+
+
+
+
+#auditd disk full cause no log push to wazuh
+
+on ubuntu,
+the disk isn't really full,but the log in Syslog
+```
+Syslog shows the "Audit daemon has no space left on logging partition" and "Audit daemon is suspending logging due to no space left on logging partition" messages. Resuming ('man auditd') requires a 'pkill -USR2 -f auditd' after which syslog will show the "Auditd daemon is attempting to resume logging." and audit.log "auditd resuming logging, sending auid=? pid=? subj=? res=success" message.
+```
+and further,
+
+[b]/dev/log[/b] should be a socket. Please check that it is . . .
+
+[b]srw-rw-rw- 1 root root 0 Apr 15 09:30 log[/b]
+
+This is a puzzling issue.
+
+ll /dev/log
+srw-rw-rw- 1 root root 0 Apr 5 08:11 /dev/log
+
+
+As I've said, I think there is a process reading from this, probably with an internal buffer, that has filled up that buffer, or misread the available disk space (auditd comes to mind).
+
+I've not obtained any log reports in /var/log/messages since yesterday either, with a total of 4 lines:
+
+Apr 13 04:02:11 cydonia syslogd 1.4.1: restart.
+Apr 14 03:01:02 cydonia auditd[1872]: Audit daemon has no space left on logging partition
+Apr 14 03:01:03 cydonia auditd[1872]: Audit daemon is suspending logging due to no space left on logging partition.
+Apr 14 14:16:34 cydonia restorecond: Will not restore a file with more than one hard link (/etc/resolv.conf) Invalid argument
+
+>https://forums.centos.org/viewtopic.php?t=27691
+>https://serverfault.com/questions/869114/no-space-left-on-device-error-writing-to-logs-access-log
+
+and things helps:
+
+A few other things to check.
+
+- How big are these logs files getting? How busy is your server?
+- Do you have any file system quota in place?
+- Check semaphores (: here's a good link that explains it: [https://major.io/2007/08/24/apache-no-space-left-on-device-couldnt-create-accept-lock/](https://major.io/2007/08/24/apache-no-space-left-on-device-couldnt-create-accept-lock/) (however that usually shows a different error).
+
+Is the server only running apache or other services? Another thing to check is file descriptor limits. `sysctl fs.file-nr` should show a reasonably high number. You can also check in /proc/<pid>task folder to see if there are too many items. Also check `lsof -p <pid>`. I would also check to see if there are any file system errors in the kernel log.
+
+There are a good few services running (updated above). sysctl fs.file-nr returns: fs.file-nr = 896 0 401956 –
+
+Probably _lsof | grep "deleted"_ will find a hung process which is consuming disk space. Worth trying restarting this post backup.
+
+Use `repquota /` to review your quotas on the root partition. If you’re at the limit, raise your quota or clear up some disk space. Apache logs are usually the culprit in these situations.
+
+You may want to increase your available semaphores, and you’ll need to tickle your kernel to do so. Add this to /etc/sysctl.conf:
+
+```
+kernel.msgmni \= 1024
+
+kernel.sem \= 250 256000 32 1024
+```
+
+And then run `sysctl -p` to pick up the new changes.
+
+
+Looking at the source code (in version 2.6.7), there is no way to retrieve the current "suspended" state other than attaching a debugger to the process and make it dump the value of the `logging_suspended` internal variable.
+
+You could send a test message and check that it gets logged though. That way, you'd check for the _suspended_ condition but also for anything that prevents logging from happening. That is, you'd validate that it works properly all the way through.
+
+```
+msg="audit test $(uuidgen)" || exit # generate unique message
+auditctl -m "$msg" || exit # send the unique message
+sleep 1 # enough time for the message to be logged
+ausearch -ts recent -m USER | grep -Fqe "$msg" && echo OK
+```
+
+
+
+
+#get client detail 
+```
+sqlite3 /var/ossec/var/db/global.db 'select * from agent where id = 3;'
+```
+change id to the target agent id
+
+
+
+
+
+#using ssl in kibana,wazuh,filebeat communication.
+
+>https://documentation.wazuh.com/3.12/installation-guide/installing-elastic-stack/protect-installation/xpack.html#xpack-security
+
+## Configure Elastic Stack to use encrypted connections[¶](https://documentation.wazuh.com/3.12/installation-guide/installing-elastic-stack/protect-installation/xpack.html#configure-elastic-stack-to-use-encrypted-connections "Permalink to this headline")
+
+This section describes how to secure the communications between the involved components, adding an SSL layer.
+
+1. Create the file `/usr/share/elasticsearch/instances.yml` and fill it with the instances you want to secure.
+
+```
+
+instances:
+    \- name: "wazuh-manager"
+      ip:
+        \- "10.0.0.2"
+    \- name: "elasticsearch"
+      ip:
+        \- "10.0.0.3"
+    \- name: "kibana"
+      ip:
+        \- "10.0.0.4"
+```
+2. Create the certificates using the [elasticsearch-certutil](https://www.elastic.co/guide/en/elasticsearch/reference/current/certutil.html) tool. The `--keep-ca-key` modifier may be used in order to keep the CA’s certificate and key files, in the case of future expansions these files may be used to sign certificates for new servers. If this modifier is not used, these files will be deleted and any future certificates will require a new CA, in consequence the previous certificates will no longer be valid and will need to be redistributed. It is important that the `ca.key` file be properly secured.
+
+```
+
+\# /usr/share/elasticsearch/bin/elasticsearch-certutil cert --pem --in instances.yml --out certs.zip --keep-ca-key
+```
+Output
+
+certs.zip
+|-- ca
+|   |-- ca.crt
+    |-- ca.key
+|-- wazuh-manager
+|   |-- wazuh-manager.crt
+|   |-- wazuh-manager.key
+|-- elasticsearch
+|   |-- elasticsearch.crt
+|   |-- elasticsearch.key
+|-- kibana
+    |-- kibana.crt
+    |-- kibana.key
+
+3. Extract the generated `/usr/share/elasticsearch/certs.zip` file from the previous step. You can use `unzip`:
+
+```
+
+\# unzip /usr/share/elasticsearch/certs.zip -d /usr/share/elasticsearch/
+```
+
+Note
+
+The `ca.crt` file is shared for all the instances. The `.crt` and `.key` pairs are unique for each instance.
+
+**Configure the Elasticsearch instance**
+
+1. Create the directory `/etc/elasticsearch/certs`, then copy the certificate authorities, the certificate and the key there.
+
+Note
+
+The following commands are assuming a single-host installation, if the components are distributed each file should be distributed to its components (via scp or other available means).
+
+```
+
+\# mkdir /etc/elasticsearch/certs/ca -p
+\# cp ca/ca.crt /etc/elasticsearch/certs/ca
+\# cp elasticsearch/elasticsearch.crt /etc/elasticsearch/certs
+\# cp elasticsearch/elasticsearch.key /etc/elasticsearch/certs
+\# chown -R elasticsearch: /etc/elasticsearch/certs
+\# chmod -R 770 /etc/elasticsearch/certs
+```
+2. Add the proper settings for both the transport and the HTTP layers in `/etc/elasticsearch/elasticsearch.yml`.
+
+```
+
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.verification\_mode: certificate
+xpack.security.transport.ssl.key: /etc/elasticsearch/certs/elasticsearch.key
+xpack.security.transport.ssl.certificate: /etc/elasticsearch/certs/elasticsearch.crt
+xpack.security.transport.ssl.certificate\_authorities: \[ "/etc/elasticsearch/certs/ca/ca.crt" \]
+
+xpack.security.http.ssl.enabled: true
+xpack.security.http.ssl.verification\_mode: certificate
+xpack.security.http.ssl.key: /etc/elasticsearch/certs/elasticsearch.key
+xpack.security.http.ssl.certificate: /etc/elasticsearch/certs/elasticsearch.crt
+xpack.security.http.ssl.certificate\_authorities: \[ "/etc/elasticsearch/certs/ca/ca.crt" \]
+```
+3. Restart the service:
+
+```
+
+\# systemctl restart elasticsearch
+```
+**Configure the Filebeat instance (Wazuh manager instance)**
+
+1. Create the directory `/etc/filebeat/certs`, then copy the certificate authorities, the certificate and the key there.
+
+```
+
+\# mkdir /etc/filebeat/certs/ca -p
+\# cp ca/ca.crt /etc/filebeat/certs/ca
+\# cp wazuh-manager/wazuh-manager.crt /etc/filebeat/certs
+\# cp wazuh-manager/wazuh-manager.key /etc/filebeat/certs
+\# chmod 770 -R /etc/filebeat/certs
+
+```
+
+2. Add the proper settings in `/etc/filebeat/filebeat.yml`.
+
+```
+
+output.elasticsearch.hosts: \['10.0.0.3:9200'\]
+output.elasticsearch.protocol: https
+output.elasticsearch.ssl.certificate: "/etc/filebeat/certs/wazuh-manager.crt"
+output.elasticsearch.ssl.key: "/etc/filebeat/certs/wazuh-manager.key"
+output.elasticsearch.ssl.certificate\_authorities: \["/etc/filebeat/certs/ca/ca.crt"\]
+```
+Note
+
+You can test Filebeat output using `filebeat test output`.
+
+3. Restart the service:
+
+```
+
+\# systemctl restart filebeat
+```
+**Configure the Kibana instance**
+
+1. Create the directory `/etc/kibana/certs`, then copy the certificate authorities, the certificate and the key there.
+
+```
+
+\# mkdir /etc/kibana/certs/ca -p
+\# cp ca/ca.crt /etc/kibana/certs/ca
+\# cp kibana/kibana.crt /etc/kibana/certs
+\# cp kibana/kibana.key /etc/kibana/certs
+\# chown -R kibana: /etc/kibana/certs
+\# chmod -R 770 /etc/kibana/certs
+```
+2. Add the proper settings in `/etc/kibana/kibana.yml`.
+
+```
+
+elasticsearch.hosts: \["https://10.0.0.3:9200"\]
+elasticsearch.ssl.certificateAuthorities: \["/etc/kibana/certs/ca/ca.crt"\]
+elasticsearch.ssl.certificate: "/etc/kibana/certs/kibana.crt"
+elasticsearch.ssl.key: "/etc/kibana/certs/kibana.key"
+
+server.ssl.enabled: true
+server.ssl.certificate: "/etc/kibana/certs/kibana.crt"
+server.ssl.key: "/etc/kibana/certs/kibana.key"
+```
+3. Restart the service:
+
+```
+
+\# systemctl restart kibana
+```
+In order to establish HTTPS communication between the browser and Kibana, go to the browser’s settings and import the `ca.crt` extracted from the .zip file.
+
+## Adding authentication for Elasticsearch[¶](https://documentation.wazuh.com/3.12/installation-guide/installing-elastic-stack/protect-installation/xpack.html#adding-authentication-for-elasticsearch "Permalink to this headline")
+
+1. Add the next line to `/etc/elasticsearch/elasticsearch.yml`.
+
+```
+xpack.security.enabled: true
+```
+
+2. Restart Elasticsearch and wait for the service to be ready.
+
+```
+\# systemctl restart elasticsearch
+```
+
+3. Generate credentials for all the Elastic Stack pre-built roles and users.
+
+```
+\# /usr/share/elasticsearch/bin/elasticsearch-setup-passwords auto
+```
+
+4. Note down at least the password for the `elastic` user.
+5. Setting up credentials for Filebeat. Add the next two lines to `/etc/filebeat/filebeat.yml`.
+```
+output.elasticsearch.username: "elastic"
+output.elasticsearch.password: "password\_generated\_for\_elastic"
+```
+
+6. Restart Filebeat.
+
+```
+\# systemctl restart filebeat
+```
+
+7. Setting up credentials for Kibana. Add the next lines to `/etc/kibana/kibana.yml`.
+
+```
+xpack.security.enabled: true
+elasticsearch.username: "elastic"
+elasticsearch.password: "password\_generated\_for\_elastic"
+
+```
+8. Restart Kibana.
+
+```
+\# systemctl restart kibana
+```
+You may now login to your Kibana web interface and use the elastic user credentials to login:

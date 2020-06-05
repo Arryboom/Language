@@ -111,6 +111,14 @@ filebeat setup --index-management -E setup.template.json.enabled=false
 ```
 
 
+
+---
+
+
+enable xpack
+
+
+
 ##kibana
 
 ```
