@@ -2008,6 +2008,7 @@ You are also prompted for a password. You can enter a password for your certific
 By default `elasticsearch-certutil` generates certificates that have no hostname information in them (that is, they do not have any Subject Alternative Name fields). This means that you can use the certificate for every node in your cluster, but you must turn off hostname verification as shown in the configuration below.
 
 If you want to use hostname verification within your cluster, run the `elasticsearch-certutil cert` command once for each of your nodes and provide the `--name`, `--dns` and `--ip` options.
+>When you generate the Logstash certificate with `certutil` you should pass `-ip 10.203.207.76`
 
 - **Generate additional certificates specifically for encrypting HTTP client communications.**
 
@@ -2075,3 +2076,59 @@ xpack.security.transport.ssl.enabled: true
 double line in this conf file.
 
 >**remember to give right file access of certs for elasticsearch chown,chmod
+
+
+
+###configure filebeat to using https 
+
+You can specify SSL options when you configure:
+
+- [outputs](https://www.elastic.co/guide/en/beats/filebeat/current/configuring-output.html "Configure the output") that support SSL
+- the [Kibana endpoint](https://www.elastic.co/guide/en/beats/filebeat/current/setup-kibana-endpoint.html "Configure the Kibana endpoint")
+
+Example output config with SSL enabled:
+```
+output.elasticsearch.hosts: ["https://192.168.1.42:9200"]
+output.elasticsearch.ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
+output.elasticsearch.ssl.certificate: "/etc/pki/client/cert.pem" 
+output.elasticsearch.ssl.key: "/etc/pki/client/cert.key"
+```
+Also see [_Secure communication with Logstash_](https://www.elastic.co/guide/en/beats/filebeat/current/configuring-ssl-logstash.html "Secure communication with Logstash").
+
+Example Kibana endpoint config with SSL enabled:
+```
+setup.kibana.host: "https://192.0.2.255:5601" setup.kibana.ssl.enabled: true
+setup.kibana.ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
+setup.kibana.ssl.certificate: "/etc/pki/client/cert.pem" setup.kibana.ssl.key: "/etc/pki/client/cert.key"
+```
+
+- if your cert was generated followed elasticsearch docs,it will be pkcs12 format by default.which you need to convert to pem for use
+
+
+##PKCS12 to PEM
+
+Try:
+
+```
+openssl pkcs12 -in path.p12 -out newfile.crt.pem -clcerts -nokeys
+openssl pkcs12 -in path.p12 -out newfile.key.pem -nocerts -nodes
+```
+
+After that you have:
+
+- certificate in newfile.crt.pem
+- private key in newfile.key.pem
+
+To put the certificate and key in the same file use the following
+
+```
+openssl pkcs12 -in path.p12 -out newfile.pem
+```
+
+If you need to input the PKCS#12 password directly from the command line (e.g. a script), just add `-passin pass:${PASSWORD}`:
+
+```
+openssl pkcs12 -in path.p12 -out newfile.crt.pem -clcerts -nokeys -passin 'pass:P@s5w0rD'
+``` 
+
+>https://stackoverflow.com/questions/15144046/converting-pkcs12-certificate-into-pem-using-openssl
