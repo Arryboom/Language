@@ -1466,13 +1466,13 @@ Below is a list of a few of the more basic API operations you can use. For advan
 ### Cluster Health
 
 This API can be used to see general info on the cluster and gauge its health:
-
+```
 curl -XGET 'localhost:9200/\_cluster/health?pretty'
 
-Copy
+```
 
 Response:
-
+```
 {
   "cluster\_name" : "my-cluster",
   "status" : "green",
@@ -1491,18 +1491,16 @@ Response:
   "active\_shards\_percent\_as\_number" : 100.0
 }
 
-Copy
+```
 
 ### Cluster State
 
 This API can be sued to see a detailed status report on your entire cluster. You can filter results by specifying parameters in the call URL.
-
+```
 curl -XGET 'localhost:9200/\_cluster/state?pretty'
-
-Copy
-
+```
 Response:
-
+```
 {
   "cluster\_name" : "my-cluster",
   "compressed\_size\_in\_bytes" : 347,
@@ -1559,19 +1557,18 @@ Response:
     "snapshot\_deletions" : \[ \]
   }
 }
-
-Copy
+```
 
 ### Cluster Stats
 
 Extremely useful for monitoring performance metrics on your entire cluster:
-
+```
 curl -XGET 'localhost:9200/\_cluster/stats?human&pretty'
 
-Copy
+```
 
 Response:
-
+```
 {
   "\_nodes" : {
     "total" : 3,
@@ -1718,7 +1715,7 @@ Response:
   }
 }
 
-Copy
+```
 
 You can also target specific groups of nodes with node filters.
 
@@ -1727,71 +1724,66 @@ You can also target specific groups of nodes with node filters.
 If you want to inspect metrics for specific nodes in the cluster, use this API. You can see info for all nodes, a specific node, or ask to see only index or OS/process specific stats.
 
 All nodes:
-
+```
 curl -XGET 'localhost:9200/\_nodes/stats?pretty'
 
-Copy
+```
 
 A specific node:
-
+```
 curl -XGET 'localhost:9200/\_nodes/node-1/stats?pretty'
 
-Copy
+```
 
 Index-only stats:
-
+```
 curl -XGET 'localhost:9200/\_nodes/stats/indices?pretty'
 
-Copy
-
+```
 You can get any of the specific metrics for any single node with the following structure:
-
+```
 curl -XGET 'localhost:9200/\_nodes/stats/ingest?pretty'
 
-Copy
+```
 
 Or multiple nodes with the following structure:
-
+```
 curl -XGET 'localhost:9200/\_nodes/stats/ingest,fs?pretty'
 
-Copy
-
+```
 Or all metrics with either of these two formats:
-
+```
 curl -XGET 'localhost:9200/\_nodes/stats/\_all?pretty'
 
 curl -XGET 'localhost:9200/\_nodes/stats?metric=\_all?pretty'
-
-Copy
+```
 
 ### Nodes Info
 
 If you want to collect information on any or all of your cluster nodes, use this API.
 
 Retrieve for a single node:  
-
+```
 curl -XGET ‘localhost:9200/\_nodes/?pretty’
 
-Copy
+```
 
 Or multiple nodes:
-
+```
 curl -XGET ‘localhost:9200/\_nodes/node1,node2?pretty’
 
-Copy
-
+```
 Retrieve data on plugins or ingest:
-
+```
 curl -XGET ‘localhost:9200/\_nodes/plugins
-
-Copy
-
+```
+```
 curl -XGET ‘localhost:9200/\_nodes/ingest
 
-Copy
+```
 
 Information about ingest processors should appear like this (with many more than the three types shown in the example):
-
+```
 {
   "\_nodes": …
   "cluster\_name": "elasticsearch",
@@ -1814,70 +1806,69 @@ Information about ingest processors should appear like this (with many more than
   }
 }
 
-Copy
+```
 
 ### Pending Cluster Tasks
 
 This API tracks changes at the cluster level, including but not limited to updated mapping, failed sharding, and index creation.
 
 The following GET should return a list of tasks:  
-
+```
 curl -XGET ‘localhost:9200/\_cluster/pending\_tasks?pretty’
-
-Copy
+```
 
 ### Task Management
 
 Similar to the Pending Cluster Tasks API, the Task Management API will get data on currently running tasks on respective nodes.
 
 To get info on all currently executing tasks, enter:  
-
+```
 curl -XGET "localhost:9200/\_tasks
 
-Copy
+```
 
 To get current tasks by specific nodes, AND additionally cluster-related tasks, enter the node names as such and then append &actions to the GET:  
-
+```
 curl -XGET ‘localhost:9200/\_tasks?nodes=node1,node2&actions=cluster:\*&pretty’
 
-Copy
+```
 
 Retrieve info about a specific task (or its child tasks) by entering \_tasks/ and then the task’s individual ID:
-
+```
 curl -XGET ‘localhost:9200/\_tasks/43r315an3xamp13’
 
-Copy
+```
 
 And for child tasks:  
-
+```
 curl -XGET ‘localhost:9200/\_tasks?parent\_task\_id=43r315an3xamp13’
 
-Copy
+```
 
 This API also supports reindexing, search, task grouping and task cancelling.
 
 ### Remote Cluster Info
 
 Get remote cluster info with:
-
+```
 curl -XGET 'localhost:9200/\_remote/info?pretty'
 
-Copy
+```
 
 ### Voting Configuration Exclusions
 
 This will remove master-eligible nodes.  
 Remove all exclusions by:
-
+```
 curl -X DELETE ‘localhost:9200/\_cluster/voting\_config\_exclusions?pretty’
 
-Copy
+```
 
 Or add a node to the exclusions list:
-
+```
 curl -X POST ‘localhost:9200/\_cluster/voting\_config\_exclusions/node1?pretty’
 
-Copy
+```
 
 ## What next?
 
@@ -1936,3 +1927,151 @@ then start the cluster back up and run
 
 ###if you already setup one node with xpack,now you gonna convert it into cluster
 
+edit the elasticsearch.yml,
+```
+cluster.name: wazuh-clusteres
+node.name: es_datanode-1
+network.host: 192.168.40.112
+discovery.seed_hosts: ["192.168.40.243", "192.168.40.112"]
+cluster.initial_master_nodes: ["wazuh-ssl", "es_datanode-1"]
+```
+cp the certs folder and other xpack settings you created on master node to this data node.
+then start service and check.
+
+###configure kibana to use multi backend es.
+kibana.yml
+```
+elasticsearch.hosts: ["https://192.168.40.243:9200","https://192.168.40.112:9200","https://192.168.40.129:9200"]
+elasticsearch.sniffOnStart: true
+```
+you may wanna config Related configurations include elasticsearch.sniffInterval, and elasticsearch.sniffOnConnectionFault too,but here I don't care.
+
+>https://www.elastic.co/guide/en/kibana/7.7/settings.html
+
+
+
+seems with xpack installed the kibana cannot swith es backend normally,error like below
+
+```
+{"type":"log","@timestamp":"2020-06-03T02:11:09Z","tags":["error","elasticsearch","telemetry-fetcher"],"pid":3911,"message":"Request error, retrying\nGET https://192.168.40.129:9200/_nodes/_all/http?filter_path=nodes.*.http.publish_address%2Cnodes.*.name%2Cnodes.*.hostname%2Cnodes.*.host%2Cnodes.*.version => Hostname/IP does not match certificate's altnames: IP: 192.168.40.129 is not in the cert's list: 192.168.40.243"}
+```
+waitting for solve.
+
+
+
+#kibana search time out 
+```
+elasticsearch.shardTimeout:
+
+Time in milliseconds for Elasticsearch to wait for responses from shards. Set to 0 to disable. Default: 30000
+```
+
+#6.x es default node master 
+
+  候选主节点的设置方法是设置node.master为true，默认情况下，node.master和node.data的值都为true，即该节点既可以做候选主节点也可以做数据节点。由于数据节点承载了数据的操作，负载通常都很高，所以随着集群的扩大，建议将二者分离，设置专用的候选主节点。当我们设置node.data为false，就将节点设置为专用的候选主节点了。
+
+
+
+##secure a cluster with xpack SSL part
+
+
+###1.generate a **root CA** for our cluster.
+
+>https://www.elastic.co/guide/en/elasticsearch/reference/current/configuring-tls.html#node-certificates
+
+The recommended approach for validating certificate authenticity in an Elasticsearch cluster is to trust the certificate authority (CA) that signed the certificate. By doing this, as nodes are added to your cluster they just need to use a certificate signed by the same CA and the node is automatically allowed to join the cluster.
+
+
+-  **Create a certificate authority for your Elasticsearch cluster.**
+    
+For example, use the `elasticsearch-certutil ca` command:
+```
+bin/elasticsearch-certutil ca
+```
+You can configure the cluster to trust all nodes that have a certificate that has been signed by this CA.
+
+The command outputs a single file, with a default name of `elastic-stack-ca.p12`. This file is a PKCS#12 keystore that contains the public certificate for your CA and the private key that is used to sign the certificates for each node.
+
+The `elasticsearch-certutil` command also prompts you for a password to protect the file and key. If you plan to add more nodes to your cluster in the future, retain a copy of the file and remember its password.
+
+
+- **Generate a certificate and private key for each node in your cluster.**
+
+For example, use the `elasticsearch-certutil cert` command:
+```
+bin/elasticsearch-certutil cert --ca elastic-stack-ca.p12
+```
+The output is a single PKCS#12 keystore that includes the node certificate, node key, and CA certificate.
+
+You are also prompted for a password. You can enter a password for your certificate and key, or you can leave the password blank by pressing Enter.
+
+By default `elasticsearch-certutil` generates certificates that have no hostname information in them (that is, they do not have any Subject Alternative Name fields). This means that you can use the certificate for every node in your cluster, but you must turn off hostname verification as shown in the configuration below.
+
+If you want to use hostname verification within your cluster, run the `elasticsearch-certutil cert` command once for each of your nodes and provide the `--name`, `--dns` and `--ip` options.
+
+- **Generate additional certificates specifically for encrypting HTTP client communications.**
+
+For example, use the elasticsearch-certutil http command:
+```
+bin/elasticsearch-certutil http
+```
+>configure to use the CA cert we generated before.
+
+This command guides you through the process of generating the appropriate certificates for use in Elasticsearch and Kibana. If you created a CA for your cluster, you can re-use it by supplying its location when prompted.
+
+Copy the node certificates to the appropriate locations.
+
+Copy the applicable files into the Elasticsearch configuration directory on each node.
+
+For each additional Elastic product that you want to configure, copy the certificates to the relevant configuration directory.
+
+>this will generate a PKCS12 cert package zip later will be used by http client like kibana,wazuh etc.
+
+
+###2.setting up transport ssl(elasticsearch node internal communication encryption):
+>https://www.elastic.co/guide/en/elasticsearch/reference/current/configuring-tls.html#tls-transport
+
+The transport networking layer is used for internal communication between nodes in a cluster. When security features are enabled, you must use TLS to ensure that communication between the nodes is encrypted.
+
+1. [Generate node certificates](https://www.elastic.co/guide/en/elasticsearch/reference/current/configuring-tls.html#node-certificates "Generating node certificates").
+2. Enable TLS and specify the information required to access the node’s certificate.
+    
+    - If the signed certificate is in PKCS#12 format, add the following information to the `elasticsearch.yml` file on each node:
+```
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.verification_mode: certificate 
+xpack.security.transport.ssl.keystore.path: elastic-certificates.p12 
+xpack.security.transport.ssl.truststore.path: elastic-certificates.p12 
+```
+
+Enable TLS and specify the information required to access the node’s certificate. For example:
+
+Update the elasticsearch.yml file on each node with the location of the certificates.
+
+If the certificates are in PKCS#12 format:
+```
+xpack.security.http.ssl.enabled: true
+xpack.security.http.ssl.keystore.path: "http.p12"
+```
+If you have certificates in PEM format:
+```
+xpack.security.http.ssl.enabled: true
+xpack.security.http.ssl.key:  /home/es/config/node1_http.key 
+xpack.security.http.ssl.certificate: /home/es/config/node1_http.crt 
+xpack.security.http.ssl.certificate_authorities: [ "/home/es/config/ca.crt" ] 
+```
+
+
+###Request error, retrying\nHEAD https://xxxxxx:9200/ => Hostname/IP doesn't match certificate's altnames: "Host: xxxxx.eu-west-2.elb.amazonaws.com. is not in the cert's altnames: DNS:xxxxxx""
+
+by default even certificates from trusted CAs must contain the correct hostname. If you want to explicitly disable the hostname check, try setting `xpack.monitoring.elasticsearch.ssl.verificationMode` to `"certificate"` instead of `"full"`.
+
+sometimes this could caused by wrong conf in elasticsearch.yml
+for example
+```
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.enabled: true
+```
+double line in this conf file.
+
+>**remember to give right file access of certs for elasticsearch chown,chmod

@@ -2843,6 +2843,60 @@ Look at your gateway settings to confirm your gateways are set properly and thin
     d代表的是目录(directroy)    -代表的是文件(regular file)    s代表的是套字文件(socket)    p代表的管道文件(pipe)或命名管道文件(named pipe)    l代表的是符号链接文件(symbolic link)    b代表的是该文件是面向块的设备文件(block-oriented device file)    c代表的是该文件是面向字符的设备文件(charcter-oriented device file)
 ```
 
+#fs-max、file-nr和nofile的关系
+
+## 1\. file-max
+
+/proc/sys/fs/file-max:  
+这个文件决定了系统级别所有进程可以打开的文件描述符的数量限制，如果内核中遇到`VFS: file-max limit <number> reached`的信息，那么就提高这个值。  
+设置方式：
+
+```auto
+# /etc/sysctl.conf
+fs.file-max = 6553500
+```
+
+```bash
+sysctl -p
+```
+
+## 2\. file-nr
+
+这个是一个状态指示的文件，一共三个值，第一个代表全局已经分配的文件描述符数量，第二个代表自由的文件描述符（待重新分配的），第三个代表总的文件描述符的数量。
+
+```bash
+cat /proc/sys/fs/file-nr
+```
+
+## 3\. nofile
+
+nofile全称`number of open files`，最大可打开的文件描述符数量，这个限制是针对用户和进程来说的。
+
+### 3.1. 全局修改，永久生效，需要重启
+
+```auto
+# /etc/security/limits.conf
+* soft nofile 65535
+* hard nofile 65535
+```
+
+**注意:**对于ubuntu系统，还需要加载相应的pam模块才能生效
+
+```auto
+# /etc/pam.d/login
+# Sets up user limits according to /etc/security/limits.conf
+# (Replaces the use of /etc/limits in old login)
+session    required   pam_limits.so
+```
+
+### 3.2. 临时调整
+
+```bash
+ulimit -HSn 655350
+```
+
+
+check dmesg /var/log/syslog /var/log/message
 
 
 
