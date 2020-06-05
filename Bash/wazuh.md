@@ -378,6 +378,8 @@ The Linux auditd system is an extensive auditing tool, which we will only touch 
     > \-a always,exit -F arch=b32 -S execve -F auid=1000 -F egid!=994 -F auid!=-1 -F key=audit-wazuh-c
     > -a always,exit -F arch=b64 -S execve -F auid=1000 -F egid!=994 -F auid!=-1 -F key=audit-wazuh-c
     
+>remember 994 here was the ossec user's uid,it may different on your system,keep check avoid bypass.
+>remove  -F auid=1000 to get all user's system call info.
 
 ## Trigger a few audit events[¶](https://documentation.wazuh.com/3.12/learning-wazuh/audit-commands.html#trigger-a-few-audit-events "Permalink to this headline")
 
