@@ -65,3 +65,48 @@ you need both install
 - cudnn
 
 then use tensorflow,sometimes default setting doesn't work you may need ``pip install tensorflow-gpu``.
+
+
+
+
+
+#after cuda installed,use following command to check 
+```
+C:\Users\root>nvcc -V
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2019 NVIDIA Corporation
+Built on Sun_Jul_28_19:12:52_Pacific_Daylight_Time_2019
+Cuda compilation tools, release 10.1, V10.1.243
+
+C:\Users\root>nvidia-smi
+Wed Jun 10 15:10:41 2020
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 446.14       Driver Version: 446.14       CUDA Version: 11.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name            TCC/WDDM | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|===============================+======================+======================|
+|   0  GeForce GTX 108... WDDM  | 00000000:21:00.0  On |                  N/A |
+|  0%   39C    P8    20W / 250W |    636MiB / 11264MiB |      0%      Default |
++-------------------------------+----------------------+----------------------+
+
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU                  PID   Type   Process name                  GPU Memory |
+|                                                                  Usage      |
+|=============================================================================|
+|    0                 2996    C+G   Insufficient Permissions        N/A      |
+|    0                 3052    C+G   ...y\ShellExperienceHost.exe    N/A      |
+|    0                10236    C+G   C:\Windows\explorer.exe         N/A      |
+|    0                11632    C+G   ...w5n1h2txyewy\SearchUI.exe    N/A      |
+|    0                12496    C+G   ...cw5n1h2txyewy\LockApp.exe    N/A      |
+|    0                14744    C+G   ...me\Application\chrome.exe    N/A      |
+|    0                15428    C+G   ...es.TextInput.InputApp.exe    N/A      |
+|    0                19560    C+G   Insufficient Permissions        N/A      |
+|    0                20504    C+G   ...p-2.5.2\GitHubDesktop.exe    N/A      |
+|    0                22996    C+G   Insufficient Permissions        N/A      |
+|    0                23136    C+G   Insufficient Permissions        N/A      |
++-----------------------------------------------------------------------------+
+
+C:\Users\root>
+```
