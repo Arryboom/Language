@@ -35,6 +35,14 @@ bcdedit -set TESTSIGNING ON
 bcdedit -set loadoptions DDISABLE_INTEGRITY_CHECKS
 bcdedit /set TESTSIGNING ON
 
+```
+bcdedit /set loadoptions DDISABLE_INTEGRITY_CHECKS
+```
+>into command prompt will do the job, but it doesn’t work on Windows 7 x64. It is believed this command was rendered useless with the release of Vista x64 SP1 and definitely doesn’t work on Windows 7 or 8. There was also a number of separate security patches on Vista which caused the command to not work. The Windows boot manager editor EasyBCD has an option which uses a command equivalent to DDISABLE_INTEGRITY_CHECKS, but as this is no longer useful, we would recommend you ignore this option in EasyBCD.
+Read More: https://www.raymond.cc/blog/loading-unsigned-drivers-in-windows-7-and-vista-64-bit-x64
+
+>https://www.raymond.cc/blog/loading-unsigned-drivers-in-windows-7-and-vista-64-bit-x64/
+
 ---
 Disabling Driver Signature Enforcement In Windows 8 Permanently
 Step 1.  Open the Windows command promt as “Run as Administrator”.
@@ -72,6 +80,48 @@ You are done! When you PC restarts, it will automatically select Disable Driver 
 >https://citadelindustries.net/readydriver-plus
 
 
+
+###remember to add the test sign cert to your root trust storge if you enable test signing in vs.
+
+---
+
+First of all thanks raymond for showing me a bunch of methods i was unaware of.  
+For those who will need to do this on a regular basis or are simply too lazy :D ive just made 6th option: a simple batch file which will “automate” the process somewhat.  
+\* make a new text document by clicking your desktop > New > Text Document  
+\* Press enter twice  
+\* Now that the document is opened in notepad copy paste the text at the bottom of this post in it (you could remove the line called “pause” if you dont want a confirmation, then the program will do what you’ve asked and automatically close itself.  
+\* Save your document and call it anything you like.  
+\* Change the file extension from .txt to .bat (note: if you cant change or see the file extension this means that “Hide extension for known file types” is checked under Folder Options).  
+\* Its ready to use! (Run with Admin privilege, not sure whetever it is necessary to turn UAC (User Account Control) off first. Correct me if im wrong here!
+
+!!Note!!  
+Dont forget changes are active after rebooting windows and more importantly!!! Like JSSmith said when you are done doing whatever it is you need change the setting back to default because theres a good reason for windows not allowing unsigned drivers!!! Better be safe then sorry right :)
+```
+@echo off  
+echo 1=Allow the installation of unsigned drivers  
+echo 2=Block the installation of unsigned drivers (windows 7 Default)  
+echo X=Exit  
+choice /C:12X
+
+if errorlevel 3 goto End  
+if errorlevel 2 goto Block  
+if errorlevel 1 goto Allow
+
+:Allow  
+bcdedit /set nointegritychecks OFF  
+Echo Installation of unsigned drivers is now ALLOWED!  
+goto end
+
+:Block  
+bcdedit /set nointegritychecks ON  
+Echo Installation of unsigned drivers is now BLOCKED!
+
+:end  
+pause  
+cls
+```
+
+
 #VS  Could not find WindowsSDKDir variable from the registry
 
 右击项目->[属性]->[链接器]->[输入]->[附加依赖项]->[宏] 
@@ -95,6 +145,7 @@ Windows Registry Editor Version 5.00
 #编译错误
 Solution右键属性->C/C++->General->Waring level改到3，treat all waring as error关闭
 info2cat，solution下方package右键->属性->configration properties->info2cat->runinf2cat-关闭
+
 
 
 
