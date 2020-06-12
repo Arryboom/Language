@@ -640,3 +640,9 @@ fast.log by default
 ```
 sudo tail -f /var/log/suricata/eve.json | jq 'select(.event_type=="alert")'
 ```
+
+
+
+#tips
+
+##fast.log中[Priority: 4]，数字越小越紧急，如[Priority: 1]紧急程度大于4.
