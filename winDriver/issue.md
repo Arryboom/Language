@@ -82,6 +82,7 @@ You are done! When you PC restarts, it will automatically select Disable Driver 
 
 
 ###remember to add the test sign cert to your root trust storge if you enable test signing in vs.
+###it seems like debug release cannot load,only production release work.change this project config in vs.
 
 ---
 

@@ -2199,6 +2199,17 @@ print(tf.__version__)
 
 
 
+#no session created.“'module' object has no attribute 'placeholder'”
+
+may caused by tensorflow version 1 behavior not accepted with tensorflow 2,the way to make tensorflow 2 use 1's api
+```
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+``` 
+
+
+
+
 
 
 
