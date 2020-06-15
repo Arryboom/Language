@@ -56,6 +56,13 @@ sudo apt-get install suricata
 
 #configuration
 
+
+#security tips
+
+- bydefault,/var/log/suricata file privilege ls -rw-r--r-- ,which is not good,change it.
+
+
+
 >https://suricata.readthedocs.io/en/suricata-5.0.3/command-line-options.html
 
 ###turn off offload feature of your network cards

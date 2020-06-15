@@ -198,6 +198,14 @@ http://localhost:9200/_cluster/health
 ```
 
 
+license
+
+- req
+```
+GET /_license
+```
+
+
 #issue
 
 ```
