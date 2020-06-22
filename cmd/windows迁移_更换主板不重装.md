@@ -24,3 +24,5 @@ skyiar清理磁盘驱动，可以用天意PE。
 DriverStore Explorer v1.0正式版
 
 3.万能驱动工具
+
+4.DISM++可以离线添加，删除驱动
