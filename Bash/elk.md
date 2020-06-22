@@ -1725,6 +1725,130 @@ Response:
 
 ```
 
+check load status:
+```
+# curl -X GET "localhost:9200/_cat/thread_pool"
+```
+
+```
+bjzw_74_118 analyze             0 0       0
+bjzw_74_118 ccr                 0 0       0
+bjzw_74_118 fetch_shard_started 0 0       0
+bjzw_74_118 fetch_shard_store   0 0       0
+bjzw_74_118 flush               0 0       0
+bjzw_74_118 force_merge         0 0       0
+bjzw_74_118 generic             3 0       0
+bjzw_74_118 get                 0 0       0
+bjzw_74_118 index               0 0       0
+bjzw_74_118 listener            0 0       0
+bjzw_74_118 management          1 0       0
+bjzw_74_118 ml_autodetect       0 0       0
+bjzw_74_118 ml_datafeed         0 0       0
+bjzw_74_118 ml_utility          0 0       0
+bjzw_74_118 refresh             0 0       0
+bjzw_74_118 rollup_indexing     0 0       0
+bjzw_74_118 search              0 0       0
+bjzw_74_118 search_throttled    0 0       0
+bjzw_74_118 security-token-key  0 0       0
+bjzw_74_118 snapshot            0 0       0
+bjzw_74_118 warmer              0 0       0
+bjzw_74_118 watcher             0 0       0
+bjzw_74_118 write               0 0 6696180
+bjzw_74_106 analyze             0 0       0
+bjzw_74_106 ccr                 0 0       0
+bjzw_74_106 fetch_shard_started 0 0       0
+bjzw_74_106 fetch_shard_store   0 0       0
+bjzw_74_106 flush               0 0       0
+bjzw_74_106 force_merge         0 0       0
+bjzw_74_106 generic             4 0       0
+bjzw_74_106 get                 0 0       0
+bjzw_74_106 index               0 0       0
+bjzw_74_106 listener            0 0       0
+bjzw_74_106 management          1 0       0
+bjzw_74_106 ml_autodetect       0 0       0
+bjzw_74_106 ml_datafeed         0 0       0
+bjzw_74_106 ml_utility          0 0       0
+bjzw_74_106 refresh             0 0       0
+bjzw_74_106 rollup_indexing     0 0       0
+bjzw_74_106 search              0 0       0
+bjzw_74_106 search_throttled    0 0       0
+bjzw_74_106 security-token-key  0 0       0
+bjzw_74_106 snapshot            0 0       0
+bjzw_74_106 warmer              0 0       0
+bjzw_74_106 watcher             0 0       0
+bjzw_74_106 write               0 0       0
+bjzw_74_117 analyze             0 0       0
+bjzw_74_117 ccr                 0 0       0
+bjzw_74_117 fetch_shard_started 0 0       0
+bjzw_74_117 fetch_shard_store   0 0       0
+bjzw_74_117 flush               0 0       0
+bjzw_74_117 force_merge         0 0       0
+bjzw_74_117 generic             5 0       0
+bjzw_74_117 get                 0 0       0
+bjzw_74_117 index               0 0       0
+bjzw_74_117 listener            0 0       0
+bjzw_74_117 management          1 0       0
+bjzw_74_117 ml_autodetect       0 0       0
+bjzw_74_117 ml_datafeed         0 0       0
+bjzw_74_117 ml_utility          0 0       0
+bjzw_74_117 refresh             1 0       0
+bjzw_74_117 rollup_indexing     0 0       0
+bjzw_74_117 search              0 0       0
+bjzw_74_117 search_throttled    0 0       0
+bjzw_74_117 security-token-key  0 0       0
+bjzw_74_117 snapshot            0 0       0
+bjzw_74_117 warmer              0 0       0
+bjzw_74_117 watcher             0 0       0
+bjzw_74_117 write               0 0 7198014
+bjzw_74_116 analyze             0 0       0
+bjzw_74_116 ccr                 0 0       0
+bjzw_74_116 fetch_shard_started 0 0       0
+bjzw_74_116 fetch_shard_store   0 0       0
+bjzw_74_116 flush               0 0       0
+bjzw_74_116 force_merge         0 0       0
+bjzw_74_116 generic             5 0       0
+bjzw_74_116 get                 0 0       0
+bjzw_74_116 index               0 0       0
+bjzw_74_116 listener            0 0       0
+bjzw_74_116 management          1 0       0
+bjzw_74_116 ml_autodetect       0 0       0
+bjzw_74_116 ml_datafeed         0 0       0
+bjzw_74_116 ml_utility          0 0       0
+bjzw_74_116 refresh             0 0       0
+bjzw_74_116 rollup_indexing     0 0       0
+bjzw_74_116 search              0 0       0
+bjzw_74_116 search_throttled    0 0       0
+bjzw_74_116 security-token-key  0 0       0
+bjzw_74_116 snapshot            0 0       0
+bjzw_74_116 warmer              0 0       0
+bjzw_74_116 watcher             0 0       0
+bjzw_74_116 write               2 0 6356860
+bjzw_74_107 analyze             0 0       0
+bjzw_74_107 ccr                 0 0       0
+bjzw_74_107 fetch_shard_started 0 0       0
+bjzw_74_107 fetch_shard_store   0 0       0
+bjzw_74_107 flush               0 0       0
+bjzw_74_107 force_merge         0 0       0
+bjzw_74_107 generic             1 0       0
+bjzw_74_107 get                 0 0       0
+bjzw_74_107 index               0 0       0
+bjzw_74_107 listener            0 0       0
+bjzw_74_107 management          1 0       0
+bjzw_74_107 ml_autodetect       0 0       0
+bjzw_74_107 ml_datafeed         0 0       0
+bjzw_74_107 ml_utility          0 0       0
+bjzw_74_107 refresh             1 0       0
+bjzw_74_107 rollup_indexing     0 0       0
+bjzw_74_107 search              0 0       0
+bjzw_74_107 search_throttled    0 0       0
+bjzw_74_107 security-token-key  0 0       0
+bjzw_74_107 snapshot            0 0       0
+bjzw_74_107 warmer              0 0       0
+bjzw_74_107 watcher             0 0       0
+bjzw_74_107 write               7 0     261
+
+```
+
 You can also target specific groups of nodes with node filters.
 
 ### Nodes Stats
