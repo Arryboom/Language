@@ -3324,6 +3324,31 @@ driver.get_screenshot_as_file("test.png")
 
 >https://stackoverflow.com/questions/500431/what-is-the-scope-of-variables-in-javascript/500459?r=SearchResults#500459
 
+
+In JavaScript, any global variable is actually a property of the `window` object. Using one is equivalent to (and interchangeable with) using the other.
+
+Using global variables is certainly "common," so the question is whether or not it's "proper." [Generally, global variables are discouraged](https://stackoverflow.com/q/9115560/901048), because they can be accessed from ANY function and you risk having multiple functions trying to read from and write to the same variables. (This is true with any programming language in any environment, not just JavaScript.)
+
+* * *
+
+Solve this problem by creating [a namespace unique to your application](http://www.javascripttoolbox.com/bestpractices/#namespace). The easiest approach is to create a global object with a unique name, with your variables as properties of that object:
+
+```
+window.MyLib = {}; // global Object container; don't use var
+MyLib.value = 1;
+MyLib.increment = function() { MyLib.value++; }
+MyLib.show = function() { alert(MyLib.value); }
+
+MyLib.value=6;
+MyLib.increment();
+MyLib.show(); // alerts 7
+```
+
+* * *
+
+Another approach is to use [`.data()`](http://api.jquery.com/data) to attach variables to a relevant DOM element. This is not practical in all cases, but it's a good way to get variables that can be _accessed_ globally without leaving them in the global namespace.
+
+
 ## TLDR
 
 JavaScript has lexical (also called static) scoping and closures. This means you can tell the scope of an identifier by looking at the source code.
@@ -3695,6 +3720,7 @@ g.Test("private_data") == something2
 ```
 
 >https://stackoverflow.com/questions/716207/testing-private-functions-in-javascript
+
 
 
 
