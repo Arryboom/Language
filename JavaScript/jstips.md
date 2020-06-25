@@ -1835,3 +1835,1040 @@ function GetRequest() {
   }
 }
 ```
+
+
+
+#js自定义事件的触发
+
+### 1\. 事件的创建
+
+JS中，最简单的创建事件方法，是使用Event构造器：
+
+var myEvent = new Event('event\_name');
+
+但是为了能够传递数据，就需要使用 CustomEvent 构造器：
+
+[![复制代码](//common.cnblogs.com/images/copycode.gif)](javascript:void(0); "复制代码")
+
+var myEvent = new CustomEvent('event\_name', {
+    detail:{ // 将需要传递的数据写在detail中，以便在EventListener中获取
+        // 数据将会在event.detail中得到
+ },
+});
+
+[![复制代码](//common.cnblogs.com/images/copycode.gif)](javascript:void(0); "复制代码")
+
+### 2\. 事件的监听
+
+JS的EventListener是根据事件的名称来进行监听的，比如我们在上文中已经创建了一个名称为**‘event\_name’** 的事件，那么当某个元素需要监听它的时候，就需要创建相应的监听器：
+
+[![复制代码](//common.cnblogs.com/images/copycode.gif)](javascript:void(0); "复制代码")
+
+//假设listener注册在window对象上
+window.addEventListener('event\_name', function(event){ // 如果是CustomEvent，传入的数据在event.detail中
+    console.log('得到数据为：', event.detail); // ...后续相关操作
+});
+
+[![复制代码](//common.cnblogs.com/images/copycode.gif)](javascript:void(0); "复制代码")
+
+至此，window对象上就有了对**‘event\_name’** 这个事件的监听器，当window上触发这个事件的时候，相关的callback就会执行。
+
+### 3\. 事件的触发
+
+对于一些内置（built-in）的事件，通常都是有一些操作去做触发，比如鼠标单击对应MouseEvent的click事件，利用鼠标（ctrl+滚轮上下）去放大缩小页面对应WheelEvent的resize事件。  
+然而，自定义的事件由于不是JS内置的事件，所以我们需要在JS代码中去显式地触发它。方法是使用 **dispatchEvent** 去触发（IE8低版本兼容，使用fireEvent）：
+
+[![复制代码](//common.cnblogs.com/images/copycode.gif)](javascript:void(0); "复制代码")
+
+// 首先需要提前定义好事件，并且注册相关的EventListener
+var myEvent = new CustomEvent('event\_name', { 
+    detail: { title: 'This is title!'},
+});
+window.addEventListener('event\_name', function(event){
+    console.log('得到标题为：', event.detail.title);
+}); // 随后在对应的元素上触发该事件
+if(window.dispatchEvent) {  
+    window.dispatchEvent(myEvent);
+} else {
+    window.fireEvent(myEvent);
+} // 根据listener中的callback函数定义，应当会在console中输出 "得到标题为： This is title!"
+
+[![复制代码](//common.cnblogs.com/images/copycode.gif)](javascript:void(0); "复制代码")
+
+需要特别注意的是，当一个事件触发的时候，如果相应的element及其上级元素没有对应的EventListener，就不会有任何回调操作。   
+对于子元素的监听，可以对父元素添加事件托管，让事件在事件冒泡阶段被监听器捕获并执行。这时候，使用event.target就可以获取到具体触发事件的元素。
+
+
+
+##模拟鼠标事件
+
+```
+        var btn = document.querySelector('.button');
+        btn.addEventListener('click', function (event) {
+            console.log('OH~!You clicked me~!');
+        }, false);
+        var ev = new MouseEvent('click', {
+            cancelable: true,
+            bubble: true,
+            view: window
+        });
+        btn.dispatchEvent(ev);
+```
+
+
+You can simulate the mouseover event like this:
+
+HTML
+```
+<div id="name">My Name</div>
+```
+JavaScript
+```
+var element = document.getElementById('name');
+element.addEventListener('mouseover', function() {
+  console.log('Event triggered');
+});
+
+var event = new MouseEvent('mouseover', {
+  'view': window,
+  'bubbles': true,
+  'cancelable': true
+});
+
+element.dispatchEvent(event);
+```
+
+
+#其他常用事件
+当然,在构建这个MouseEvent对象的时候还是有很多属性可以填写的,不过,可能就是示例的那几个比较有用,如果像查看更多的属性,请查看如下地址
+(由于MouseEvent继承自UIEvent和Event,所以,他也继承了他们的属性)
+https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent
+https://developer.mozilla.org/en-US/docs/Web/API/UIEvent
+https://developer.mozilla.org/en-US/docs/Web/API/Event
+想查看MouseEvent()构造器的具体用法,请查看
+https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/MouseEvent
+https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent
+Event()的详细说明
+https://developer.mozilla.org/en-US/docs/Web/API/Event/Event
+customEvent() 的详细说明
+https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent
+
+KeyboardEvent.key在MDN上的文档被提示为推荐使用的属性,而KeyboardEvent.keyCode却被说成是不推荐使用的,应该使用key属性,然而你去看****KeyboardEvent.key****的文档就会发现,这个属性压根就没得到多少浏览器的支持,如果用这个属性,简直就是掉坑里了.
+下图所示,一大片的红字啊
+
+
+#js中Window和window的区别是什么？
+
+```
+> window instanceof Window
+< true
+```
+
+Window 是接口， window 是实例，全局变量是 window 的属性。
+
+
+# Promise
+
+> Promise 是异步编程的一种解决方案，比传统的解决方案——回调函数和事件——更合理且更强大。它最早由社区提出并实现，ES6将其写进了语言标准，统一了用法，并原生提供了Promise对象。
+
+### 特点
+
+1. 对象的状态不受外界影响 （3种状态）
+    - Pending状态（进行中）
+    - Fulfilled状态（已成功）
+    - Rejected状态（已失败）
+2. 一旦状态改变就不会再变 （两种状态改变：成功或失败）
+    - Pending -> Fulfilled
+    - Pending -> Rejected
+
+### 用法
+
+#### 创建Promise实例
+
+```jsx
+var promise = new Promise(function(resolve, reject){
+    // ... some code
+    
+    if (/* 异步操作成功 */) {
+        resolve(value);
+    } else {
+        reject(error);
+    }
+})
+```
+
+  Promise构造函数接受一个函数作为参数，该函数的两个参数分别是`resolve`和`reject`。它们是两个函数，由JavaScript引擎提供，不用自己部署。  
+  resolve作用是将Promise对象状态由“未完成”变为“成功”，也就是`Pending -> Fulfilled`，在异步操作成功时调用，并将异步操作的结果作为参数传递出去；而reject函数则是将Promise对象状态由“未完成”变为“失败”，也就是`Pending -> Rejected`，在异步操作失败时调用，并将异步操作的结果作为参数传递出去。
+
+#### then
+
+  Promise实例生成后，可用`then`方法分别指定两种状态回调参数。then 方法可以接受两个回调函数作为参数：
+
+1. Promise对象状态改为Resolved时调用 （必选）
+2. Promise对象状态改为Rejected时调用 （可选）
+
+#### 基本用法示例
+
+```jsx
+function sleep(ms) {
+    return new Promise(function(resolve, reject) {
+        setTimeout(resolve, ms);
+    })
+}
+sleep(500).then( ()=> console.log("finished"));
+```
+
+  这段代码定义了一个函数sleep，调用后，等待了指定参数(500)毫秒后执行then中的函数。值得注意的是，Promise新建后就会立即执行。
+
+#### 执行顺序
+
+  接下来我们探究一下它的执行顺序，看以下代码：
+
+```jsx
+let promise = new Promise(function(resolve, reject){
+    console.log("AAA");
+    resolve()
+});
+promise.then(() => console.log("BBB"));
+console.log("CCC")
+
+// AAA
+// CCC
+// BBB
+```
+
+  执行后，我们发现输出顺序总是 `AAA -> CCC -> BBB`。表明，在Promise新建后会立即执行，所以`首先输出 AAA`。然后，then方法指定的回调函数将在当前脚本所有同步任务执行完后才会执行，所以`BBB 最后输出`。
+
+#### 与定时器混用
+
+  首先看一个实例：
+
+```jsx
+let promise = new Promise(function(resolve, reject){
+    console.log("1");
+    resolve();
+});
+setTimeout(()=>console.log("2"), 0);
+promise.then(() => console.log("3"));
+console.log("4");
+
+// 1
+// 4
+// 3
+// 2
+```
+
+  可以看到，结果输出顺序总是：`1 -> 4 -> 3 -> 2`。1与4的顺序不必再说，而2与3先输出Promise的then，而后输出定时器任务。原因则是Promise属于JavaScript引擎内部任务，而setTimeout则是浏览器API，而引擎内部任务优先级高于浏览器API任务，所以有此结果。
+
+### 拓展 async/await
+
+#### async
+
+  顾名思义，异步。async函数对 Generator 函数的改进，async 函数必定返回 Promise，我们把所有返回 Promise 的函数都可以认为是异步函数。特点体现在以下四点：
+
+- 内置执行器
+- 更好的语义
+- 更广的适用性
+- 返回值是 Promise
+
+#### await
+
+  顾名思义，等待。正常情况下，await命令后面是一个 Promise 对象，返回该对象的结果。如果不是 Promise 对象，就直接返回对应的值。另一种情况是，await命令后面是一个thenable对象（即定义then方法的对象），那么await会将其等同于 Promise 对象。
+
+#### 混合使用
+
+  先看示例：
+
+```jsx
+function sleep(ms) {
+    return new Promise(function(resolve, reject) {
+        setTimeout(resolve,ms);
+    })
+}
+async function handle(){
+    console.log("AAA")
+    await sleep(5000)
+    console.log("BBB")
+}
+
+handle();
+
+// AAA
+// BBB (5000ms后)
+
+```
+
+  我们定义函数sleep，返回一个Promise。然后在handle函数前加上async关键词，这样就定义了一个async函数。在该函数中，利用await来等待一个Promise。
+
+### Promise优缺点
+
+| 优点 | 缺点 |
+| --- | --- |
+|解决回调|无法监测进行状态|
+|链式调用| 新建立即执行且无法取消|
+|减少嵌套|内部错误无法抛出|
+
+>https://www.runoob.com/w3cnote/javascript-promise-object.html
+
+
+#异步请求进来的js文件怎么打断点？
+
+1.chrome直接控制台
+
+---
+2.在需要调试的代码行前添加一句 `debugger`
+
+形如
+
+```
+function demo () {
+  // 在这里停下
+  debugger
+  // ...
+}
+```
+
+这样不论是异步还是同步，都可以非常轻松地在相应位置打开调试器来进行调试了。
+
+---
+
+
+
+
+
+#ES module工作原理
+
+>https://segmentfault.com/a/1190000020388889
+
+本文参考 [https://hacks.mozilla.org/201...](https://hacks.mozilla.org/2018/03/es-modules-a-cartoon-deep-dive/)，建议大家读原文。
+
+ES6发布了官方的，标准化的Module特性，这一特性花了整整10年的时间。但是，在这之前，大家也都在模块化地编写JS代码。比如在server端的NodeJS，它是对CommonJS的一个实现；Require.js则是可以在浏览器使用，它是对AMD的一个实现。
+
+ES6官方化了模块，使得在浏览器端不再需要引入额外的库来实现模块化的编程（当然浏览器的支持与否，这里暂不讨论）。ES Module的使用也很简单，相关语法也很少，核心是import和export。但是，对于ES module到底是如何工作的，它又和之前的CommonJS和AMD有什么差别呢？这是接下来将要讨论的内容。
+
+**一：没有模块化的编程存在什么问题？**
+
+编写JS代码，主要是对于对变量的操作：给变量赋值或者变量之间进行各种运算。正因为大部分代码都是对变量的操作，所以如何组织代码里面的变量对于如何写好代码和代码维护就显得至关重要了。
+
+当只有少量的变量需要考虑的时候，JavaScript提供了“scope（作用域）”来帮助你。因为在JavaScript里面，一个function不能访问定义在别的function里面的变量。
+
+但是，这同时也带来一个问题，假如functionA想要使用functionB的变量怎么办呢？一个通用的办法就是把functionB的变量放到functionA的上一层作用域。典型的就是jQuery时代，如果要使用jQuery的API，先要保证jQuery在全局作用域。  
+但是这样做的问题也很多：
+
+<div class="widget-codetool" style="display:none;">
+
+<div class="widget-codetool--inner"><span class="selectCode code-tool" data-toggle="tooltip" data-placement="top" title="" data-original-title="全选"></span><span type="button" class="copyCode code-tool" data-toggle="tooltip" data-placement="top" data-clipboard-text="1: 所有的script标签必须保证正确的顺序，这使得代码的维护变得异常艰难。
+2: 全局作用域被污染。
+" title="" data-original-title="复制"></span></div>
+
+</div>
+
+    1: 所有的script标签必须保证正确的顺序，这使得代码的维护变得异常艰难。
+    2: 全局作用域被污染。
+
+**二：模块化编程如何解决上面提到的问题？**
+
+模块，把相关的变量和function组织到一起，形成一个所谓的module scope（模块作用域）。在这个作用域里面的变量和function之间彼此是可见的。
+
+与function不同的是，一个模块可以决定自己内部的哪些变量，类，或者function可以被其他模块可见，这个决定我们叫做“export（导出）”。而其他的模块也就可以选择性地使用这个模块导出的内容，我们通过“import（导入）”来实现。
+
+一旦有了导入和导出，我们就可以把我们的程序按照指责划分为一个个模块，大的模块可以继续划分为更小的模块，最终这些模块组合到一起，搭建起了我们整个程序，就像乐高一样。
+
+**三：ES Module的工作原理之Module Instances**
+
+当你在模块化编程的时候，你就会创建一棵依赖树。不同依赖之间的链接来源于你使用的每一条"import"语句。
+
+就是通过这些"import"语句，浏览器和Node才知道它们到底要加载哪些代码。你给浏览器或者Node一个依赖树的入口文件，从这个入口文件开始，浏览器或者Node就沿着每一条"import"语句找到下面的代码。  
+<span class="img-wrap">![图片描述](/img/bVbxIjv?w=996&h=584 "图片描述")</span>
+
+但是，浏览器却使用不了这些文件。所有的文件都必须要转变为一系列被叫做“Module Records（模块记录）的数据结构，这样浏览器才能明白这些文件的内容。  
+<span class="img-wrap">![图片描述](/img/bVbxIjn?w=844&h=580 "图片描述")</span>
+
+在这之后，module record需要被转化为“module instance（模快实例）”。一个module instance包含2种东西：code和state。
+
+code就是一系列的操作指令，就像菜单一样。但是，光有菜单，并不能作出菜，你还需要原材料。而state就是原材料。State就是变量在每一个特地时间点的值。当然，这些变量只是内存里面一个个保存着值的小盒子的小名而已。
+
+而我们真正需要的就是每一个模块都有一个module instance。模块的加载就是从这个入口文件开始，最后得到包含所有module instance的完整图像。
+
+**四：Module Instances的产生步骤**
+
+对于，ES Module来说，这需要经历三个步骤：
+
+<div class="widget-codetool" style="display: none;">
+
+<div class="widget-codetool--inner"><span class="selectCode code-tool" data-toggle="tooltip" data-placement="top" title="" data-original-title="全选"></span><span type="button" class="copyCode code-tool" data-toggle="tooltip" data-placement="top" data-clipboard-text="1: Construction（构造）- 找到，下载所有的文件并且解析为module records。
+2: Instantiation（实例化）- 在内存里找到所有的“盒子”，把所有导出的变量放进去（但是暂时还不求值）。然后，让导出和导入都指向内存里面的这些盒子。这叫做“linking(链接)”。
+3: Evaluation（求值）- 执行代码，得到变量的值然后放到这些内存的“盒子”里。
+" title="" data-original-title="复制"></span></div>
+
+</div>
+
+    1: Construction（构造）- 找到，下载所有的文件并且解析为module records。
+    2: Instantiation（实例化）- 在内存里找到所有的“盒子”，把所有导出的变量放进去（但是暂时还不求值）。然后，让导出和导入都指向内存里面的这些盒子。这叫做“linking(链接)”。
+    3: Evaluation（求值）- 执行代码，得到变量的值然后放到这些内存的“盒子”里。
+
+<span class="img-wrap">![图片描述](/img/bVbxJLo?w=1012&h=356 "图片描述")</span>
+
+大家都说ES Module是异步的。你可以认为它是异步的，因为这些工作被分成了三个不同的步骤 - loading（下载），instantiating(实例化)和evaluating（求值） - 并且这些步骤可以单独完成。
+
+这意味着ES Module规范采用了一种在CommonJS里面不存在的异步机制。在CommonJS里面，对于一个模块和它底下的依赖来说，下载，实例化，和求值都是一次性完成的，步骤相互之间没有任何停顿。
+
+然而，这并不意味这这些步骤必须是异步的，它们也可以同步完成。这依赖于“loading（下载）”是由谁去做的。因为，并不是所有的东西都由ES module规范控制。事实上，确实有两部分的工作是由别的规范负责的。
+
+[ES module规范](https://tc39.es/ecma262/#sec-modules) 陈述了你应该怎样把文件解析为module records，和怎样初始化模块以及求值。然而，它却没有说在最开始要怎样得到这些文件。
+
+是loader（下载器）去获取到了文件。而loader对于不同的规范来说是特定的。对于浏览器来说，这个规范是[HTML 规范](https://html.spec.whatwg.org/#fetch-a-module-script-tree)。你可以根据你所使用的平台来得到不同的loader。
+
+<span class="img-wrap">![图片描述](/img/bVbxJPK?w=884&h=594 "图片描述")</span>
+
+loader也控制着模块如何加载。它会调用ES module的方法--ParseModule, Module.Instantiate,和Module.Evaluate。loader就像傀儡师，操纵着JS引擎的线。
+
+现在让我们来具体聊一聊每一个步骤。  
+**五：Module Instances的产生步骤之Construction**
+
+对于每一个模块来说，在这一步会经历以下几个步骤
+
+<div class="widget-codetool" style="display:none;">
+
+<div class="widget-codetool--inner"><span class="selectCode code-tool" data-toggle="tooltip" data-placement="top" title="" data-original-title="全选"></span><span type="button" class="copyCode code-tool" data-toggle="tooltip" data-placement="top" data-clipboard-text="1: 弄清楚去哪里下载包含模块的文件（又叫“ module resolution（模块识别）”）
+2: 获取文件（通过从一个URL下载或者从文件系统加载）
+3: 把文件解析为module record（模块记录）
+" title="" data-original-title="复制"></span></div>
+
+</div>
+
+    1: 弄清楚去哪里下载包含模块的文件（又叫“ module resolution（模块识别）”）
+    2: 获取文件（通过从一个URL下载或者从文件系统加载）
+    3: 把文件解析为module record（模块记录）
+
+**step1： Finding the file and fetching it 找到文件并获取文件**
+
+loader会负责找到文件并下载。首先，需要找到入口文件，在HTML文件里，我们通过使用<script>标签告诉loader哪里去找到入口文件。
+
+<span class="img-wrap">![图片描述](/img/bVbxJTZ?w=878&h=380 "图片描述")</span>
+
+但是，loader如何找到接下来的一系列模块 - 也就是main.js所直接依赖的哪些模块呢？这就轮到import语句登场了。import语句的某一部分又被叫做“模块说明符”。它告诉loader在哪儿可以找到下一个模块。  
+<span class="img-wrap">![图片描述](/img/bVbxJU6?w=970&h=242 "图片描述")</span>
+
+关于“模块说明符”，有一点需要说明：某些时候，不同的浏览器和Node之间，需要不同的处理方式。每一个平台都有它们自己的方法去诠释“模块说明符”字符串。而这通过“模块识别算法”完成，不同的平台不一样。就目前来说，一些在Node环境工作的模块识别符在浏览器里面并不工作，但是这一情况[正在被处理修复](https://github.com/domenic/package-name-maps)。
+
+而在修复之前，浏览器只接受URL作为模块标识符。浏览器会从那个URL下载模块文件。但是，对于整个依赖图来说，在同一时间是不可能的。因为直到解析了这个文件，你才知道这个模块需要哪些依赖。。。但是，你又不能解析这个文件除非你获取了它。
+
+这意味着，要解析一个文件，我们必须一层一层地遍历这颗依赖树，理清楚他所有的依赖，然后找到并且下载这些依赖。但是，假如主线程一直在等待这些文件下载，那么大量的其他的任务就被卡在队列里面。这是因为，在浏览器里面进行下载工作，会耗费大量的时间。
+
+像这样阻塞主线程，会导致使用了模块的app太慢了，这也是ES module规范把算法分割成多个步骤的其中一个原因。把construction（构建）单独划分到一个步骤，这就允许浏览器可以在进入到instantiating（实例化）的一系列同步工作之前可以先获取文件并且建立模块之间的依赖树。
+
+把这个算法分割到不同的步骤--正是ES Module和CommonJS module之间的其中一个关键区别。
+
+CommonJS可以做不同于ES Module的处理，是因为从文件系统里面加载文件比从网络上下载文件要花少得多的时间。这就意味着，Node可以在加载文件的时候阻塞主线程。又因为文件已经加载好了，那么实例化和求值（这两步在CommomJS里面是没有分开的）也显得很有道理。这意味着，在你返回这个模块之前，其依赖树上所有的依赖都完成了loading(加载)，instantiating(实例化)和evaluating（求值）。  
+<span class="img-wrap">![图片描述](/img/bVbxJ9W?w=950&h=562 "图片描述")</span>
+
+CommonJS的方法会带来一些后果，后面会解释。但是，其中有一点是在Node里面的CommomJS module， 你可以在模块说明符里面使用`变量`。在你寻找下一个模块之前，你会执行完本模块的所有代码。这就意味着当你去做模块识别的时候，这个变量已经有值了。
+
+但是，在ES Module里面，你是在任何求值之前先建立了完整的依赖树。这说明，你不能在模块说明符里面使用变量，因为这个变量目前还没有值。
+
+<span class="img-wrap">![图片描述](/img/bVbxKb8?w=888&h=286 "图片描述")</span>
+
+但是动态模块，在实际生产中又是有用的。所以有一个提议叫做[动态导入](https://github.com/tc39/proposal-dynamic-import)，可以用来满足类似这样的需求：`import(`${path}/foo.js`).`
+
+动态导入的工作原理是，任何使用`import()`来导入的文件，都会作为一个入口文件从而创建一棵单独的依赖树，被单独处理。
+
+<span class="img-wrap">![图片描述](/img/bVbxKeK?w=958&h=746 "图片描述")</span>
+
+但有一点需要注意的是 - 任何同时存在于两棵依赖树的模块都指向同一个模块实例。这是因为loader把模块实例缓存起来了。对于每一个模块来说，在一个特定的全局作用域内，只会有一个模版实例。
+
+这对JS引擎来说，就意味着更少的工作量。举个例子，无论多少模块依赖着某一个模块，但是这个模块文件都只会被获取一次。loader使用[module map](https://html.spec.whatwg.org/multipage/webappapis.html#module-map)来管理这些缓存，每一个全局作用域使用独立的module map来管理各自的缓存。
+
+当loader通过一个URL去获取文件的时候，它会把这个URL放入module map并且做上“正在获取”的标志。然后它发出请求，进而继续下一个文件的获取工作。
+
+当别的模块也依赖同一个文件的时候，会发生什么呢？Loader会查询module map里面的每一个URL，如果它看到这个URL有“正在获取“的标志，那它就不管了，继续下一个URL的处理。
+
+module map不只是看哪个文件正在被下载，它同时也管理这模块的缓存，这就是下面的内容。
+
+**step2: Parsing**
+
+现在我们已经获取到了文件，我们需要把它解析为一个module record。这有助于浏览器理解模块的不同之处是什么。
+
+<span class="img-wrap">![图片描述](/img/bVbxKGV?w=964&h=406 "图片描述")</span>
+
+一旦module record创建完成，它就会被放到module map里面去。这意味着无论何时被请求，loader都可以从module map里面提取它。
+
+<span class="img-wrap">![图片描述](/img/bVbxKHx?w=944&h=470 "图片描述")</span>
+
+在解析的时候，有一个看起来琐碎但是却会产生巨大影响的细节：所有的模块都是在相当于在文件顶部使用了“`use strict`”（严格模式）下被解析的。除此之外，也还有其他的一些不同，例如：关键字`await`被保留在模块的最高层的代码里；`this`的值是`undefined`。
+
+不同的解析方法被称作“解析目标”。假如你用不同的解析目标解析同一个文件，你将会得到不同的解析结果。因为，在解析之前，你需要知道将要被解析的文件是否是模块。
+
+在浏览器里面，这十分简单。你只需要给<script>标签加一个`type="module"`。这就告诉了浏览器这个文件需要被当成是一个模块来解析。因为只有模块才可以被导入，所以浏览器知道导入的文件也是模块。
+
+但是Node不使用HTML相关的标签，所以无法使用type来表示。而在Node里面是通过文件的扩展名".mjs"来表明这是一个ES Module的。
+
+不管是哪种方式，最终都是loader来决定这个文件是否当作一个模块来解析。假如它是一个module或者有`import`，那就会开始这个进程，直到所有的文件被下载和解析。
+
+这一步骤就结束了。在加载进程结束之后，我们就从拥有一个入口文件到最后拥有一系列的module record。
+
+<span class="img-wrap">![图片描述](/img/bVbxKKx?w=800&h=738 "图片描述")</span>
+
+下一步就是实例化这些模块，并且把所有的实例链接起来。  
+**六：Module Instances的产生步骤之Instantiation**
+
+如我之前提过的那样，一个实例结合了code和state。state存在于内存中，因此实例化这一步就是关于怎样把东西链接到内存里面的。
+
+首先，JS引擎创建了一个“模块环境记录（module environment record）”。它管理着module record的变量，然后它在内存里面找到所有导出（export）的变量的“盒子”。module environment record会一直监控着内存里面的哪个盒子和哪个export是相关联的。
+
+这些内存里面的盒子还没有获得它们的值，只有在求值这一步骤完成之后，真正的值才会被填充进去。但是这里有个小小的警告：任何导出的function定义，都是在这一步初始化的，这使得求值变得相对简单一些。
+
+为了实例化模块图（module graph），JS引擎会做一个所谓的“深度优先后序遍历”的操作。意思就是说，JS引擎会先走到模块图的最底层--找到不依赖任何其他模块的那些模块，并且设置好它们的导出（export）。  
+<span class="img-wrap">![图片描述](/img/bVbxKRf?w=952&h=378 "图片描述")</span>
+
+当JS引擎完成一个模块的所有导出的链接，它就会返回上一个层级去设置来自于这个模块的导入（import）。需要注意的是，导出和导入都是指向同一片内存地址。先链接导出保证了所有的导入都能找到对应的导出。  
+<span class="img-wrap">![图片描述](/img/bVbxKSS?w=954&h=362 "图片描述")</span>
+
+这和CommonJS的模块不同。在CommonJS，导入的对象是基于导出拷贝的。这就意味着导出的任何的数值（例如数字）都是拷贝。这就意味着，如果导出模块在之后修改了一些值，导入的模块并不会被同步到这些修改。  
+<span class="img-wrap">![图片描述](/img/bVbxKTd?w=950&h=222 "图片描述")</span>
+
+于此相反的是，ES module使用所谓的“实时绑定”，导出的模块和导入的模块都指向同一段内存地址。如果，导出模块修改了一个值，那么这个修改会在导入模块里面也得到体现。
+
+导出值的模块可以在任何时间修改这些值，但是导入模块却不能修改它们导入的值。意思就是，如果一个模块导出了一个对象（object），那它可以修改这个对象的属性值。
+
+“实时绑定”的好处是，不需要跑任何的代码，就可以链接起所有的模块。这有助于当存在循环依赖情况下的求值。
+
+在这一步的最后，我们使得所有的模块实例导出/导入的变量的内存地址链接起来了。
+
+接下来，我们就开始对代码求值，并且把得到的值填入对应的内存地址中。
+
+**七：Module Instances的产生步骤之Evaluation**
+
+最后一步是把值都填入内存地址中。JS引擎通过执行最上层的代码-也就是function以外的代码，来实现这一目的。  
+<span class="img-wrap">![图片描述](/img/bVbxKUL?w=790&h=308 "图片描述")</span>
+
+除了往内存地址里面填值，对代码求值有可能也会触发副作用。举个例子，一个模块有可能会向server做请求。因为这个副作用，你只想求模块求值一次。和在实例化阶段的链接无论执行多少次都会得到同一个结果不同，求值会根据你进行了多少次求值操作而得到不同的结果。
+
+这也是为什么需要module map。Module map根据URL来缓存模块，因为每一个模块都只有一个module record，这也保证了每一个模块只会被执行一次。和实例化一样，求值也是按照深度优先倒序的规则来的。
+
+在一个循环依赖的情况下，最终会在依赖树里得到一个环，为了仅仅是说明问题，这里就用一个最简单的例子：  
+<span class="img-wrap">![图片描述](/img/bVbxKXb?w=956&h=422 "图片描述")</span>  
+我们先来看看CommonJS，它是怎么工作的。首先，main模块会执行到require语句，然后进入到counter模块。Counter模块尝试去从访问导出的对象里面的message变量。但是，因为这个变量还没有在main模块里面被求值，所以会返回undefined。JS引擎会在内存里面为这个本地变量开辟一段地址并把它的值设置为undefined。  
+<span class="img-wrap">![图片描述](/img/bVbxKXQ?w=966&h=228 "图片描述")</span>
+
+求值一直继续到counter模块的最底部。我们想知道最终是否能得到message的值（也就是main模块求值之后），于是我们设置了一个timeout。然后，同样的求值过程在main模块重新开始。
+
+<span class="img-wrap">![图片描述](/img/bVbxKZL?w=960&h=414 "图片描述")</span>
+
+message变量会被初始化并且放到内存中。但是，因为这两者之间已经没有任何链接，所以在counter模块里，message变量会保持为undefined。  
+<span class="img-wrap">![图片描述](/img/bVbxKZ4?w=966&h=406 "图片描述")</span>
+
+假如这个导出是用“实时绑定”处理的，counter模块最终就能得到正确的值。到timeout执行的时候，main模块的求值就完成了并且得到最终的值。
+
+支持循环依赖，是ES module设计的一个重要基础。正是前面的“三个阶段”使得这一切成为可能。
+
+
+
+
+
+---
+
+
+# 1模块化历史
+
+## 1.1前言
+
+参照[前端模块化开发的价值](https://link.jianshu.com?t=https%3A%2F%2Fgithub.com%2Fseajs%2Fseajs%2Fissues%2F547)
+
+## 1.2无模块化
+
+每次说到JavaScript都会想到**Brendan Eich**花了十来天就发明了它，那就是JS的鸿蒙时期，混沌初开。  
+ 就像当年在校初学前端时写的代码，没有那么多的套路，就是从上往下码代码，没有想着去声明函数神马的，甚至多少代码都写在一个JS里。现在想来真是惨不忍睹。虽然本人入坑前端距那个鸿蒙时代实在久远，但是据各种典籍记载，那时候的代码风格就差不多这样子，从上往下一直堆着就好了。
+
+<div class="_2Uzcx_">
+
+    var a = 0;
+    if (xxx) {
+      // 省略100L
+    }
+    document.getElementById('id').onclick = function(event) {
+      // 省略若干行
+    }
+    ......
+
+</div>
+
+## 1.3模块化冒泡
+
+每个行业都有梗，现在和同事聊天有时候还会吐槽十几年前的老网站，真是有幸见过。前辈的聊天更有意思了，当年的登录居然是写死在前端代码里，就像这样子
+
+<div class="_2Uzcx_">
+
+    if (username === 'xxxxx' && password === 'xxxxxx') {
+      // 登录成功
+    }
+
+</div>
+
+是不是觉得很无语。当年的前端都是静态页面，没有现在这样子通过ajax和后端交互神马的，内容更是丰富多彩，更新及时。  
+ 前端代码愈发庞大，那么自然而然会暴露很多问题。  
+ 无非就俩个：
+
+*   命名冲突
+*   文件依赖
+
+### 1.3.1命名冲突解决
+
+1.  java风格的namespace，这个很好理解，在此不赘诉，缺点的话，自行想象，不堪
+2.  自执行函数(内部变量不可见不被污染)
+
+<div class="_2Uzcx_">
+
+    // jQuery式的匿名自执行函数
+    // 缺点是增添了全局变量、依赖需要提前提供
+    (function(root) {
+        root.jQuery = window.$ = jQuery; // 挂载到window之上
+    })(window)
+
+</div>
+
+<div class="_2Uzcx_">
+
+    // 普通自执行函数
+    // 缺点就是暴露了全局变量，而且随着模块的增加，全局变量会很多
+    module = function() {
+        function module() {
+
+        }
+        return module;
+    }()
+
+</div>
+
+1.  _YUI3的沙箱机制_，这个表示不晓得。
+
+### 1.3.2文件依赖解决
+
+这个没有解决方法，乖乖自行保证顺序和不缺漏吧
+
+<div class="_2Uzcx_">
+
+    <script src="https://cdn.bootcss.com/underscore.js/1.8.3/underscore-min.js"></script>
+    <script src="https://cdn.bootcss.com/backbone.js/1.3.3/backbone-min.js"></script>
+
+</div>
+
+## 1.4CommonJS
+
+### 1.4.1前言
+
+随着前端的发展，到node.js被创，js可以用来写server端代码。  
+ 做过后端的同学肯定知道没有模块化怎么能忍呢？  
+ 我们通过上节所得，我们可以得出以下几点需待解决
+
+*   模块代码安全，不可被污染也不可污染别人，沙箱呀
+*   把模块接口暴露出去（得优雅呀，不能增添全局变量）
+*   这个依赖顺序管理
+
+### 1.4.2发展
+
+这个还真没有经历了解过。度娘一番，幸好看到[seajs下的一个issues](https://link.jianshu.com?t=https%3A%2F%2Fgithub.com%2Fseajs%2Fseajs%2Fissues%2F588)。  
+ 大致就是大牛很牛，推出了[Modules/1.0规范](https://link.jianshu.com?t=http%3A%2F%2Fwiki.commonjs.org%2Fwiki%2FModules)。  
+ 之后为了推广到浏览器端，大牛产生分歧，分为三大流派：
+
+*   Modules/1.x 流派（[](https://link.jianshu.com?t=http%3A%2F%2Fwiki.commonjs.org%2Fwiki%2FModules%2FTransport)[Modules/Transport](https://link.jianshu.com?t=http%3A%2F%2Fwiki.commonjs.org%2Fwiki%2FModules%2FTransport)  
+     通过工具转换现有的CommonJS）
+*   Modules/Async 流派（自立门派）
+*   Modules/2.0 流（[](https://link.jianshu.com?t=http%3A%2F%2Fwiki.commonjs.org%2Fwiki%2FModules%2FWrappings)[Modules/Wrappings](https://link.jianshu.com?t=http%3A%2F%2Fwiki.commonjs.org%2Fwiki%2FModules%2FWrappings)  
+     对1.0的升级）
+
+**这里说下为什么不能用在浏览器**
+
+*   服务端代码在硬盘，加载模块时间几乎忽略不计。浏览器端就不成了。
+*   模块引用未被function，所以暴露在了全局之下。
+
+### 1.4.3番外（AMD、CMD）
+
+[AMD](https://link.jianshu.com?t=https%3A%2F%2Fgithub.com%2Famdjs%2Famdjs-api%2Fwiki%2FAMD-%28%25E4%25B8%25AD%25E6%2596%2587%25E7%2589%2588%29)是 RequireJS 在推广过程中对模块定义的规范化产出。  
+ [CMD](https://link.jianshu.com?t=https%3A%2F%2Fgithub.com%2Fseajs%2Fseajs%2Fissues%2F242)是 SeaJS 在推广过程中对模块定义的规范化产出。
+
+## 1.5ES Module
+
+这个是ECMA搞得一套。和之前的区别在于人家是官方的，根正苗红，上文的是社区搞得，野生。
+
+# 2 ES Module/CommonJS/AMD/CMD差异
+
+## 2.1 ES Module与CommonJS的差异
+
+### 编译时和运行时
+
+首先说下编译时和运行时。JavaScript有俩种声明方法（声明变量和声明方法）。var/const/let和function  
+ 编译时，对于声明变量会在内存中开辟一块内存空间并指向变量名，且指向变量名，赋值为undefined。对于函数声明会一样的开启空间。不过赋值为声明的函数体。PS：无论顺序如何，都会先声明变量  
+ 运行时，执行变量初始化之类的。
+
+<div class="_2Uzcx_">
+
+    // 源码
+    var a = 3;
+    function f() {
+        return 'f';
+    }
+
+    // 编译时
+    var a = undefined;
+    var f = function() {
+        return 'f';
+    }
+    // 运行时
+    a = 3;
+
+</div>
+
+CommonJS模块是对象，是运行时加载，运行时才把模块挂载在exports之上（加载整个模块的所有），加载模块其实就是查找对象属性。  
+ ES Module不是对象，是使用export显示指定输出，再通过import输入。此法为编译时加载，编译时遇到import就会生成一个只读引用。等到运行时就会根据此引用去被加载的模块取值。所以不会加载模块所有方法，仅取所需。
+
+*   CommonJS 模块输出的是一个值的拷贝，ES6 模块输出的是值的引用。
+*   CommonJS 模块是运行时加载，ES6 模块是编译时输出接口。  
+     [详情参见](https://link.jianshu.com?t=http%3A%2F%2Fes6.ruanyifeng.com%2F%23docs%2Fmodule-loader%23ES6-%25E6%25A8%25A1%25E5%259D%2597%25E4%25B8%258E-CommonJS-%25E6%25A8%25A1%25E5%259D%2597%25E7%259A%2584%25E5%25B7%25AE%25E5%25BC%2582)
+
+## 2.2CommonJS与AMD/CMD的差异
+
+AMD/CMD是CommonJS在浏览器端的解决方案。CommonJS是同步加载（代码在本地，加载时间基本等于硬盘读取时间）。AMD/CMD是异步加载（浏览器必须这么干，代码在服务端）
+
+## 2.3AMD与CMD的差异
+
+*   AMD是提前执行（RequireJS2.0开始支持延迟执行，不过只是支持写法，实际上还是会提前执行），CMD是延迟执行
+*   AMD推荐依赖前置，CMD推荐依赖就近
+
+# 3 用法
+
+## 3.1 CommonJS
+
+<div class="_2Uzcx_">
+
+    // 导出使用module.exports，也可以exports。exports指向module.exports；即exports = module.exports
+    // 就是在此对象上挂属性
+    // commonjs
+    module.exports.add = function add(params) {
+        return ++params;
+    }
+    exports.sub = function sub(params) {
+        return --params;
+    }
+
+    // 加载模块使用require('xxx')。相对、绝对路径均可。默认引用js，可以不写.js后缀
+    // index.js
+    var common = require('./commonjs');
+    console.log(common.sub(1));
+    console.log(common.add(1));
+
+</div>
+
+## 3.2 AMD/RequireJS
+
+*   定义模块：**define(id?, dependencies?, factory)**
+*   加载模块：**require([module], factory)**
+
+<div class="_2Uzcx_">
+
+    // a.js
+    // 依赖有三个默认的，即"require", "exports", "module"。顺序个数均可视情况
+    // 如果忽略则factory默认此三个传入参数
+    // id一般是不传的，默认是文件名
+    define(["b", "require", "exports"], function(b, require, exports) {
+        console.log("a.js执行");
+        console.log(b);
+    // 暴露api可以使用exports、module.exports、return
+        exports.a = function() {
+            return require("b");
+        }
+    })
+    // b.js
+    define(function() {
+        console.log('b.js执行');
+        console.log(require);
+        console.log(exports);
+        console.log(module);
+        return 'b';
+    })
+    // index.js
+    // 支持Modules/Wrappings写法，注意dependencies得是空的，且factory参数不可空
+    define(function(require, exports, module) {
+        console.log('index.js执行');
+        var a = require('a');
+        var b = require('b');
+    })
+    // index.js
+    require(['a', 'b'], function(a, b) {
+        console.log('index.js执行');
+    })
+
+</div>
+
+## 3.3 CMD/SeaJS
+
+SeaJS平时没有到，不过了解了下，丰富用法看[CMD定义规范](https://link.jianshu.com?t=https%3A%2F%2Fgithub.com%2Fseajs%2Fseajs%2Fissues%2F242)。
+
+*   定义模块：define(factory)
+
+<div class="_2Uzcx_">
+
+    // a.js
+    // require, exports, module参数顺序不可乱
+    // 暴露api方法可以使用exports、module.exports、return
+    // 与requirejs不同的是，若是未暴露，则返回{}，requirejs返回undefined
+    define(function(require, exports, module) {
+        console.log('a.js执行');
+        console.log(require);
+        console.log(exports);
+        console.log(module);
+    })
+    // b.js
+    // 
+    define(function(require, module, exports) {
+        console.log('b.js执行');
+        console.log(require);
+        console.log(exports);
+        console.log(module);
+    })
+    // index.js
+    define(function(require) {
+        var a = require('a');
+        var b = require('b');
+        console.log(a);
+        console.log(b);
+    })
+
+</div>
+
+定义模块无需列依赖，它会调用factory的toString方法对其进行正则匹配以此分析依赖。**预先下载，延迟执行**
+
+## 3.4 ES Module
+
+### 输出/export
+
+<div class="_2Uzcx_">
+
+    // 报错1
+    export 1;
+    // 报错2
+    const m = 1;
+    export m;
+
+    // 接口名与模块内部变量之间，建立了一一对应的关系
+    // 写法1
+    export const m = 1;
+    // 写法2
+    const m = 1；
+    export { m };
+    // 写法3
+    const m = 1；
+    export { m as module };
+
+</div>
+
+**PS：这个有点不是很明白，大致理解就是不能直接导出变量，但是可以导出声明（函数、变量声明）。这里的接口理解是export之后的变量，它和变量建立了映射关系。总的而言，export之后只能接声明或者语句**
+
+### 输入/import
+
+#### 基本用法
+
+<div class="_2Uzcx_">
+
+    // 类似于对象解构
+    // module.js
+    export const m = 1;
+    // index.js
+    // 注意，这里的m得和被加载的模块输出的接口名对应
+    import { m } from './module';
+    // 若是想为输入的变量取名
+    import { m as m1 }  './module';
+    // 值得注意的是，import是编译阶段，所以不能动态加载，比如下面写法是错误的。因为'a' + 'b'在运行阶段才能取到值，运行阶段在编译阶段之后
+    import { 'a' + 'b' } from './module';
+    // 若是只是想运行被加载的模块，如下
+    // 值得注意的是，即使加载两次也只是运行一次
+    import './module';
+    // 整体加载
+    import * as module from './module';
+
+</div>
+
+PS：CommonJS和ES Module是可以写一起的，但是最好不要。毕竟一个是编译阶段一个是运行阶段。就在项目中入过坑，自行体会。
+
+#### 赋值
+
+首先输入的模块变量是不可重新赋值的，它只是个可读引用，不过却可以改写属性
+
+<div class="_2Uzcx_">
+
+    // 单例
+    // module.js
+    export const a = {};
+    // module2.js
+    export { a } from './module';
+    import { a as a1 } from './module';
+    import { a } from './module2';
+    a1.e = 3;
+    console.log(a1) // { e: 3 }
+    console.log(a) // { e: 3 }
+
+</div>
+
+### 输出/export default
+
+<div class="_2Uzcx_">
+
+    // module.js
+    // 其实export default就是export { xxx as default }
+    const m = 1；
+    export default m;
+    ===
+    export { m as default }
+    // index.js
+    // 对应的输入也得相应变化
+    import module from './module';
+    ===
+    import { default as module } from './module';
+
+</div>
+
+还记得之前export小结处的俩报错么？如下写法正确，因为提供了default接口
+
+<div class="_2Uzcx_">
+
+    // 写法1
+    export default 1;
+    // 写法2
+    const m = 1;
+    export default m;
+    // 错误写法
+    export default const m = 1;
+
+</div>
+
+PS：export default只能一次
+
+### [复合写法](https://link.jianshu.com?t=http%3A%2F%2Fes6.ruanyifeng.com%2F%23docs%2Fmodule%23export-%25E4%25B8%258E-import-%25E7%259A%2584%25E5%25A4%258D%25E5%2590%2588%25E5%2586%2599%25E6%25B3%2595)
+
+可用于模块间继承。比如在a模块写下如下，那么a模块不就有了./module的方法了
+
+<div class="_2Uzcx_">
+
+    export { a } from './module';
+    export { a as a1 } from './module';
+    export * from './module';
+
+</div>
+
+## 动态加载/import()
+
+因为编译时加载，所以不能动态加载模块。不过幸好有import()方法。  
+ 这家伙返回值是一个Promise对象，所以then、catch你开心就好
+
+<div class="_2Uzcx_">
+
+    // 普通写法
+    import('./module').then(({ a }) => {})
+    // async、await
+    const { a } = await import('./module');
+
+</div>
+
+# 4 番外自实现
+
+<div class="_2Uzcx_">
+
+    var MyModules = (function(){
+        var modules = [];
+        function define(name, deps, cb) {
+            deps.forEach(function(dep, i) {
+                deps[i] = modules[dep];
+            });
+            modules[name] = cb.apply(cb, deps);
+        }
+        function get(name) {
+            return modules[name];
+        }
+        return {
+            define: define,
+            get: get
+        };
+    })();
+    MyModules.define('add', [], function() {
+        return function(a, b) {
+                return a + b;
+            };
+    })
+    MyModules.define('foo', ['add'], function(add) {
+        var a = 3;
+        var b = 4;
+        return {
+            doSomething: function() {
+                return add(a, b) + a;;
+            }
+        };
+    })
+    var add = MyModules.get('add');
+    var foo = MyModules.get('foo');
+    console.log(add(1, 2));
+    console.log(foo.doSomething());
+
+</div>
+
+
+>https://www.jianshu.com/p/da2ac9ad2960
+
+
+---
+
+
+#JS获得一个对象的所有属性和方法实例
+```
+function displayProp(obj){   
+  var names="";    
+  for(var name in obj){    
+    names+=name+": "+obj[name]+", ";  
+  }  
+  alert(names);  
+} 
+```
+
+
+#javascript获取原型对象的三种方法
+
+## 代码：
+
+<div class="_2Uzcx_">
+
+    function Person(name){
+        this.name=name;
+    }
+    var p = new Person("abc");
+
+</div>
+
+## 获取p的原型对象
+
+## 代码：
+
+```jsx
+function Person(name){
+    this.name=name;
+}
+var p = new Person("abc");
+```
+
+## 获取p的原型对象
+
+- 方法一：
+
+```css
+p.__proto__
+```
+
+- 方法二：
+
+```css
+p.constructor.prototype
+```
+
+- 方法三：
+
+```css
+Object.getPrototypeOf(p)
+```
