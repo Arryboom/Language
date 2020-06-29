@@ -58,11 +58,12 @@ def example_func(param_1: Tensor, param_2: int, param_3: List[int]):
 
 python2需要用type注释：
 
+```
 def example_func(param_1, param_2, param_3):
 
 #type: (Tensor, int, List[int]) -> Tensor
 
- 
+```
 
  
 

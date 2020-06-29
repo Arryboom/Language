@@ -245,3 +245,91 @@ mklink/H Link.txt Target.txt
 而分别用 mklink /D dira c:\demo\tdir 和 mklink /J dirb c:\demo\tdir 创建 c:\demo\tdir 的符号链接和目录联接，再将这两个目录链接移动到其它目录下，则 dira 和 dirb 均可正常指向 c:\demo\tdir；
 
 由此可见当创建目录链接时对目标目录使用绝对路径，D 和 J 两个参数实现的目录链接效果是一样的；
+
+
+
+
+
+
+
+
+#Bat obfuscater
+
+python 
+```
+import re
+ 
+key = 'ayjVGtkSeWniFrOzUNfDlvhCgcboZwBYHMETqIKpmxRuXPJdQsAL'
+replacestr = 'Bullshit'
+ 
+#encode
+#%tbmc:~11,1%
+fin = open("decode.txt","r")
+alllines = fin.readlines();
+fin.close()
+fout = open("encode.txt","a")
+ 
+ 
+for line in alllines:
+    if line[0]==':':
+        fout.write(line)
+        continue
+    strout = ''
+    strlen = len(line)
+    flag =True
+    ##1 == %xx% 2 == %~ 3 == %%i 
+    mode = 0
+    for i in xrange(0,strlen):
+        if line[i]=='%' and  line[i+1]=='%' and mode==0:         
+            flag = False
+            mode =3
+            strout = strout+line[i]
+            continue
+        elif line[i]=='%' and  line[i+1]=='~' and mode==0:
+            flag = False
+            mode =2
+            strout = strout+line[i]
+            continue
+        elif line[i]=='%' and key.find(line[i+1])>=0 and mode==0:
+            flag = False
+            mode =1
+            strout = strout+line[i]
+            continue
+        elif mode ==3 and line[i]=='%':
+            strout = strout+line[i]
+            continue
+         
+        if line[i]=='%' and mode ==1:
+            mode =0
+            flag = True
+            strout = strout+line[i]
+            continue
+        elif line[i]=='"' and mode ==2 or mode ==3:
+            mode =0
+            flag = True
+            strout = strout+line[i]
+            continue
+        elif line[i]==' ' and mode ==3:
+            mode =0
+            flag = True
+            strout = strout+line[i]
+            continue
+             
+        nPos = key.find(line[i])
+        if nPos>=0 and flag == True:
+            temp = '%'+replacestr+':~'+str(nPos)+',1%'
+            strout = strout + temp
+        else:
+            strout = strout+line[i]
+    fout.write(strout)
+fout.close()
+```
+
+
+运行方法
+
+cmd:
+```
+set Bullshit=ayjVGtkSeWniFrOzUNfDlvhCgcboZwBYHMETqIKpmxRuXPJdQsAL
+xxxx.bat
+```
