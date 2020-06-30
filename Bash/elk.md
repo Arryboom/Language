@@ -2236,6 +2236,12 @@ setup.kibana.ssl.certificate: "/etc/pki/client/cert.pem" setup.kibana.ssl.key: "
 
 - if your cert was generated followed elasticsearch docs,it will be pkcs12 format by default.which you need to convert to pem for use
 
+to disable hostname verify in kibana,add this line in kibana.yml
+
+```
+xpack.monitoring.elasticsearch.ssl.verificationMode: certificate
+```
+
 
 ##PKCS12 to PEM
 
