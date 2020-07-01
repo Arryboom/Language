@@ -170,7 +170,8 @@ sqlite创建数据库连接就是创建数据库，而其他mysql等应该是需
 
 以相对路径形式，在当前目录下创建数据库格式如下：
 ```
-# sqlite://<nohostname>/<path> # where <path> is relative:
+# sqlite://<nohostname>/<path> 
+# where <path> is relative:
 engine = create_engine('sqlite:///foo.db')
 ```
 以绝对路径形式创建数据库，格式如下：
