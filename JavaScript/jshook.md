@@ -119,3 +119,64 @@ Six
 
 
 ---
+
+#2
+>https://stackoverflow.com/questions/20131168/jquery-javascript-hooks
+>https://www.oomphinc.com/notes/2009/03/javascript-events-runtime/
+>https://coderwall.com/p/tfmxya/javascript-hook-system
+>https://stackoverflow.com/questions/789630/javascript-function-hooks
+>https://code-boxx.com/vanilla-javascript-hooks/
+
+Okay, so I have written a little hook/plugin system for Javascript as I needed to have a base class which other developers could then hook their functions into prior to other functionality running.
+
+Heres what I got:
+
+```
+var ClassName = function(){
+  //Construct Stuff
+}
+
+ClassName.prototype.hooks = new Array();
+
+
+ClassName.prototype.setHook = function( hook, args ){
+  // {Hook Name : { Func: args }}
+  InstanceOfClass.hooks.push({'hook': hook, 'args': args});
+}
+
+ClassName.prototype.getHook = function( hook ){
+
+  var hookArray = InstanceOfClass.getHooks();
+
+  for( var i in hookArray ){
+
+    if( hookArray[i].hook == hook ){
+      var argsKeys = Object.keys(hookArray[i].args);
+      return InstanceOfClass[argsKeys[0]].apply(ClassName, hookArray[i].args);
+    }
+  }
+  return null;
+}
+
+ClassName.prototype.getHooks = function(){
+  return InstanceOfClass.hooks;
+}
+```
+
+Usage:
+```
+ClassName.prototype.preMethod = function(){
+    var InstanceOfClass = new ClassName();
+
+    InstanceOfClass.setHook('MY_HOOK', {'SomeOtherMethod', [params]});
+}
+
+
+
+ClassName.prototype.myMethod = function(){
+    var InstanceOfClass = new ClassName();
+
+    // Will fire off the method by hook
+    InstanceOfClass.getHook('MY_HOOK');
+}
+```
