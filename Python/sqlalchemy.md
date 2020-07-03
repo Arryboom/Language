@@ -366,11 +366,175 @@ our_user = session.query(table_and_column_name).filter(filter).first()
 
 
 
+#evil code demo
+>https://blog.csdn.net/dwenxue/article/details/89787287
 
 
+创建
+下面的操作演示了如何向数据库中添加记录：
+```
 
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+ 
+ 
+app = Flask(__name__)
+# 配置 sqlalchemy 数据库驱动
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost:3306/test?charset=utf8'
+app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False    # 关闭对模型修改的监控
+# 初始化
+db = SQLAlchemy(app)
+ 
+#创建数据库模型
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20))
+ 
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+ 
+    #添加用户
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+ 
+ 
+ user = User(id='3', name='Tom')
+ user.save()
+
+```
+查询
+下面的操作演示了如何从数据库中读取记录，并进行简单的查询：
+```
+users=User.query.all()
+for user in users:
+    print('User [id:{0},name{1}]'.format(user.id,user.name))
+```
+更新
+```
+user=User.query.get(2)
+user.name='lishi'
+db.session.commit()
+```
+删除
+下面的操作删除了 User 模型中主键为 2 的记录：
+```
+user=User.query.get(2)
+db.session.delete(user)
+db.session.commit()
+```
 
 
 
 
 #增删改查
+
+
+
+##增
+```
+# 创建User类实例
+ed_user = User(name='ed', fullname='Ed Jones', password='edspassword')
+
+# 将该实例插入到users表
+session.add(ed_user)
+
+# 一次插入多条记录形式
+session.add_all(
+    [User(name='wendy', fullname='Wendy Williams', password='foobar'),
+    User(name='mary', fullname='Mary Contrary', password='xxg527'),
+    User(name='fred', fullname='Fred Flinstone', password='blah')]
+)
+
+# 当前更改只是在session中，需要使用commit确认更改才会写入数据库
+session.commit()
+
+```
+##查
+query将转成select xxx from xxx部分，filter/filter_by将转成where部分，limit/order by/group by分别对应limit()/order_by()/group_by()方法。这句话非常的重要，理解后你将大量减少sql这么写那在sqlalchemy该怎么写的疑惑。
+
+filter_by相当于where部分，外另可用filter。他们的区别是filter_by参数写法类似sql形式，filter参数为python形式。
+更多匹配写法见：https://docs.sqlalchemy.org/en/13/orm/tutorial.html#common-filter-operators
+
+```
+our_user = session.query(User).filter_by(name='ed').first()
+
+our_user
+
+# 比较ed_user与查询到的our_user是否为同一条记录
+ed_user is our_user
+
+# 只获取指定字段
+# 但要注意如果只获取部分字段，那么返回的就是元组而不是对象了
+# session.query(User.name).filter_by(name='ed').all()
+# like查询
+# session.query(User).filter(User.name.like("ed%")).all()
+# 正则查询
+# session.query(User).filter(User.name.op("regexp")("^ed")).all()
+# 统计数量
+# session.query(User).filter(User.name.like("ed%")).count()
+# 调用数据库内置函数
+# 以count()为例，都是直接func.func_name()这种格式，func_name与数据库内的写法保持一致
+# from sqlalchemy import func
+# session.query(func.count(User3.name)).one()
+# 字段名为字符串形式
+# column_name = "name"
+# session.query(User).filter(User3.__table__.columns[column_name].like("ed%")).all()
+# 获取执行的sql语句
+# 获取记录数的方法有all()/one()/first()等几个方法，如果没加这些方法，得到的只是一个将要执行的sql对象，并没真正提交执行
+# from sqlalchemy.dialects import mysql
+# sql_obj = session.query(User).filter_by(name='ed')
+# sql_command = sql_obj.statement.compile(dialect=mysql.dialect(), compile_kwargs={"literal_binds": True})
+# sql_result = sql_obj.all()
+```
+另外要注意该链接Common Filter Operators节中形如equals的query.filter(User.name == 'ed')，在真正使用时都得改成session.query(User).filter(User.name == 'ed')形式，不然只后看到报错“NameError: name 'query' is not defined”。
+
+
+##改（修改users表中的记录）
+
+```
+# 要修改需要先将记录查出来
+mod_user = session.query(User).filter_by(name='ed').first()
+
+# 将ed用户的密码修改为modify_paswd
+mod_user.password = 'modify_passwd'
+
+# 确认修改
+session.commit()
+
+# 但是上边的操作，先查询再修改相当于执行了两条语句，和我们印象中的update不一致
+# 可直接使用下边的写法，传给服务端的就是update语句
+# session.query(User).filter_by(name='ed').update({User.password: 'modify_passwd'})
+# session.commit()
+# 以同schema的一张表更新另一张表的写法
+# 在跨表的update/delete等函数中synchronize_session=False一定要有不然报错
+# session.query(User).filter_by(User.name=User1.name).update({User.password: User2.password}, synchronize_session=False)
+# 以一schema的表更新另一schema的表的写法
+# 写法与同一schema的一样，只是定义model时需要使用__table_args__ = {'schema': 'test_database'}等形式指定表对应的schema
+```
+
+##删（删除users表中的记录）
+
+```
+# 要删除需要先将记录查出来
+del_user = session.query(User).filter_by(name='ed').first()
+
+# 打印一下，确认未删除前记录存在
+del_user
+
+# 将ed用户记录删除
+session.delete(del_user)
+
+# 确认删除
+session.commit()
+
+# 遍历查看，已无ed用户记录
+for user in session.query(User):
+    print(user)
+
+# 但上边的写法，先查询再删除，相当于给mysql服务端发了两条语句，和我们印象中的delete语句不一致
+# 可直接使用下边的写法，传给服务端的就是delete语句
+# session.query(User).filter_by(name='ed').first().delete()
+```
