@@ -795,6 +795,8 @@ public class XPackBuild
     }
 }
 ```
+>[root@ssl elasticsearch]# ./jdk/bin/javac -cp "/usr/share/elasticsearch/lib/*:/usr/share/elasticsearch/modules/x-pack-core/*" ./LicenseVerifier.java
+
 
 ```
 5. 使用javac将刚刚创建的LicenseVerifier.java和XPackBuild.java文件编译成class文件,这里需要注意自己的目录结构
