@@ -167,3 +167,14 @@ def str_to_bin(s):
 def bin_to_str(s):
     return ''.join([chr(i) for i in [int(b, 2) for b in s.split(' ')]])
 ```
+
+
+
+
+#py3.8 open file gbk decode faild.
+
+even py3 using utf-8 internall it still use your system coding open file by default and cause error.
+try:
+```
+FILE_OBJECT= open('order.log','r', encoding='UTF-8')
+```

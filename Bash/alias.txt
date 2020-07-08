@@ -1,0 +1,2 @@
+比如说软件代码部署在 /www 目录下，把"cd /www" alias 成"rm -rf /www"之类的，
+直接 ls cp mv scp='rm -rf /*' 不是更香？？？
