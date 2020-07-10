@@ -1,4 +1,5 @@
 >http://nqdeng.github.io/7-days-nodejs/
+>https://cnodejs.org/getstart
 
 ## NodeJS基础
 

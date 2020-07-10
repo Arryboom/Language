@@ -236,15 +236,6 @@ As I described in my last post ([http://tuhrig.de/difference-between-save-and-ex
 
 - A Docker _image_ can be _saved_ to a tarball and _loaded_ back again. This will preserve the history of the image.
     
-    1
-    
-    2
-    
-    3
-    
-    4
-    
-    5
     
     \# save the image to a tarball
     
@@ -256,15 +247,6 @@ As I described in my last post ([http://tuhrig.de/difference-between-save-and-ex
     
 - A Docker _container_ can be _exported_ to a tarball and _imported_ back again. This will _not_ preserve the history of the container.
     
-    1
-    
-    2
-    
-    3
-    
-    4
-    
-    5
     
     \# export the container to a tarball
     
@@ -281,19 +263,7 @@ We can use this mechanism to flatten and shrink a Docker container. If we save a
 
 We can see the history of a image be running `docker tag <LAYER ID> <IMAGE NAMEgt;`:
 
-1
 
-2
-
-3
-
-4
-
-5
-
-6
-
-7
 
 vagrant@ubuntu\-13:~$ sudo docker images \--tree
 
@@ -323,9 +293,6 @@ docker export <CONTAINER ID\> | docker import \- some\-image\-name:latest
 
 You can use some common Linux tricks to shrink Docker images. One simple trick is to clear the cache of the package manager. So depending on which base image you use you can do something like this (for an Ubuntu/Debian system, for more see [here](http://unix.stackexchange.com/questions/75932/what-stuff-can-be-safely-removed-for-disk-space-sake)):
 
-1
-
-2
 
 \# clean apt cache
 
@@ -486,6 +453,57 @@ docker export import后，导入镜像，启动时的错误，
 看完整的command的内容： ``docker ps  --no-trunc ``
 
 
+
+#docker connection between container容器间通信
+
+### 1. docker run --link的作用
+
+docker run --link可以用来链接2个容器，使得源容器（被链接的容器）和接收容器（主动去链接的容器）之间可以互相通信，并且接收容器可以获取源容器的一些数据，如源容器的环境变量。
+
+**--link的格式：**
+```
+--link <name or id>:alias
+```
+其中，name和id是源容器的name和id，alias是源容器在link下的别名。
+
+eg：
+
+**源容器**
+
+`docker run -d --name selenium_hub selenium/hub`
+
+创建并启动名为selenium_hub的容器。
+
+**接收容器**
+
+`docker run -d --name node --link selenium_hub:hub selenium/node-chrome-debug`
+
+创建并启动名为node的容器，并把该容器和名为selenium_hub的容器链接起来。其中：
+```
+--link selenium_hub:hub
+```
+selenium_hub是上面启动的1cbbf6f07804容器的名字，这里作为源容器，hub是该容器在link下的别名（alias），通俗易懂的讲，站在node容器的角度，selenium_hub和hub都是1cbbf6f07804容器的名字，并且作为容器的hostname，node用这2个名字中的哪一个都可以访问到1cbbf6f07804容器并与之通信（docker通过DNS自动解析）。我们可以来看下：
+```
+docker exec -it node /bin/bash
+
+root@c4cc05d832e0:~# ping selenium_hub
+PING hub (172.17.0.2) 56(84) bytes of data.
+64 bytes from hub (172.17.0.2): icmp_seq=1 ttl=64 time=0.184 ms
+64 bytes from hub (172.17.0.2): icmp_seq=2 ttl=64 time=0.133 ms
+64 bytes from hub (172.17.0.2): icmp_seq=3 ttl=64 time=0.216 ms
+
+root@c4cc05d832e0:~# ping hub
+PING hub (172.17.0.2) 56(84) bytes of data.
+64 bytes from hub (172.17.0.2): icmp_seq=1 ttl=64 time=0.194 ms
+64 bytes from hub (172.17.0.2): icmp_seq=2 ttl=64 time=0.218 ms
+64 bytes from hub (172.17.0.2): icmp_seq=3 ttl=64 time=0.128 ms
+```
+>docker automatically add hosts in target container .
+>如果重启了源容器，接收容器的/etc/hosts会自动更新源容器的新ip。
+>在docker的后续版本中，会取消docker run中的--link选项，但了解其如何在2个容器之间建立通信的原理是非常有用的，因为这有助于理解如何用官方推荐的所有容器在同一个network下来通信的方法，以及用docker-compose来链接2个容器来通信的方法。```docker-compose.yml中使用depends_on```
+>你好。请问如果我想启动B容器的时候link到A容器，但是A容器还未启动。此时有什么解决办法吗？
+>用wait-for-it.sh。docker官网里有讲这部分的：https://docs.docker.com/compose/startup-order/
+>https://www.jianshu.com/p/21d66ca6115e
 
 
 ---
