@@ -1676,6 +1676,44 @@ def window_capture(filename):
     saveBitMap.SaveBitmapFile(saveDC, filename)
 ```
 
+#get all the extend class from base class
+获取所有继承某基类的子类
+```
+
+class A(object):
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+ 
+    def add(self, a, b):
+        return a+b
+ 
+    def sub(self):
+        return self.a-self.b
+ 
+ 
+class B(A):
+    def funb(self):
+        print ("Class B")
+ 
+class C(A):
+    def func(self):
+        print ("Class C")
+ 
+ 
+for sc in A.__subclasses__():
+    #print (sc.__name__)
+    #print(dir(sc))
+    #print(help(sc))
+    #print(sc.__dict__)
+    if "funb" in (sc.__dict__.keys()):
+        print(sc.__dict__.keys())
+        sc.funb(sc)
+    #############
+x=B(1,2)
+print(x.add(5,2))
+print(x.sub())
+```
 
 ---
 
