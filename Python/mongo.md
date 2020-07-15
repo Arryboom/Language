@@ -175,6 +175,7 @@ WriteResult({ "nRemoved" : 2 })           # 删除了两条数据
 
 #pymongo
 ```
+	from pymongo import MongoClient
     host = '127.0.0.1'
     client = MongoClient(host, 27017)
     #连接mydb数据库,账号密码认证
