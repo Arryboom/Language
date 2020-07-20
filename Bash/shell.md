@@ -618,7 +618,7 @@ This rule tells the kernel to reject packets sent to the local TCP port 992 unle
 
 >https://unix.stackexchange.com/questions/67351/is-it-possible-to-whitelist-a-specific-program-in-iptables
 
->https://unix.stackexchange.com/questions/304021/how-can-i-implement-a-whitelist-on-a-specific-port-using-iptables
+>https://unix.stackexchange.com/questions/304021/how-can-i-implement-a-whitelist-on-a-specific--using-iptables
 
 #linux kernel enable apparmor
 
@@ -3022,6 +3022,24 @@ cat /etc/group
 ```
 find /tmp -name "*.pyc" | xargs rm -rf
 ```
+
+
+
+#allow port below 1024 to used by nonroot user
+>允许非root用户使用低端口
+
+1.程序root运行
+2.If your server executable is stored on a filesystem that supports capabilities, you can give it the [`cap_net_bind_service`](http://www.lids.org/lids-howto/node46.html) [capability](http://www.friedhoff.org/posixfilecaps.html). Beware that capabilities are still relatively new and [still have a few kinks](http://www.sevagas.com/?POSIX-file-capabilities-the-dark).
+
+```
+setcap cap_net_bind_service=ep /path/to/server/executable
+```
+
+```
+setcap 'cap_net_bind_service=+ep' /path/to/program
+```
+
+>https://unix.stackexchange.com/questions/10735/allowing-a-user-to-let-listen-to-a-port-below-1024
 
 
 ---
