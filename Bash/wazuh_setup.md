@@ -223,7 +223,7 @@ kibana /etc/kibana/kibana.yml
 server.host: "192.168.40.159"
 server.name: "whatELK"
 elasticsearch.hosts: ["https://192.168.40.159:9200"]
-elasticsearch.sniffOnStart: true
+#elasticsearch.sniffOnStart: true
 elasticsearch.ssl.certificateAuthorities: ["/etc/kibana/certs/ca/ca.crt"]
 elasticsearch.ssl.certificate: "/etc/kibana/certs/http.crt"
 elasticsearch.ssl.key: "/etc/kibana/certs/http.key"
