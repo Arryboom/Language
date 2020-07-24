@@ -2592,42 +2592,6 @@ As well it would be helpful sharing your ossec.conf for both sides (Manager & ag
 
 
 
->Hello David,
->
->I have been trying to reproduce your use case unsuccessfully.
->
->Regarding that error message, it basically means that the manager can not send to disconnected agents (which is >obvious)  and it will be muted in newer versions to avoid causing confusion as it should not be deemed as an >error.
->
->That said, I would like to see the client.keys (/var/ossec/etc/) of one of the agent and from the manager as well >if possible.
->
->Please can you elaborate more how the registration process slower from the manager perspective ? Also i would like >to know steps followed to re-register your agent.
->
->Hope to help fixing it.
->
->Regards,
->Wali.
->https://groups.google.com/forum/#!topic/wazuh/Vw3Kas7J0Iw\
-
-
-
-```
-Hi Skyluke,
-I asked for crypto method in case manager and agent had different versions and any of them wasn't able to handle the crypto method; but this is not the case.
-
-It seems that Wazuh Manager isn't finding the correct key to decrypt.
-To confirm keys are ok: Can we check the content of /var/ossec/etc/client/keys on one of the Agents with connection lost, and compare it with same entry on same file on the Manager?
-Also, can you try to re-register one of the Agents to check if communication returns? (https://documentation.wazuh.com/3.12/user-manual/registering/index.html)
-
-I don't think this is a network problem, because Manager is receiving agents packages and you started experiencing this issue right after the upgrade, but if even re-registerig the agent doesn't work, we can try to open the firewall and we can try changing communication protocol to TCP on both agent and manager. To do this, you have to modify <protocol>udp</protocol> to <protocol>tcp</protocol> on /var/ossec/etc/ossec.conf (On both, agent and manager; if agent is Windows default file path is C:\Program Files (x86)\ossec-agent\ossec.conf)
-
-Please let me know how this works.
-Regards
-```
->https://groups.google.com/forum/#!topic/wazuh/O_4sp4SEYJE
-
->https://groups.google.com/forum/#!topic/wazuh/xOgcvQlQmfg
-
-
 #same ip register
 
 - By default, the registration service adds the agents with their static IP address. If you want to add them with a dynamic IP (like using `any` on the `manage_agents` tool), you must change the manager’s configuration file (`/var/ossec/etc/ossec.conf`):

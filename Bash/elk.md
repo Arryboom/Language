@@ -886,11 +886,19 @@ xpack.security.transport.ssl.enabled: true
 }
 破解成功
 
+
+
 12. 设置密码
 执行下列命令设置其他组建连接es所需账号及密码：
 bin/elasticsearch-setup-passwords interactive
 
 ```
+if you got ssl enabled,try this one
+
+```
+curl -XPUT -u elastic 'https://192.168.88.15:9200/_xpack/license' -H "Content-Type: application/json" -d @l.json -k
+```
+
 
 ## es cluster deployment and kibana (es here to three nodes for example):
 

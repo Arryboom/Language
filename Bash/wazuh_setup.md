@@ -52,11 +52,9 @@ curl -s https://packages.wazuh.com/3.x/filebeat/wazuh-filebeat-0.1.tar.gz | sudo
 
 ```
 6. Edit the file `/etc/filebeat/filebeat.yml` and replace `YOUR_ELASTIC_SERVER_IP` with the IP address or the hostname of the Elasticsearch server. For example:
-
-> Copied to clipboard
-> 
-> output.elasticsearch.hosts: \['http://YOUR\_ELASTIC\_SERVER\_IP:9200'\]
-
+```
+output.elasticsearch.hosts: ['http://YOUR_ELASTIC_SERVER_IP:9200']
+```
 
 ```
 systemctl enable filebeat.service
@@ -162,3 +160,79 @@ systemctl start kibana.service
 #agent
 
 
+
+
+
+
+
+
+#example conf on server
+
+filebeat,/etc/filebeat/filebeat.yml
+
+```
+[root@ssl filebeat]# cat filebeat.yml | egrep -v "^$|^#"
+filebeat.modules:
+  - module: wazuh
+    alerts:
+      enabled: true
+    archives:
+      enabled: false
+setup.template.json.enabled: true
+setup.template.json.path: '/etc/filebeat/wazuh-template.json'
+setup.template.json.name: 'wazuh'
+setup.template.overwrite: true
+setup.ilm.enabled: false
+output.elasticsearch:
+  hosts: ["https://192.168.40.159:9200"]
+  username: "elastic"
+  password: "passssswooooooororrrrrrddd"
+  ssl.certificate: "/etc/filebeat/certs/http.crt"
+  ssl.key: "/etc/filebeat/certs/http.key"
+  ssl.certificate_authorities: ["/etc/filebeat/certs/ca/ca.crt"]
+[root@ssl filebeat]#
+```
+
+elasticsearch,/etc/elasticsearch/elasticsearch.yml
+
+```
+[root@ssl filebeat]# cat /etc/elasticsearch/elasticsearch.yml | egrep -v "^$|^#"
+cluster.name: wazuh-clusteres
+node.name: wazuh-ssl
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch
+network.host: 192.168.40.159
+discovery.seed_hosts: ["192.168.40.159", "192.168.40.112","192.168.40.113"]
+cluster.initial_master_nodes: ["wazuh-ssl"]
+xpack.security.enabled: true
+xpack.security.audit.enabled: true
+xpack.monitoring.enabled: true
+xpack.monitoring.collection.enabled: true
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.verification_mode: certificate
+xpack.security.transport.ssl.keystore.path: /etc/elasticsearch/cert_p12/node1
+xpack.security.transport.ssl.truststore.path: /etc/elasticsearch/cert_p12/node1
+xpack.security.http.ssl.enabled: true
+xpack.security.http.ssl.verification_mode: certificate
+xpack.security.http.ssl.keystore.path: /etc/elasticsearch/cert_p12/http.p12
+[root@ssl filebeat]#
+```
+kibana /etc/kibana/kibana.yml
+```
+[root@ssl filebeat]# cat /etc/kibana/kibana.yml | egrep -v "^$|^#"
+server.host: "192.168.40.159"
+server.name: "whatELK"
+elasticsearch.hosts: ["https://192.168.40.159:9200"]
+elasticsearch.sniffOnStart: true
+elasticsearch.ssl.certificateAuthorities: ["/etc/kibana/certs/ca/ca.crt"]
+elasticsearch.ssl.certificate: "/etc/kibana/certs/http.crt"
+elasticsearch.ssl.key: "/etc/kibana/certs/http.key"
+server.ssl.enabled: true
+server.ssl.certificate: "/etc/kibana/certs/http.crt"
+server.ssl.key: "/etc/kibana/certs/http.key"
+xpack.security.enabled: true
+elasticsearch.username: "elastic"
+elasticsearch.password: "passsssssswooooooooooorrrrrrrrrrrd"
+xpack.monitoring.elasticsearch.ssl.verificationMode: certificate
+[root@ssl filebeat]#
+```
