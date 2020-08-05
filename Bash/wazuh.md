@@ -2204,6 +2204,24 @@ wazuh-agent                     [wazuh-monitoring-3.x-*]                   0
 >https://discuss.elastic.co/t/warn-elasticsearch-client-go-520-cannot-index-event-publisher-event/155683
 
 
+4.by deleting index .kibana_2 and restarting Kibana."
+
+error like
+
+```
+:"Unable to connect to Elasticsearch. Error: [security_exception] missing authentication credentials for REST request [/.kibana], with { header={ WWW-Authe
+```
+
+sometimes old kibana index will cause problem.
+
+```
+curl -XDELETE -u elastic:changeme http://localhost:9200/acc-apply-2018.08.09
+
+curl -X DELETE -u elastic https://192.168.88.15:9200/.kibana_2
+
+```
+
+
 ***wazuh app plugin(in kibana)***
 
 1.the change in /etc/kibana/kibana.yml may not apply if you only restart kibana service,you need to remove the file cache in 
@@ -2977,3 +2995,16 @@ elasticsearch.password: "password\_generated\_for\_elastic"
 \# systemctl restart kibana
 ```
 You may now login to your Kibana web interface and use the elastic user credentials to login:
+
+
+
+
+#security conf for wazuh_api
+
+Run the script ``/var/ossec/api/scripts/configure_api.sh`` to configure the basic settings.
+
+The script supports both unattended and attended configuration. To set the parameters of the unattended configuration use the file ``/var/ossec/api/configuration/preloaded_vars.conf``. This file will be removed after running the script to remove any sensitive information written there.
+
+>conf ssl and user pwd from this script directly.
+
+>https://documentation.wazuh.com/3.13/user-manual/api/configuration.html?highlight=foo%20bar
