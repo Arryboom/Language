@@ -2280,3 +2280,10 @@ openssl pkcs12 -in path.p12 -out newfile.crt.pem -clcerts -nokeys -passin 'pass:
 ``` 
 
 >https://stackoverflow.com/questions/15144046/converting-pkcs12-certificate-into-pem-using-openssl
+
+
+
+
+#tips
+
+ES 最大内存只支持 32G
