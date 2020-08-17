@@ -206,6 +206,88 @@ GET /_license
 ```
 
 
+
+#kibana检索语法
+
+kibana 搜索语法
+### **一 字段搜索**
+
+限定字段全文搜索 ：**field:value**
+
+精确搜索 ：**filed:"value"**（关键字加上双引号 ）
+
+字段本身是否存在
+
+**\_exists\_:http** ：返回结果中需要有 http 字段
+
+**\_missing\_:http** ：不能含有 http 字段
+
+### **二 通配符**
+
+**?** 匹配单个字符
+
+\* 匹配0到多个字符
+
+kiba?a, el\*search
+
+**? \* 不能用作第一个字符**，例如 ：?text \*text
+
+### **三 正则**
+
+es支持部分正则功能
+
+mesg:/mes{2}ages?/
+
+### **四 模糊搜索**
+
+~  : 在一个单词后面加上~启用模糊搜索
+
+first~  也能匹配到 frist
+
+### **五 近似搜索**
+
+在短语后面加上~
+
+"select where"~3 表示 select 和 where 中间隔着3个单词以内。
+
+### **六 范围搜索**
+
+数值和时间类型的字段可以对某一范围进行查询
+
+status:\[200 TO 400\]
+
+date:{"now-6h" TO "now"}
+
+\[ \] 表示端点数值包含在范围内，{ } 表示端点数值不包含在范围内。
+
+### **七 逻辑操作**
+
+AND   
+
+OR
+
+\+ ：搜索结果中必须包含此项  
+\- ：不能含有此项  
++apache -jakarta test ：结果中必须存在 apache，不能有 jakarta，test 可有可无。
+
+### **八 分组**
+
+(jakarta OR apache) AND jakarta
+
+字段分组
+
+title:(+return +"pink panther")
+
+### **九 转义特殊字符**
+
+\+ - && || ! () {} \[\] ^" ~ \* ? : \\
+
+以上字符当作值搜索的时候需要用\\转义
+
+### **十 lucene 语法参考**
+
+[https://lucene.apache.org/core/5\_2\_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html](https://lucene.apache.org/core/5_2_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html)
+
 #issue
 
 ```
