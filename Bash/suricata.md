@@ -133,7 +133,9 @@ sudo tail -f /var/log/suricata/eve.json | jq 'select(.event_type=="stats")|.stat
 ---
 
 Without doing any configuration the default operation of suricata-update is use the Emerging Threats Open ruleset.
+```
 suricata-update
+```
 This command will:
 
 Look for the suricata program in your path to determine its version.
@@ -640,3 +642,33 @@ fast.log by default
 ```
 sudo tail -f /var/log/suricata/eve.json | jq 'select(.event_type=="alert")'
 ```
+
+
+
+###disable rules
+
+生产环境中部署了suricata，日常规则更新使用suricata-update，如果想禁用某些规则，可以在配置文件/etc/suricata/disable.conf中添加，比如：
+```
+2018959     #禁用规则号 2018959
+group:dshield.rules    #禁用组 dshield.rules 
+re:heartbledd   #禁用与heartblead相关的规则
+```
+
+如ET中误报较高规则在/etc/suricata/rules/下
+
+```
+group:stream-events.rules
+2200036
+```
+更新这些文件后，再次重新运行suricata-update：
+
+
+
+默认情况下，suricata-update会将所有规则合并到一个文件“/var/lib/suricata/rules/suricata.rules”中。要启用默认禁用的规则，请使用'/etc/suricata/enable.conf':
+
+同样，要禁用规则，请使用/etc/suricata/disable.conf,
+
+更新这些文件后，再次重新运行suricata-update：
+
+
+>https://www.jianshu.com/p/9458f47bccc1
