@@ -672,3 +672,11 @@ group:stream-events.rules
 
 
 >https://www.jianshu.com/p/9458f47bccc1
+
+
+
+#centos error cannot find eth0
+
+even if you config ens11 as your NIC,the suricata service(vi /etc/systemd/system/frps.service) it self still try to start afpacket capture on eth0
+offen showed on centos,bydefault epel release's suricata is old version
+and the systemd service start file of suricata contains a $OPTIONS variable,the $OPTIONS variable read from another file near that location,and it "write lock" the "-i eth0" in it.need to configure it manually to make it work. 
