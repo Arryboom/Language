@@ -3008,3 +3008,100 @@ The script supports both unattended and attended configuration. To set the param
 >conf ssl and user pwd from this script directly.
 
 >https://documentation.wazuh.com/3.13/user-manual/api/configuration.html?highlight=foo%20bar
+
+
+
+#log rotate
+
+**NEWS-UPDATE2020-09-02**
+>https://github.com/wazuh/wazuh/issues/3072
+**NEWS-END**
+
+/var/ossec/logs/alert/alerts.log too huge
+
+seems like ossec has log rotate it self
+
+>https://github.com/wazuh/wazuh/pull/318
+>
+
+
+ **Public options**
+```
+<global>
+  <rotate_interval>0<rotate_interval>
+  <max_output_size>0<max_output_size>
+</global>
+```
+- `rotate_interval` is the time lapse between rotations.
+    - Default value: `0` (disabled).
+    - Multipliers are allowed: `s`, `m`, `h`, `d`.
+    - Range: { `0` } ∪ \[ `min_rotate_interval` .. `1d` \].
+- `max_output_size` is the file size limit that would trigger a rotation.
+    - Default value: `0` (disabled).
+    - Multipliers are allowed: `B`, `K`, `M`, `G` `T`.
+    - Range: { `0` } ∪ \[ `1000000B` .. `1T` \] (one megabyte to one tebibyte).
+
+**Note**: `K`, `M`, `G` and `T` express kibibytes, mebibytes, gibibytes and tebitytes, respectively (powers of 1024).
+
+ **Internal options**
+
+```
+analysisd.min_rotate_interval=600
+```
+
+This parameter sets the rotation granularity. No rotation will be performed in a time lapse smaller than this parameter, even if the file grows over `<max_output_size>`.
+
+- Default value: `600` (ten minutes).
+- Range: \[ `10` .. `86400` \] (ten seconds to one day).
+
+
+**Another way(not recmond)**
+
+>https://github.com/wazuh/wazuh/issues/87
+>https://github.com/ossec/ossec-hids/issues/1281
+
+According to a Wazuh GitHub issue, in May 13 they had the following logrotate configuration in **/etc/logrotate/ossec-hids**:
+```
+ Log rotation for Ossec HIDS
+/var/ossec/logs/*.log {
+    create 640 ossec ossec
+    rotate 31
+    compress
+    missingok
+    notifempty
+    olddir /var/ossec/logs/archives/
+    sharedscripts
+    postrotate
+       /var/ossec/bin/ossec-control restart
+    endscript
+}
+```
+
+
+>Instead, it'd be great if the default logrotate file included could read
+
+```
+    postrotate
+       /var/ossec/bin/ossec-control restart 2> /dev/null > /dev/null
+    endscript
+```
+
+
+
+#ossec排除logrotate消息 文件hash校验
+
+Add the following rule in your local_rules.xml file.
+```
+<rule id="550" level="7" overwrite="yes">
+    <category>ossec</category>
+    <decoded_as>syscheck_integrity_changed</decoded_as>
+    <hostname>your_server_name</hostname>
+    <match>logrotate</match>
+    <options>no_email_alert</options>
+    <description>No email alerts for Integrity checksum changed for logrotate.</description>
+    <group>syscheck,</group>
+  </rule>
+```
+OSSEC will look at local_rules.xml first before looking at other rules, so it will apply the <options>no_email_alert</options> directive, but only to hosts/servers defined in the <hostname> directive, and for those matching the logrotate keyword in the alerts.
+
+>https://serverfault.com/questions/653285/how-to-make-ossec-aware-of-logrotate
