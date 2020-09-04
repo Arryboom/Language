@@ -186,8 +186,8 @@ Datagrams
 #iperf
 
 >https://www.cnblogs.com/Ph-one/p/10767962.html
-
-
+>https://www.jianshu.com/p/15f888309c72
+>https://blog.csdn.net/evenness/article/details/7371845
 
 iPerf是用于主动测量IP网络上最大可承载带宽的工具。它支持调整与时序，缓冲区和协议（TCP，UDP，SCTP与IPv4和IPv6）有关的各种参数。对于每个测试，它都会报告带宽，丢失和其他参数。官方地址[https://iperf.fr/](https://link.jianshu.com?t=https%3A%2F%2Fiperf.fr%2F)
 
@@ -911,21 +911,387 @@ net.ipv4.tcp_congestion_control = hybla
 ```
 >看起来作者并没有考虑很多通用场景，注意调整
 
-#Great u know
 
-###shadowsocks（服务器端）开启udp 包括shadowsocks manyuser
+#MTR测试丢包
 
-shadowsocks开启UDP方法：修改server_pool.py
-把51行，110行-112行的注释去掉
-self.udp_servers_pool = {}
-udp_server = udprelay.UDPRelay(a_config, self.dns_resolver, False)
-udp_server.add_to_loop(self.loop)
-self.udp_servers_pool.update({port: udp_server})
+While logged into your Linode:
+```
+sudo mtr --tcp --port 8388 --report --report-cycles 100 <local.ip.address>
+```
+While logged into your desktop:
+```
+sudo mtr --tcp --port 8388 --report --report-cycles 100 <linode.ip.address>
+```
+
+
+#FRP
+
+>https://www.jianshu.com/p/e0581ee84323
+
+
+
+从 v0.25.0 版本开始 frpc 和 frps 之间支持通过 TLS 协议加密传输。通过在 frpc.ini 的 common 中配置 tls_enable = true 来启用此功能，安全性更高。
+为了端口复用，frp 建立 TLS 连接的第一个字节为 0x17。
+注意: 启用此功能后除 xtcp 外，不需要再设置 use_encryption。
+
+###通过自定义域名访问部署于内网的 web 服务
+有时想要让其他人通过域名访问或者测试我们在本地搭建的 web 服务，但是由于本地机器没有公网 IP，无法将域名解析到本地的机器，通过 frp 就可以实现这一功能，以下示例为 http 服务，https 服务配置方法相同， vhost_http_port 替换为 vhost_https_port， type 设置为 https 即可。
+
+修改 frps.ini 文件，设置 http 访问端口为 8080：
+```
+# frps.ini
+[common]
+bind_port = 7000
+vhost_http_port = 8080
+```
+启动 frps；
+```
+./frps -c ./frps.ini
+```
+修改 frpc.ini 文件，假设 frps 所在的服务器的 IP 为 x.x.x.x，local_port 为本地机器上 web 服务对应的端口, 绑定自定义域名 www.yourdomain.com:
+```
+# frpc.ini
+[common]
+server_addr = x.x.x.x
+server_port = 7000
+
+[web]
+type = http
+local_port = 80
+custom_domains = www.yourdomain.com
+
+```
+
+###转发 DNS 查询请求
+
+修改 frpc.ini 文件，设置 frps 所在服务器的 IP 为 x.x.x.x，转发到 Google 的 DNS 查询服务器 8.8.8.8 的 udp 53 端口：
+```
+# frpc.ini
+[common]
+server_addr = x.x.x.x
+server_port = 7000
+
+[dns]
+type = udp
+local_ip = 8.8.8.8
+local_port = 53
+remote_port = 6000
+```
+
+###转发 Unix域套接字
+通过 tcp 端口访问内网的 unix域套接字(例如和 docker daemon 通信)。
+
+启动 frpc，启用 unix_domain_socket 插件，配置如下：
+
+```
+# frpc.ini
+[common]
+server_addr = x.x.x.x
+server_port = 7000
+
+[unix_domain_socket]
+type = tcp
+remote_port = 6000
+plugin = unix_domain_socket
+plugin_unix_path = /var/run/docker.sock
+```
+
+通过 curl 命令查看 docker 版本信息
+```
+curl http://x.x.x.x:6000/version
+```
+对外提供简单的文件访问服务
+通过 static_file 插件可以对外提供一个简单的基于 HTTP 的文件访问服务。
+
+frps 的部署步骤同上。
+
+启动 frpc，启用 static_file 插件，配置如下：
+```
+# frpc.ini
+[common]
+server_addr = x.x.x.x
+server_port = 7000
+
+[test_static_file]
+type = tcp
+remote_port = 6000
+plugin = static_file
+# 要对外暴露的文件目录
+plugin_local_path = /tmp/file
+# 访问 url 中会被去除的前缀，保留的内容即为要访问的文件路径
+plugin_strip_prefix = static
+plugin_http_user = abc
+plugin_http_passwd = abc
+```
+通过浏览器访问 http://x.x.x.x:6000/static/ 来查看位于 /tmp/file 目录下的文件，会要求输入已设置好的用户名和密码。
+
+
+###为本地 HTTP 服务启用 HTTPS
+通过 https2http 插件可以让本地 HTTP 服务转换成 HTTPS 服务对外提供。
+
+启用 frpc，启用 https2http 插件，配置如下:
+
+```
+# frpc.ini
+[common]
+server_addr = x.x.x.x
+server_port = 7000
+
+[test_htts2http]
+type = https
+custom_domains = test.yourdomain.com
+
+plugin = https2http
+plugin_local_addr = 127.0.0.1:80
+
+# HTTPS 证书相关的配置
+plugin_crt_path = ./server.crt
+plugin_key_path = ./server.key
+plugin_host_header_rewrite = 127.0.0.1
+```
+
+通过浏览器访问 https://test.yourdomain.com 即可。
+
+###安全地暴露内网服务
+
+对于某些服务来说如果直接暴露于公网上将会存在安全隐患。
+
+使用 stcp(secret tcp) 类型的代理可以避免让任何人都能访问到要穿透的服务，但是访问者也需要运行另外一个 frpc。
+
+以下示例将会创建一个只有自己能访问到的 ssh 服务代理。
+
+frps 的部署步骤同上。
+
+启动 frpc，转发内网的 ssh 服务，配置如下，不需要指定远程端口：
+
+```
+# frpc.ini
+[common]
+server_addr = x.x.x.x
+server_port = 7000
+
+[secret_ssh]
+type = stcp
+# 只有 sk 一致的用户才能访问到此服务
+sk = abcdefg
+local_ip = 127.0.0.1
+local_port = 22
+```
+
+
+在要访问这个服务的机器上启动另外一个 frpc，配置如下：
+```
+# frpc.ini
+[common]
+server_addr = x.x.x.x
+server_port = 7000
+
+[secret_ssh_visitor]
+type = stcp
+# stcp 的访问者
+role = visitor
+# 要访问的 stcp 代理的名字
+server_name = secret_ssh
+sk = abcdefg
+# 绑定本地端口用于访问 ssh 服务
+bind_addr = 127.0.0.1
+bind_port = 6000
+```
+
+通过 ssh 访问内网机器，假设用户名为 test：
+```
+ssh -oPort=6000 test@127.0.0.1
+```
+###配置文件模版渲染
+配置文件支持使用系统环境变量进行模版渲染，模版格式采用 Go 的标准格式。
+```
+# frpc.ini
+[common]
+server_addr = {{ .Envs.FRP_SERVER_ADDR }}
+server_port = 7000
+
+[ssh]
+type = tcp
+local_ip = 127.0.0.1
+local_port = 22
+remote_port = {{ .Envs.FRP_SSH_REMOTE_PORT }}
+```
+启动FRPC
+
+```
+export FRP_SERVER_ADDR="x.x.x.x"
+export FRP_SSH_REMOTE_PORT="6000"
+./frpc -c ./frpc.ini
+```
+
+###底层通信可选 kcp 协议
+底层通信协议支持选择 kcp 协议，在弱网环境下传输效率提升明显，但是会有一些额外的流量消耗。
+
+开启 kcp 协议支持：
+
+在 frps.ini 中启用 kcp 协议支持，指定一个 udp 端口用于接收客户端请求：
+
+```
+# frps.ini
+[common]
+bind_port = 7000
+# kcp 绑定的是 udp 端口，可以和 bind_port 一样
+kcp_bind_port = 7000
+```
+在 frpc.ini 指定需要使用的协议类型，目前只支持 tcp 和 kcp。其他代理配置不需要变更：
+```
+# frpc.ini
+[common]
+server_addr = x.x.x.x
+# server_port 指定为 frps 的 kcp_bind_port
+server_port = 7000
+protocol = kcp
+```
+像之前一样使用 frp，需要注意开放相关机器上的 udp 的端口的访问权限。
+
+###连接池
+默认情况下，当用户请求建立连接后，frps 才会请求 frpc 主动与后端服务建立一个连接。当为指定的代理启用连接池后，frp 会预先和后端服务建立起指定数量的连接，每次接收到用户请求后，会从连接池中取出一个连接和用户连接关联起来，避免了等待与后端服务建立连接以及 frpc 和 frps 之间传递控制信息的时间。
+
+这一功能比较适合有大量短连接请求时开启。
+
+首先可以在 frps.ini 中设置每个代理可以创建的连接池上限，避免大量资源占用，客户端设置超过此配置后会被调整到当前值：
+
+```
+# frps.ini
+[common]
+max_pool_count = 5
+```
+在 frpc.ini 中为客户端启用连接池，指定预创建连接的数量：
+```
+# frpc.ini
+[common]
+pool_count = 1
+```
+
+
+
+###frp服务允许跑在nobody权限和1024以下端口
+
+- frps
+```
+[Unit]
+Description=FRP Server Daemon
+
+[Service]
+Type=simple
+ExecStartPre=-/usr/sbin/setcap cap_net_bind_service=+ep /opt/bin/frps
+ExecStart=/opt/bin/frps -c /opt/etc/frps.ini
+Restart=always
+RestartSec=20s
+User=nobody
+PermissionsStartOnly=true
+LimitNOFILE=infinity
+
+[Install]
+WantedBy=multi-user.target
+```
+
+
+- fprc
+
+```
+[Unit]
+Description=FRP Client Daemon
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/bin/frpc -c /opt/etc/frpc.ini
+Restart=always
+RestartSec=20s
+User=nobody
+LimitNOFILE=infinity
+
+[Install]
+WantedBy=multi-user.target
+```
+
+
+SOMEBODY SAYS
+
+
+应该放在/lib/systemd/system/目录下面
+frpc最好使用@来支持多个客户端连接到不同的服务器
+/lib/systemd/system/frpc@.service
+```
+[Unit]
+Description=FRP Client Daemon
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/bin/frpc -c /opt/etc/%i.ini
+Restart=always
+RestartSec=20s
+User=nobody
+
+[Install]
+WantedBy=multi-user.target
+
+```
+
+somebody says
+
+
+```
+[Unit]
+Description=frps server daemon
+Documentation=https://github.com/fatedier/frp
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/frps -c /usr/local/etc/frps.ini
+Type=simple
+User=nobody
+Group=nogroup
+WorkingDirectory=/tmp
+Restart=on-failure
+RestartSec=60s
+
+[Install]
+WantedBy=multi-user.target
+```
+
+*   `[Unit]`
+    *   `After` 在网络就绪后启动服务，关于网络就绪 [NetworkTarget](https://www.freedesktop.org/wiki/Software/systemd/NetworkTarget)*   `[Service]`
+    *   `ExecStart` 启动时执行的命令
+    *   `Type` simple 执行 ExecStart 指定的命令，启动主进程，还有很多其他类别
+    *   `User` 执行命令的用户为 nobody
+    *   `Group` 执行命令的组为 nogroup
+    *   `WorkingDirectory` 命令的工作目录
+    *   `Restart` 失败后尝试重启，失败是根据退出状态码进行判断的
+    *   `RestartSec` 失败 60s 后尝试重启*   `[Install]`
+    *   `WantedBy` 执行 `systemctl enable frps` 命令，会在 `/etc/systemd/system/multi-user.target.wants/frps.service` 目录下创建一个软链
+
+
+
+>https://gist.github.com/ihipop/4dc607caef7c874209521b10d18e35af
+>http://notfound.cn/posts/systemd-frp/
 
 
 ---
+#子网掩码计算
 
+http://jodies.de/ipcalc?host=0.0.0.0&mask1=1&mask2=
 
+```
+Address:   0.0.0.0               0 0000000.00000000.00000000.00000000
+Netmask:   128.0.0.0 = 1         1 0000000.00000000.00000000.00000000
+Wildcard:  127.255.255.255       0 1111111.11111111.11111111.11111111
+=>
+Network:   0.0.0.0/1             0 0000000.00000000.00000000.00000000 (Class A)
+Broadcast: 127.255.255.255       0 1111111.11111111.11111111.11111111
+HostMin:   0.0.0.1               0 0000000.00000000.00000000.00000001
+HostMax:   127.255.255.254       0 1111111.11111111.11111111.11111110
+Hosts/Net: 2147483646            
+```
 
 ---
 
