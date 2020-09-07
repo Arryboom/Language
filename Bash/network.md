@@ -14,22 +14,22 @@ Bandwidthd几乎没有任何说明文档。man bandwidthd列出了其所有配�
 ###Speedometer
 
 Speedometer在控制台上显示了实时图形（所以你不需要Web服务器），显示了数据在你的网络连接上传输有多快，它还可以解答"我的硬盘速度有多快"这一问题。最简单的用法显示了每秒收到或传输的字节数。这被称为分路器（tap）：
-
-1. $ speedometer -r eth0 
-
+```
+$ speedometer -r eth0 
+```
 你可以通过创建两个分路器来监测双向流量：
-
-1. $ speedometer -r eth0 -t eth0 
-
+```
+$ speedometer -r eth0 -t eth0 
+```
 默认是堆叠分路器。-c选项而是制作了漂亮的列，-k 256显示了256种颜色，而不是默认的16种颜色，如图2所示。
-
-1. $ speedometer  -r eth0 -c -t eth0 
-
+```
+$ speedometer  -r eth0 -c -t eth0 
+```
 ![D8497F3F-4C23-2B56-D008-1A6B41875066]
 你可以通过使用dd，创建一个1GB大小的原始文件，测量硬盘的原始写入速度，然后使用Speedometer，测量创建该原件文件需要多长时间：
-
-1. $ dd bs=1000000 count=1000 if=/dev/zero of=testfile & speedometer testfile 
-
+```
+$ dd bs=1000000 count=1000 if=/dev/zero of=testfile & speedometer testfile 
+```
 更改count值，即可生成不同大小的文件；比如说，count=2000创建了一个2GB大小的文件。你还可以试着更改不同的数据块大小（bs），看看这有没有什么区别。记得完成后，务必要删除testfile，除非你喜欢任由毫无用处的大文件躺在那里。
 
 相关链接：http://www.linux.com/speedometer
@@ -40,25 +40,25 @@ Speedometer在控制台上显示了实时图形（所以你不需要Web服务器
 
 
 Nethogs是一款简单的控制台应用程序，可显示每个进程的带宽，所以你可以马上看到谁在耗用网络资源。最简单的调用指定了你的网络接口，然后它既显示了入站数据包，又显示了出站数据包：
+```
+$ sudo nethogs eth0 
 
-1. $ sudo nethogs eth0 
+NetHogs version 0.8.0 
 
-2. NetHogs version 0.8.0 
+PID USER     PROGRAM                DEV        SENT      RECEIVED 
 
-3. PID USER     PROGRAM                DEV        SENT      RECEIVED 
+1703  carla      ssh                       eth0      9702.096     381.697 KB/sec 
 
-4. 1703  carla      ssh                       eth0      9702.096     381.697 KB/sec 
+5734  www-data  /usr/bin/fie                eth0         1.302      59.301 KB/sec 
 
-5. 5734  www-data  /usr/bin/fie                eth0         1.302      59.301 KB/sec 
+13113 carla       ..lib/firefox/firefox         eth0          0.021       0.023 KB/sec 
 
-6. 13113 carla       ..lib/firefox/firefox         eth0          0.021       0.023 KB/sec 
+2462  carla      ..oobar/lib/foobar          eth0       0.000       0.000 KB/sec 
 
-7. 2462  carla      ..oobar/lib/foobar          eth0       0.000       0.000 KB/sec 
+?     root       unknown TCP                          0.000       0.000 KB/sec 
 
-8. ?     root       unknown TCP                          0.000       0.000 KB/sec 
-
-9. TOTAL                                           9703.419     441.021 KB/sec 
-
+TOTAL                                           9703.419     441.021 KB/sec 
+```
 使用-r选项显示单单收到的数据包，使用-s选项查看单单发送的数据包。
 
 相关链接：http://nethogs.sourceforge.net/
@@ -69,9 +69,9 @@ Nethogs是一款简单的控制台应用程序，可显示每个进程的带宽�
 
 
 Darkstat是另一款基于Web的网络监控工具，不过它包括自己的嵌入式HTTP服务器，所以你就不需要Apache了。以网络接口名称作为唯一的选项来启动它：
-
-1. $ sudo darkstat -i eth0 
-
+```
+$ sudo darkstat -i eth0 
+```
 然后打开Web浏览器，浏览到http://localhost:667，你会看到类似图3的结果。
 
 ![1F4430F0-12FB-E147-0380-6ABE4C944FC2]
@@ -215,17 +215,17 @@ CentOS 可以直接用 yum install iperf或yum install iperf3安装
 
 服务器端：
 
-<div class="_2Uzcx_">
+```
 
     [root@10-57-22-228 ~]# iperf3 -s -p 1234 -i 1
     -----------------------------------------------------------
     Server listening on 1234
 
-</div>
+```
 
 客户端：
 
-<div class="_2Uzcx_">
+```
 
     [root@10-57-22-128 ~]# iperf3 -c 10.57.22.228 -p 1234 -i 1 -t 10
     Connecting to host 10.57.22.228, port 1234
@@ -246,11 +246,11 @@ CentOS 可以直接用 yum install iperf或yum install iperf3安装
     [  4]   0.00-10.00  sec  1.09 GBytes   932 Mbits/sec  5590             sender
     [  4]   0.00-10.00  sec  1.08 GBytes   931 Mbits/sec                  receiver
 
-</div>
+```
 
 在tcp模式下，客户端到服务器10.57.22.228上传带宽测试，测试时间为10秒。
 
-<div class="_2Uzcx_">
+```
 
     [root@10-57-22-128 ~]# iperf3 -c 10.57.22.228 -p 1234  -d -t 10     
     send_parameters:
@@ -327,7 +327,7 @@ CentOS 可以直接用 yum install iperf或yum install iperf3安装
 
     iperf Done.
 
-</div>
+```
 
 进行上下行带宽测试。
 
@@ -1177,6 +1177,8 @@ pool_count = 1
 ###frp服务允许跑在nobody权限和1024以下端口
 
 - frps
+
+
 ```
 [Unit]
 Description=FRP Server Daemon
@@ -1393,6 +1395,232 @@ PSH为1的情况，一般只出现在DATA内容不为0的包中，也就是说PS
 >https://www.cnblogs.com/sn1per/p/12552523.html
 常用统计
 >https://www.jianshu.com/p/e7b3760c25b2
+
+
+
+#bond端口聚合
+
+什么是bond？
+
+      所谓bond，是一种通过把多个物理网卡绑定成一个逻辑网卡实现网卡冗余、负载均衡、提高带宽，从而实现网络性能高可用高可靠的技术。
+
+ 
+
+bond有七种模型：
+
+mod0：（balance-rr，平衡轮循环策略，提供负载均衡和容错能力），数据包传输是依次传输，第一个包从网卡1传输，第二个包从网卡2传输，第三个包从网卡3.......，一直循环直到传输完最后一个数据包。这种模式的bond有一个不完善的地方，如果一个数据包从不同的网卡传输，而中途再经过不同的链路，当客户端接受到数据包的时候，数据包就可能出现无序到达的情况，而无序到达的数据包需要重新发送，这样网络的性能便会大大下降。
+
+mod1：（active-backup，主备策略，提供冗余能力），只有一个网卡被使用，当一个网卡宕了之后，马上由备网卡接替主网卡的工作，为了避免交换机发生混乱，逻辑网卡的mac地址是唯一的。这种模型的bond可提高网络的可用性，但是它的资源利用率低，只有1/网卡个数（N）。
+
+mod2：（balance-xor，平衡策略，提供负载均衡和容错能力）---不是很明白实现原理与算法，有哪位大神知道的话，可以在下面留言，让小弟也开开眼界。
+
+mod3：（broadcast，广播策略，提供容错能力）每一个备网卡传输每个数据包。
+
+mod4：（802.3ad，动态链路聚合），创建聚合组，聚合组中的每个备网卡共享同样的速率和双工，必要条件是交换机需要支持802.3ad以及需要ethtool的支持
+
+mod5：（balance-tlb，适配器传输负载均衡），在每个网卡上根据当前的压力负载分配流量，如果正在工作的网卡宕了，另外的网卡接管宕机的网卡的mac地址。必要条件是：需要ethtool的支持。
+
+mod6：（balance-alb，适配器适应负载均衡），该模式包含了balance-tlb模式，同时加上针对IPV4流量的接收负载均衡(receive load balance, rlb)，而且不需要任何switch(交换机)的支持。接收负载均衡是通过ARP协商实现的。bonding驱动截获本机发送的ARP应答，并把源硬件地址改写为bond中某个slave的唯一硬件地址，从而使得不同的对端使用不同的硬件地址进行通信。
+
+
+实验（mod0为例，其他mod大同小异）
+
+ 
+
+创建逻辑网卡的配置文件
+
+```
+
+[root@bond network-scripts]# catifcfg-bond0   
+
+DEVICE=bond0
+
+BOOTPROTO=static
+
+ONBOOT=yes
+
+IPADDR=192.168.31.100
+
+NETMASK=255.255.255.0
+
+NETWORK=192.168.31.0
+
+GATEWAY=192.168.31.1
+
+BROADCAST=192.168.31.255
+
+BONDING_OPTS="mode=0  miimon=200"  #mode指定模式，miimon为探测的时间间隔(毫秒) 
+
+USERCTL=no     #是否允许非root用户控制该设备  yes|no
+```
+ 
+
+修改物理网卡的配置文件
+```
+[root@bond network-scripts]# catifcfg-eno16780032
+
+DEVICE=eno16780032
+
+BOOTPROTO=none
+
+MASTER=bond0    #指定master为bond0
+
+SLAVE=yes            #是否为附属
+
+USERCTL=no
+
+ 
+
+[root@bond network-scripts]# cat ifcfg-eno33561344
+
+DEVICE=eno33561344
+
+BOOTPROTO=none
+
+MASTER=bond0   
+
+SLAVE=yes
+
+USERCTL=no
+
+```
+
+bond0是通过bonding的驱动来配置的，所以我们还需要为bond0这块网卡添加驱动支持，将这个驱动添加到 /etc/modprobe.d/ 这个目录下
+```
+[root@bond ~]# cat/etc/modprobe.d/bonding.conf
+
+alias bond0 bonding
+```
+ 
+
+加载bonding模块
+```
+[root@bond ~]# modprobe  bonding
+
+[root@bond ~]# lsmod |grep bonding
+
+bonding               136705  0
+
+```
+
+重启网络
+```
+[root@bond ~]# systemctl restart network
+
+Job for network.service failed because thecontrol process exited with error code. See "systemctl statusnetwork.service" and "journalctl -xe" for details.
+
+ 
+
+bond network[10418]:Bringing up interface bond0:  Error:Connection activation failed: No suitable device found for this connection.
+
+bond network[10418]:Bringing up interface eno16780032: Error: Connection activation failed: Master device bond0 unmanaged ornot available for activation
+
+```
+
+如果发现有如上报错，需要关闭NetworkManager。
+
+参考（https://access.redhat.com/discussions/2162171）
+```
+[root@bond ~]# systemctl stopNetworkManager
+
+[root@bond ~]# systemctl disabledNetworkManager
+
+```
+
+验证       #仔细观察发现物理网卡的mac地址和逻辑网卡的mac地址一样
+```
+[root@bond ~]# ip add show
+
+3: eno16780032: <BROADCAST,MULTICAST,SLAVE,UP,LOWER_UP>mtu 1500 qdisc mq master bond0 state UP qlen1000
+
+   link/ether 00:0c:29:bc:7d:41 brdff:ff:ff:ff:ff:ff
+
+   inet6 fe80::20c:29ff:febc:7d41/64 scopelink
+
+      valid_lft forever preferred_lft forever
+
+4: eno33561344: <BROADCAST,MULTICAST,SLAVE,UP,LOWER_UP>mtu 1500 qdisc mq master bond0 state UP qlen1000
+
+   link/ether 00:0c:29:bc:7d:41 brdff:ff:ff:ff:ff:ff
+
+   inet6 fe80::20c:29ff:febc:7d41/64 scopelink
+
+      valid_lft forever preferred_lft forever
+
+5: bond0:<BROADCAST,MULTICAST,MASTER,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP
+
+   link/ether 00:0c:29:bc:7d:41 brdff:ff:ff:ff:ff:ff
+
+   inet 192.168.31.100/24 brd 192.168.31.255 scope global bond0
+
+      valid_lft forever preferred_lft forever
+
+   inet6 fe80::20c:29ff:febc:7d41/64 scopelink tentative dadfailed
+
+      valid_lft forever preferred_lft forever
+
+```
+
+查看逻辑网口设备的信息
+```
+[root@bond ~]# cat /proc/net/bonding/bond0
+
+Ethernet Channel Bonding Driver: v3.7.1(April 27, 2011)
+
+ 
+
+Bonding Mode: load balancing (round-robin)    #模式为负载均衡
+
+MII Status: up      #状态为up
+
+MII Polling Interval (ms): 200     #侦测间隔为200ms
+
+Up Delay (ms): 0     #启动延迟为0ms
+
+Down Delay (ms): 0   #关闭延迟为0ms
+
+ 
+
+Slave Interface: eno16780032
+
+MII Status: up     #状态up
+
+Speed: 10000 Mbps    #速率为10000
+
+Duplex: full       #全双工
+
+Link Failure Count: 0   
+
+Permanent HW addr: 00:0c:29:bc:7d:41  
+
+Slave queue ID: 0
+
+ 
+
+Slave Interface: eno33561344
+
+MII Status: up
+
+Speed: 10000 Mbps
+
+Duplex: full
+
+Link Failure Count: 0
+
+Permanent HW addr: 00:0c:29:bc:7d:4b
+
+Slave queue ID: 0
+```
+ 
+
+测试
+
+ 
+
+冗余测试
+
+>https://www.cnblogs.com/guixia621/p/6766895.html
+
 
 
 ---
