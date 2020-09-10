@@ -723,3 +723,40 @@ loop.run_until_complete(asyncio.wait(tasks))
 ```
 
 参考链接： https://blog.csdn.net/zhusongziye/article/details/81637088
+
+
+
+
+
+
+
+
+
+
+
+
+---
+## asyncio 和 uvloop
+
+asyncio 模块, 是在 PEP 3156引入的, 是一个集合，包含网络传输, 协议, 和抽象的流, 带有可插拔的事件循环. 事件循环是asyncio的核心.它提供如下API:
+
+- 调用方法的调度
+- 通过网络传输数据
+- 执行 DNS 查询,
+- 处理 OS 操作系统信号
+- 对创建服务器和连接进行封装
+- 子进程异步处理
+
+目前 uvloop 只支持 \*nix 平台和 Python 3.5。
+
+uvloop 是 Python 内建的 asyncio 事件循环的替代品，你可以通过 pip 来安装：
+
+$ pip install uvloop
+
+在你的 asyncio 代码中使用 uvloop 非常简单：
+
+**import** asyncio
+**import** uvloop
+asyncio.set\_event\_loop\_policy(uvloop.EventLoopPolicy())
+
+上面的代码片段让 `asyncio.get_event_loop()` 返回一个 uvloop 的实例。

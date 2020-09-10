@@ -3925,14 +3925,143 @@ $ echo > filename
 还有一种方式为：``cat /dev/null > file.log``
 
 
+#请教一个查看用户密码过期时间的 shell 脚本
+>https://www.v2ex.com/t/703768#reply7
+
+想通过一个简单的 shell 脚本，友好地显示查看密码修改时间、用户密码过期时间等，输出效果如下：
+
+#root
+密码修改时间：xxx
+密码过期时间：xxx
+
+#nginx
+密码修改时间：xxx
+密码过期时间：xxx
+
+我的思路是先把具有登陆权限的用户过滤出来，再对每个用户使用 chage -l 过滤出密码修改时间、用户密码过期时间，下面的代码只是把每个用户的密码过期时间直接打印出来，请大佬们帮帮忙，实现友好显示相关内容。
+```
+#!/bin/bash
+export LANG="en_US.UTF-8"
+USER=$(grep "/bin/bash" /etc/passwd | awk -F ":" '{print $1}')
+
+for TIME in $USER
+do
+chage -l $TIME | grep -w "Password expires" | awk -F ":" '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//'
+done
+```
+
+**answer**
+
+
+```
+试下这个吧
+
+#!/bin/bash
+export LANG="en_US.UTF-8"
+USER=$(grep "/bin/bash" /etc/passwd | awk -F ":" '{print $1}')
+
+echo "Username:PasswordExpires:LastPasswordChangeDate"
+for TIME in $USER
+do
+echo -e "$TIME:\c"
+PX=`chage -l $TIME | grep -w "Password expires" | awk -F ":" '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//'`
+echo -e "$PX:\c"
+chage -l $TIME | grep -w "Last password change" | awk -F ":" '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//'
+done
+```
 
 
 
+#进程树结构查看/查看父进程/僵尸进程
+>http://ask.zol.com.cn/x/6505972.html
+
+```
+ps axf 这样显示出来的进程就是个树结构的.
+这个办法感觉比较简单.
+
+如果看到的进程没有父进程. 那么要么是init启的. 要么是父进程已经退出了.
+```
+
+
+可以考虑使用pkill -P ppid命令。
+```
+pkill -a
+```
 
 
 
+先用ps得到进程pid号. 假定为5164
+2种方法获取到他的父进程pid
+1. 使用/etc/proc文件夹
+```
+[root@hadoop-node-15 p_w_picpath]# cat /proc/5164/stat
+5164(python) S15118 11378 34822 11448 4202560 1151 0 0 0 111 12 0 0 15 0 1 0 718512653 209346560 4256 18446744073709551615 4194304 5617644 140734672776192 18446744073709551615 223276215590 0 0 16781312 2 2911394094703968255 0 0 17 0 0 0 0
+```
+第4列的1即是父进程pid号
+
+2. 使用shell命令
+编辑脚本get_ppid.sh
+```
+function ppid () {
+   ps -p ${1:-$$} -o ppid=;
+}
+pid=$1
+if [ -z $pid ]
+then
+       read -p "PID: " pid
+   fi
+   ps -p ${pid:-$$} -o ppid=
+```
+使用时，传入pid
+```
+[root@hadoop-node-15 p_w_picpath]# sh get_ppid.sh5164
+1
+```
 
 
+在Linux下，bai可以有两种比较方便的方法：
+```
+# pstree
+```
+通过系统的du进程树来查看某个进zhi程的父进程；
+```
+# ps -ef |grep <进程名dao>
+```
+在显示的输出中，第三列就是该进程的父进程PID，然后可以再使用ps命令来查看父进程的名称
+```
+# ps -ef |grep <父进程PID>
+```
+
+another way full description
+
+
+2.改变进程的运行方式
+
+1) 挂起当前的进程
+
+按Ctrl+Z组合键将当前进程挂起（调入后台并停止运行），这种操作在需要暂停当前进程并进行其他操作时特别有用。例如，我们使用windows系统是有时候在本地计算机搜索东西时，发现他搜索的老慢了甚至电脑都有点卡，我们突然不想让它搜了，就想马上让它停止搜索，就是这种感觉。
+
+2) 查看后台的进程
+
+使用jobs命令，可以查看当前终端在后台的进程任务，结合“-l”选项可以同时显示出该进程对应的PID号
+
+3) 将后台的进程恢复运行
+
+bg（BackGround）命令，可以将后台中暂停执行（如，按Ctrl+Z组合键挂起）的任务恢复运行，继续在后台执行
+
+fg（ForeGround）命令，可以将后台任务重新恢复到前台运行
+
+用法bg+pid,如``bg 1366``
+
+
+![](/pics/process.png)
+
+
+#ipmi
+>https://www.cnblogs.com/klb561/p/9070001.html
+
+
+![](/pics/ipmi.png)
 
 
 ---

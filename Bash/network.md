@@ -1672,7 +1672,11 @@ https://ip.sb/ip/8.8.8.8
 
 
 
+#tcp reset问题排查
 
+>https://segmentfault.com/a/1190000011285291
+
+![](/network/reset1.png)
 
 
 
