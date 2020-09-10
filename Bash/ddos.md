@@ -165,6 +165,10 @@ vddos restart
 
 #手动应急
 
+```
+netstat -nat | grep -i "7000" | wc -l
+```
+
 
 
 ###检测
