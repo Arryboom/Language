@@ -329,3 +329,126 @@ The <alert_new_files> entry should look something like this:
 
 **How do I stop syscheck alerts during system updates?**
 There is no easy way to do this, but there are work-arounds. Stop the OSSEC processes on the manager, and run /var/ossec/bin/syscheck_control -u AGENT_ID. This will clear the syscheck database for the agent, and the next time syscheck runs it will create a new baseline. Next, start the OSSEC processes on the manager. Once the system update is complete, run a syscheck scan on that agent. The database will be populated with new values, and should not trigger “file modified” alarms.
+
+
+
+
+
+
+
+
+
+
+
+
+#localFile options
+
+>https://www.ossec.net/docs/docs/syntax/head_ossec_config.localfile.html
+
+
+
+- syslog
+    
+    This format is for plain text files in a syslog-like format. It can also be used when there is no support for the logging format, and the logs are single line messages.
+    
+
+- snort-full
+    
+    This is used for Snort’s full output format.
+    
+
+- snort-fast
+    
+    This is used for Snort’s fast output format.
+    
+
+- squid
+
+- iis
+
+- eventlog
+    
+    This is used for Microsoft Windows eventlog format.
+    
+
+- eventchannel
+    
+    This is used for Microsoft Windows eventlogs, using the new EventApi. This allows OSSEC to monitor both standard “Windows” eventlogs and more recent “Application and Services” logs. This support was added in 2.8.
+    
+
+Warning
+
+`eventchannel` cannot be used on Windows systems older than Vista.
+
+- mysql\_log
+    
+    This is used for [MySQL](http://dev.mysql.com/) logs. It does not support multi-line logs.
+    
+
+- postgresql\_log
+    
+    This is used for [PostgreSQL](http://www.postgresql.org/) logs. It does not support multi-line logs.
+    
+
+- nmapg
+    
+    This is used for monitoring files conforming to the grepable output from [nmap](http://nmap.org/).
+    
+
+- apache
+    
+    > This format is for apache’s default log format.
+    > 
+    > **Example:**
+    > 
+    > \[Wed Jun  9 23:32:26 2010\] \[error\] \[client 192.168.1.100\] File does not exist: /htdocs/favicon.ico
+    > 
+    > **Example:**
+    > 
+    > 192.168.1.100 - - \[21/Jan/2010:08:31:09 -0500\] "GET / HTTP/1.0" 200 2212
+    
+
+- command
+    
+    This format will be the output from the command (as run by root) defined by [command](https://www.ossec.net/docs/docs/syntax/head_ossec_config.localfile.html#command). Each line of output will be treated as a separate log.
+    
+
+- full\_command
+    
+    This format will be the output from the command (as run by root) defined by [command](https://www.ossec.net/docs/docs/syntax/head_ossec_config.localfile.html#command). The entire output will be treated as a single log.
+    
+
+Warning
+
+`command` and `full_command` cannot be used in the agent.conf, and must be configured in each system’s ossec.conf.
+
+- djb-multilog
+
+- multi-line
+    
+    This option will allow applications that log multiple lines per event to be monitored. This format requires the number of lines to be consistent. `multi-line:` is followed by the number of lines in each log entry. Each line will be combined with the previous lines until all lines are gathered. There may be multiple timestamps in a finalized event.
+    
+    **Allowed:** <log\_format>multi-line: NUMBER</log\_format>
+    
+    **Example:**
+    
+    Log messages:
+    
+    Aug  9 14:22:47 hostname log line one
+    Aug  9 14:22:47 hostname log line two
+    Aug  9 14:22:47 hostname log line three
+    Aug  9 14:22:47 hostname log line four
+    Aug  9 14:22:47 hostname log line five
+    
+    Log message as analyzed by ossec-analysisd:
+    
+    Aug  9 14:22:47 hostname log line one Aug  9 14:22:47 hostname log line two Aug  9 14:22:47 hostname log line three Aug  9 14:22:47 hostname log line four Aug  9 14:22:47 hostname log line five
+    
+
+- multi-line\_indented
+    
+    This log format accepts logs spanning multiple lines with subsequent lines beginning with either a space or tab.
+    
+    **Example:**
+    
+    <log\_format>multi-line\_indented</log\_format>
