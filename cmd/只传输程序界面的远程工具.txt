@@ -1,0 +1,15 @@
+前段时间看 v 友讨论国内 Windows 桌面程序的系统级常驻服务有感，大家都说那些应用都在偷偷搞事情，沙盒隔离级别不够（我自己也确实试过，禁用了用户目录后沙盒里的程序就无法执行了），得装在虚拟机完全隔离使用。
+
+那么有没有只传输程序窗口的远程控制程序(Windows ？
+
+thank everybody
+
+
+现在用的 Sandboxie
+https://github.com/sandboxie-plus/Sandboxie
+
+
+Vmware Horizon
+
+
+微软 remote app，这种吗？
