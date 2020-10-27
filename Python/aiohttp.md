@@ -288,3 +288,77 @@ proxy_auth = aiohttp.BasicAuth('your_user', 'your_password')
 async with session.get(url, proxy=proxy, proxy_auth=proxy_auth) as response:
     return BeautifulSoup(await response.content, 'html.parser')
 ```
+
+
+
+#爬图片示例
+
+```
+import asyncio
+import aiohttp
+import time
+import random
+import os
+from lxml import etree
+
+path='F:\\wuso\\'      #文件保存路径
+
+targe_url=[]            
+for i in range(0,200):#total 178        建立任务链接
+    targe_url.append('https://wuso.me/forum-photos-{}.html'.format(i))
+
+async def run(url):
+    path='F:\\wuso\\'
+    headers={'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+ 'Accept-Encoding':'gb2312,utf-8',
+ 'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0',
+ 'Accept-Language':'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
+ 'Connection':'Keep-alive'
+}
+    try:
+        async with aiohttp.ClientSession() as session:
+            aiohttp.Timeout(5)
+            async with session.get(url,headers=headers) as response:
+                res=await response.text()
+                res=etree.HTML(res)
+                fName=res.xpath("//div[@class='c cl']/a/@title")
+                #print(fName)
+                fLink=res.xpath("//div[@class='c cl']/a/@href")
+                for i in range(len(fName)):
+                    async with session.get(fLink[i],headers=headers) as imgres:
+                        t=await imgres.text()
+                        t=etree.HTML(t)
+                        imgLinks=t.xpath('//img/@zoomfile')
+                        try:
+                            if not os.path.exists(path+fName[i]):
+                                os.makedirs(path+fName[i])
+                            for link in imgLinks:
+                                async with session.get('https://wuso.me/'+link,headers=headers) as img:
+                                    try:
+                                        imgcode=await img.read()
+                                        try:
+                                            with open(path+fName[i]+'\\'+link.split('/')[-1],'wb') as f:
+                                                f.write(imgcode)
+                                                f.close()
+                                                print(link.split('/')[-1],'Saved')
+                                        except:
+                                            print('文件创建失败')
+                                            pass
+                                    except:
+                                        print('二进制文件读取失败')
+                                        pass
+                        except:
+                            print('Img保存失败')
+                            pass
+    except:
+        print('response失败*******************************************')
+        pass
+start=time.time()
+loop=asyncio.get_event_loop()
+tasks=[]
+for u in targe_url:
+    tasks.append(asyncio.ensure_future(run(u)))
+loop.run_until_complete(asyncio.wait(tasks))
+loop.close()
+print('total {}pages,time cost:{}'.format(len(tasks),time.time()-start))
+```

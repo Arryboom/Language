@@ -1527,7 +1527,9 @@ pip install virtualenv
 
 　　2.2 输入如下命令，venv_name为你要创建的虚拟环境名字，自行拟定；回车后在目录上会多出venv_name的文件夹，就是你创建的虚拟环境。
 
-```virtualenv venv_name```
+```
+virtualenv venv_name
+```
 
    使用```virtualenv --no-site-packages venv_name```创建不包含原python pip库的venv环境
 
@@ -1537,7 +1539,9 @@ pip install virtualenv
 
 　　运行如下命令进入venv_name虚拟环境 ,然后可以使用pip list查看该虚拟环境有那些预安装的库
 
-```venv_name\Scripts\activate```
+```
+venv_name\Scripts\activate
+```
 
 
 4. 安装指定版本的依赖库
@@ -1550,14 +1554,18 @@ pip install virtualenv
 
  
 
-```pip install -r requirements.txt```
+```
+pip install -r requirements.txt
+```
  
 
 　　requirements.txt 是哪里来的呢？ 这是脚本作者会提供的该脚本的依赖库文件，这里面含有该作者Python坏境的所有库及版本号
 
 　　当然我们也可以自己制作这样一个文件，运行如下命令
 
-```pip freeze > requirements.txt```
+```
+pip freeze > requirements.txt
+```
 
 　　会在当前目录 创建一个requirements.txt，打开后的信息就我们 刚刚pip list的结果
 
@@ -1565,7 +1573,9 @@ pip install virtualenv
 
 　　执行如下命令即可
 
-```deactivate```
+```
+deactivate
+```
 
 6.  删除该venv虚拟环境
 
@@ -1578,14 +1588,14 @@ pip install virtualenv
 
 Python2.7创建方法改为
 
-``python2 -m virtualenv venv_name``
+```python2 -m virtualenv venv_name```
  
 
 Python3.5创建方法
 
  
 
-``python3 -m virtualenv venv_name``
+```python3 -m virtualenv venv_name```
 
 ---
 
@@ -1774,7 +1784,222 @@ curl http://8.8.8.8:9966/ --upload-file x.cap
 
 
 
+#爬虫一般规避手段
 
+1 使用代理
+
+适用情况：限制IP地址情况，也可解决由于“频繁点击”而需要输入验证码登陆的情况。
+
+这种情况最好的办法就是维护一个代理IP池，网上有很多免费的代理IP，良莠不齐，可以通过筛选找到能用的。对于“频繁点击”的情况，我们还可以通过限制爬虫访问网站的频率来避免被网站禁掉。
+
+
+2.时间设置
+
+适用情况：限制频率情况。
+
+Requests，Urllib2都可以使用time库的sleep()函数：
+
+3.UA&Refer
+伪装成浏览器，或者反“反盗链”
+
+有些网站会检查你是不是真的浏览器访问，还是机器自动访问的。这种情况，加上User-Agent，表明你是浏览器访问即可。有时还会检查是否带Referer信息还会检查你的Referer是否合法，一般再加上Referer。
+
+4.对于断线重连
+```
+def multi_session(session, *arg):
+	retryTimes = 20
+	while retryTimes>0:
+		try:
+			return session.post(*arg)
+		except:
+			print '.',
+			retryTimes -= 1
+```
+或者
+```
+def multi_open(opener, *arg):
+	retryTimes = 20
+	while retryTimes>0:
+		try:
+			return opener.open(*arg)
+		except:
+			print '.',
+			retryTimes -= 1
+```
+这样我们就可以使用multi_session或multi_open对爬虫抓取的session或opener进行保持。
+
+5. 多进程抓取
+这里针对华尔街见闻进行并行抓取的实验对比：Python多进程抓取 与 Java单线程和多线程抓取
+
+
+6.对于Ajax请求的处理
+对于“加载更多”情况，使用Ajax来传输很多数据。
+
+它的工作原理是：从网页的url加载网页的源代码之后，会在浏览器里执行JavaScript程序。这些程序会加载更多的内容，“填充”到网页里。这就是为什么如果你直接去爬网页本身的url，你会找不到页面的实际内容。
+
+这里，若使用Google Chrome分析”请求“对应的链接(方法：右键→审查元素→Network→清空，点击”加载更多“，出现对应的GET链接寻找Type为text/html的，点击，查看get参数或者复制Request URL)，循环过程。
+
+如果“请求”之前有页面，依据上一步的网址进行分析推导第1页。以此类推，抓取抓Ajax地址的数据。
+对返回的json格式数据(str)进行正则匹配。json格式数据中，需从'\uxxxx'形式的unicode_escape编码转换成u'\uxxxx'的unicode编码。
+
+
+7.自动化测试工具Selenium
+Selenium是一款自动化测试工具。它能实现操纵浏览器，包括字符填充、鼠标点击、获取元素、页面切换等一系列操作。总之，凡是浏览器能做的事，Selenium都能够做到。
+
+这里列出在给定城市列表后，使用selenium来动态抓取去哪儿网的票价信息的代码。
+
+参考项目：网络爬虫之Selenium使用代理登陆：爬取去哪儿网站
+
+8.验证码识别
+对于网站有验证码的情况，我们有三种办法：
+
+使用代理，更新IP。
+使用cookie登陆。
+验证码识别。
+
+
+>https://github.com/lining0806/PythonSpiderNotes
+
+
+
+
+
+#str json class互转 
+
+```
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+'''
+@File    :   garbage_test.py
+@Time    :   2019/06/15 08:26:17
+@Author  :   California Fruit 
+@Desc    :   None
+'''
+
+
+import json
+class Student(object):
+    def __init__(self, name, age, score,reward):
+        self.name = name
+        self.age = age
+        self.score = score
+        self.reward = reward
+
+def json_2str():
+    data_json = {'name':'nick',
+            'age':12}
+    json_str = json.dumps(data_json)
+    print type(json_str), json_str
+
+def str_2json():
+    json_str = '{"age": 12, "name": "nick"}'
+    json_class = json.loads(json_str)
+    print type(json_class), json_class
+
+def class_2jsonStr():
+    stu = Student('Bob', 20, 88,["三好学生","优秀团干","最佳辩手"])
+    print json.dumps(obj=stu.__dict__,ensure_ascii=False)
+
+def jsonStr_2class():
+
+    def dict2student(d):
+        return Student(d['name'], d['age'], d['score'],d['reward'])
+
+    json_str = '{"name": "Bob", "age": 20, "score": 88, "reward": ["三好学生", "优秀团干", "最佳辩手"]}'
+    student = json.loads(json_str,object_hook=dict2student)
+    print(type(student))
+    print(student.name)
+
+
+if __name__ == "__main__":
+    jsonStr_2class()
+```
+
+
+
+#python配置文件
+
+>https://docs.python.org/3/library/configparser.html
+```
+# -*- coding:utf-8 -*-
+ 
+import ConfigParser
+import sys
+ 
+def parse_args(filename):
+	cf = ConfigParser.ConfigParser()
+	cf.read(filename)
+	
+	#return all sections
+	secs = cf.sections()
+	print "sections:",secs
+	
+	#game0 section
+	game0 = cf.options("game0")
+	print "game0:",game0
+	
+	items = cf.items("game0")
+	print "game0 items:",items
+	
+	#read
+	_ip = cf.get("game0","ip")
+	_port = cf.getint("game0", "port")
+	_type = cf.getint("game0", "type")
+	print "print:%s,%d,%d"%(_ip,_port,_type)
+ 
+def main(argv):
+	parse_args(argv[1])
+ 
+if __name__ == '__main__':
+	main(sys.argv)
+```
+
+cf可以当作字典使用，默认读出类型为str。
+
+
+```
+#/usr/bin/python
+ 
+import ConfigParser
+import string, os, sys
+ 
+cf = ConfigParser.ConfigParser()
+ 
+cf.read("test.conf")
+ 
+#return all section
+secs = cf.sections()
+print 'sections:', secs
+ 
+opts = cf.options("db")
+print 'options:', opts
+ 
+kvs = cf.items("db")
+print 'db:', kvs
+ 
+#read by type
+db_host = cf.get("db", "db_host")
+db_port = cf.getint("db", "db_port")
+db_user = cf.get("db", "db_user")
+db_pass = cf.get("db", "db_pass")
+ 
+#read int
+threads = cf.getint("concurrent", "thread")
+processors = cf.getint("concurrent", "processor")
+ 
+print "db_host:", db_host
+print "db_port:", db_port
+print "db_user:", db_user
+print "db_pass:", db_pass
+ 
+print "thread:", threads
+print "processor:", processors
+ 
+ 
+#modify one value and write to file
+cf.set("db", "db_pass", "xgmtest")
+cf.write(open("test.conf", "w"))
+```
 
 ---
 

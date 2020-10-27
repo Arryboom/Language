@@ -36,6 +36,17 @@ https://github.com/laike9m/Cyberbrain
 
 
 
+#spyder
+
+在安装好python3.7的基础上，安装spyder。
+
+打开网址https://pypi.python.org/pypi/spyder，下载里面最新的源码zip包(或者.tar.gz包)，如下图所示：
+```
+pip install spyder
+
+spyder3
+```
+
 
 ---
 
