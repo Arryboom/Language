@@ -3105,3 +3105,19 @@ Add the following rule in your local_rules.xml file.
 OSSEC will look at local_rules.xml first before looking at other rules, so it will apply the <options>no_email_alert</options> directive, but only to hosts/servers defined in the <hostname> directive, and for those matching the logrotate keyword in the alerts.
 
 >https://serverfault.com/questions/653285/how-to-make-ossec-aware-of-logrotate
+
+
+
+
+
+#kibana cannot start
+
+```
+WARNING:resource_bundle.cc(358)] locale_file_path.empty() for locale
+```
+
+use ```systemctl status kibana``` could check some error related to headless chrome.
+
+try ```yum install fontconfig freetype``` for sure.
+
+>https://github.com/elastic/kibana/issues/28123
