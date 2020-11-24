@@ -3748,9 +3748,107 @@ https://github.com/alcuadrado/hieroglyphy
 
 
 
+#json与js object互转
+
+二、json对象转字符串
+
+
+1、如果使用jQuery，就很方便了，可以在ajax一系列函数中，把参数Datatype传json即可，返回的data即为JSON对象。
+
+PS：如果要对表单处理为json字符串，可以使用.serialize()与.serializeArray()处理，如果要作为URL调用，则可以使用jQuery.param()处理。
+
+2、$.parseJSON( jsonstr)
+
+3、浏览器自带的JSON.parse(jsonstr)
+
+
+1、JSON.stringify(jsonobj)；
+
+2、obj.toJSONString()；
 
 
 
+#js 时间与时间戳的转换
+
+>https://www.cnblogs.com/Renyi-Fan/p/10640318.html
+
+1.时间转时间戳
+
+```
+javascript获得时间戳的方法有四种，都是通过实例化时间对象 new Date() 来进一步获取当前的时间戳
+
+1.var timestamp1 = Date.parse(new Date()); // 结果：1477808630000 不推荐这种办法，毫秒级别的数值被转化为000
+
+  console.log(timestamp1);
+
+2.var timestamp2 = (new Date()).valueOf(); // 结果：1477808630404 通过valueOf()函数返回指定对象的原始值获得准确的时间戳值
+
+console.log(timestamp2);
+
+3.var timestamp3 = new Date().getTime(); // 结果：1477808630404 ，通过原型方法直接获得当前时间的毫秒值，准确
+
+console.log(timestamp3);
+
+4.var timetamp4 = Number(new Date()) ; //结果：1477808630404 ,将时间转化为一个number类型的数值，即时间戳
+
+console.log(timetamp4);
+```
+2.时间戳转时间
+
+```
+var timestamp4 = new Date(1472048779952);//直接用 new Date(时间戳) 格式转化获得当前时间
+
+console.log(timestamp4);
+
+console.log(timestamp4.toLocaleDateString().replace(/\//g, "-") + " " + timestamp4.toTimeString().substr(0, 8)); //再利用拼接正则等手段转化为yyyy-MM-dd hh:mm:ss 格式
+```
+不过这样转换在某些浏览器上会出现不理想的效果，因为toLocaleDateString()方法是因浏览器而异的，比如 IE为2016年8月24日 22:26:19 格式 搜狗为Wednesday, August 24, 2016 22:39:42
+
+ 
+
+可以通过分别获取时间的年月日进行拼接，比如：
+```
+function getdate() {
+            var now = new Date(),
+                y = now.getFullYear(),
+                m = now.getMonth() + 1,
+                d = now.getDate();
+            return y + "-" + (m < 10 ? "0" + m : m) + "-" + (d < 10 ? "0" + d : d) + " " + now.toTimeString().substr(0, 8);
+        }
+```
+
+3.其他常用时间函数
+
+```
+//1、获取时间戳对应的时间，格式YYYY-MM-DD
+function getTsFormatDate(timeStamp) {
+    var date = new Date(timeStamp);
+    //console.log(date); 结果为：Tue Apr 02 2019 07:49:23 GMT+0800 (中国标准时间)
+    var seperator1 = "-";
+    var year = date.getFullYear();
+    var month = date.getMonth() + 1;
+    var strDate = date.getDate();
+    if (month >= 1 && month <= 9) {
+        month = "0" + month;
+    }
+    if (strDate >= 0 && strDate <= 9) {
+        strDate = "0" + strDate;
+    }
+    var currentdate = year + seperator1 + month + seperator1 + strDate;
+    return currentdate;
+}
+//2、获取现在对应的时间，格式YYYY-MM-DD
+function getNowFormatDate() {
+    var timeStamp = new Date().getTime();
+    return getTsFormatDate(timeStamp);
+}
+
+//3、获取指定日期对应的时间，格式YYYY-MM-DD，比如一天前，参数则为-1，二天后，参数则为2
+function getSpecialFormatDate(dayOffset){
+    var timeStamp = new Date().getTime()+dayOffset*1000*24*60*60;
+    return getTsFormatDate(timeStamp);
+}
+```
 
 
 ---

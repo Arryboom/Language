@@ -1920,6 +1920,8 @@ if __name__ == "__main__":
 #python配置文件
 
 >https://docs.python.org/3/library/configparser.html
+
+
 ```
 # -*- coding:utf-8 -*-
  
@@ -2000,6 +2002,280 @@ print "processor:", processors
 cf.set("db", "db_pass", "xgmtest")
 cf.write(open("test.conf", "w"))
 ```
+
+
+
+
+#判断字符串是否为有效IPV4地址
+
+
+```
+def is_ipV4(ip_str):
+    print(ip_str)
+    ip_list=ip_str.split('.')
+    #print(ip_list)  
+
+    if ip_str.count('.')!=3: #判断是否有三个点，正确的IPV4地址为 X.X.X.X
+        return False       
+    else:
+        flag=True
+        #for循环遍历list中的所有元素
+        for num in ip_list: 
+            #try except 强转字符串错误那么元素不是int类型
+            try:     
+            #强转类型为int，符合比较的预期
+                ip_num=int(num) 
+                #判断第一位不是0，且属于0-255区间
+                if (ip_num>=0 and ip_num<=255 )and ip_list[1]!=0:    
+                    pass
+                else:
+                    flag=False
+            except:
+                flag=False
+        return flag
+```
+
+
+
+
+#生成日期列表
+
+
+```
+import datetime
+
+def create_assist_date(datestart = None,dateend = None):
+	# 创建日期辅助表
+
+	if datestart is None:
+		datestart = '2016-01-01'
+	if dateend is None:
+		dateend = datetime.datetime.now().strftime('%Y-%m-%d')
+
+	# 转为日期格式
+	datestart=datetime.datetime.strptime(datestart,'%Y-%m-%d')
+	dateend=datetime.datetime.strptime(dateend,'%Y-%m-%d')
+	date_list = []
+	date_list.append(datestart.strftime('%Y-%m-%d'))
+	while datestart<dateend:
+		# 日期叠加一天
+	    datestart+=datetime.timedelta(days=+1)
+	    # 日期转字符串存入列表
+	    date_list.append(datestart.strftime('%Y-%m-%d'))
+	print(date_list)
+
+
+if __name__ == '__main__':
+	create_assist_date("2018-06-28")
+```
+result:
+
+```
+['2018-06-28', '2018-06-29', '2018-06-30', '2018-07-01', '2018-07-02', '2018-07-03', '2018-07-04', '2018-07-05', '2018-07-06']
+```
+今天的前n天的日期列表：
+
+```
+import datetime
+
+def get_nday_list(n):
+    before_n_days = []
+    for i in range(1, n + 1)[::-1]:
+        before_n_days.append(str(datetime.date.today() - datetime.timedelta(days=i)))
+    return before_n_days
+
+a = get_nday_list(7)
+print(a)
+['2017-02-22', '2017-02-23', '2017-02-24', '2017-02-25', '2017-02-26', '2017-02-27', '2017-02-28']
+```
+指定时间的前n天的日期：
+
+```
+import datetime
+def get_day_nday_ago(date,n):
+    t = time.strptime(date, "%Y-%m-%d")
+    y, m, d = t[0:3]
+    Date = str(datetime.datetime(y, m, d) - datetime.timedelta(n)).split()
+    return Date[0]
+
+# 示例
+a=get_day_nday_ago('2017-02-11',7)
+print a
+2017-02-04
+```
+
+
+
+#lxmlbasic
+
+### 0x02 节点与属性
+
+Element类是lxml的一个基础类，大部分XML都是通过Element存储的。可以通过Element方法创建：
+
+```
+>>> from lxml import etree>>> root=etree.Element('root');>>> print root.tagroot
+```
+
+- 为root节点添加子节点：
+
+```
+>>> child1=etree.SubElement(root,'child1')>>> print root<Element root at 0x2246760>>>> print etree.tostring(root)<root><child1/></root>
+```
+
+XML Element的属性格式为Python的dict。可以通过get/set方法进行设置或获取操作：
+
+```
+>>> root.set('id','123')>>> id=root.get('id')>>> id'123'
+```
+
+遍历全部属性：
+
+```
+>>> for value,name in root.items():...     print value,'\t',name...id      123
+```
+
+### 0x03 文本操作
+
+Element的text属性可以访问标签的文本：
+
+```
+>>> print etree.tostring(root)<root id="123">root<child1 name="kikay">ttt</child1></root>>>> root.text'root'>>> child1.text'ttt'>>>
+```
+
+XML的标签是成对出现的，但是对于HTML而言，可能存在  
+这样的单一标签，可以通过tail来读取文本：
+
+```
+>>> etree.tostring(root)'<root id="123">root<child1 name="kikay">ttt</child1><br/>br_test</root>'>>> root.tail>>> br.tail'br_test'
+```
+
+tail返回的是当前标签到下一次出现标签时的文本内容。
+
+（2）xpath方式
+
+```
+>>> etree.tostring(root)'<root><child1>child1 test</child1><child2>child2 test</child2></root>123'#方法1：过滤标签，返回全部文本>>> root.xpath('string()')'child1 testchild2 test'#方法2：以标签为间隔，返回list>>> root.xpath('//text()')['child1 test', 'child2 test', '123']
+```
+
+方法2中的list元素都携带了标签的信息，可以通过如下方式获取：
+
+```
+>>> lists=root.xpath('//text()')>>> lists['child1 test', 'child2 test', '123']>>> lists[0].getparent()<Element child1 at 0x2203c60>>>> lists[0].getparent().tag'child1'>>> lists[1].getparent().tag'child2'>>> lists[2].getparent().tag'root'
+```
+
+还可以通过is\_text和is\_tail判断标签类型：
+
+```
+>>> lists[2].is_textFalse>>> lists[2].is_tailTrue
+```
+
+### 0x04 文本输入与输出
+
+lxml提供如下方式输入文本：
+
+```
+fromstring():解析字符串HTML():解析HTML对象XML():解析XML对象parse():解析文件类型对象
+```
+
+输出就是前面讲的tostring()方法：
+
+```
+>>> root = etree.XML('<root><a><b/></a></root>')>>> etree.tostring(root)'<root><a><b/></a></root>'>>> etree.tostring(root,xml_declaration=True)"<?xml version='1.0' encoding='ASCII'?>\n<root><a><b/></a></root>">>> etree.tostring(root,xml_declaration=True,encoding='utf-8')"<?xml version='1.0' encoding='utf-8'?>\n<root><a><b/></a></root>"
+```
+
+### 0x05 标签搜索
+
+可以使用find、findall或者xpath来搜索Element包含的标签对象。区别如下：
+
+```
+find():返回第一个匹配对象，并且xpath语法只能使用相对路径（以’.//’开头）；findall():返回一个标签对象的列表，并且xpath语法只能使用相对路径（以’.//’开头）；xpath()：返回一个标签对象的列表，并且xpath语法的相对路径和绝对路径。
+```
+
+```
+>>> root = etree.XML("<root><a x='123'>aText<b/><c/><b/></a></root>")>>> x=root.find('.//a[@x]')>>> x<Element a at 0x2242c10>>>> x.text'aText'>>> x.tag'a'>>> x2=root.findall('.//a[@x]')>>> x2[<Element a at 0x2242c10>]>>> type(x2)<type 'list'>>>> x3=root.xpath('//a[@x]')>>> type(x3)<type 'list'>>>> x3[<Element a at 0x2242c10>]
+```
+
+此外，lxml还支持css语法的选择方式，对于熟悉JQuery选择器的开发者是一个很好的补充（需要安装`pip install cssselect`）：
+
+```
+>>> root = etree.XML("<root><a class='_123'>aText<b id='b1'/><c/><b/></a></root>")>>> a1=root.cssselect('._123')>>> a1[0].tag'a'>>> root = etree.XML("<root><a class='c123'>aText<b id='b1'/><c/><b/></a></root>")>>> a1=root.cssselect('a')>>> a1[0].text'aText'>>> a2=root.cssselect('.c123')>>> a2[0].text'aText'>>> b=root.cssselect('#b1')>>> b[0].tag'b'
+```
+
+### 0x06 解析HTML
+
+lxml可以通过etree.HTML()来加载一个HTML页面:
+
+```
+#coding:utf-8 from lxml import etreeimport  requestsfrom chardet import detect url='http://tool.chinaz.com/'resp=requests.get(url,timeout=50)html=resp.content#识别编码cder=detect(html)html=html.decode(cder.get('encoding'))tree=etree.HTML(html)#打印全部a标签hrefs=tree.xpath('//a')for href in hrefs:    print href.get('href'),'\t',href.text
+```
+
+使用lxml解析HTML页面时，一定要注意编码的问题，参考（[Python学习笔记：Python字符编码问题的经验小结](http://blog.csdn.net/kikaylee/article/details/56686424)）
+
+如果HTML页面中的script和style变迁之间的内容影响解析页面，可以将其清洗掉：
+
+```
+from lxml.html.clean import Cleanerclear=Cleaner(style=True,scripts=True,page_structure=False,safe_attrs_only=False)print clear.clean_html(html)
+```
+
+
+
+#python输出当前时间
+
+```
+import time
+print(time.strftime("%Y-%m-%d-%H_%M_%S", time.localtime()))
+```
+
+分析一下：
+```
+import time
+now = time.time()
+print(now)
+```
+输出结果：
+1563434930.0650704
+这是从1970年1月1日午夜（好像叫什么格林尼治时间）以来的秒数
+
+```
+import time
+now = time.localtime()
+print(now)
+```
+运行结果：
+```
+time.struct_time(tm_year=2019, tm_mon=7, tm_mday=18, tm_hour=15, tm_min=30, tm_sec=39, tm_wday=3, tm_yday=199, tm_isdst=0)
+```
+
+这其实就是当前时间。只不过没有经过格式化输出
+所以说，time.localtime() 就是获取当前时间
+
+```
+%y 两位数的年份表示（00-99） 2019 就是19
+%Y 四位数的年份表示（000-9999） 2019
+%m 月份（01-12）
+%d 月内中的一天（0-31）
+%H 24小时制小时数（0-23）
+%I 12小时制小时数（01-12）
+%M 分钟数（00=59）
+%S 秒（00-59）
+%a 本地简化星期名称 星期四就是Thu
+%A 本地完整星期名称 星期四就是Thursday
+%b 本地简化的月份名称 七月就是Jul
+%B 本地完整的月份名称 七月就是July
+%c 本地相应的日期表示和时间表示 你电脑右下角是怎么表示的 就会输出什么格式 有秒数
+%j 年内的一天（001-366）
+%p 本地A.M.或P.M.的等价符
+%U 一年中的星期数（00-53）星期天为星期的开始
+%w 星期（0-6），星期天为星期的开始
+%W 一年中的星期数（00-53）星期一为星期的开始
+%x 本地相应的日期表示
+%X 本地相应的时间表示
+%Z 当前时区的名称
+%% %号本身
+```
+
+
+
 
 ---
 
