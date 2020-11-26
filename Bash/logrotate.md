@@ -315,3 +315,68 @@ In order to provide further tunning, I'd like to have more information from you:
     endscript
 }
 ```
+
+手动定时任务
+```
+logrotate -vf /etc/logrotate.d/suricata
+```
+
+
+>https://blog.csdn.net/u011311291/article/details/87896449
+
+
+logrotate常用关键字解释:  
+daily|weekly|monthly 指定转储的周期  
+rotate 3 //可以保留几份日志文件  
+missingok 如果日志丢失，不报错继续滚动下一个日志  
+nocompress 不做gzip压缩处理  
+create 自动创建新的日志文件，新的日志文件具有和原来的文件相同的权限  
+sharedscripts 运行postrotate脚本，作用是在所有日志都轮转后统一执行一次脚本。如果没有配置这个，那么每个日志轮转后都会执行一次脚本  
+prerotate 在logrotate转储之前需要执行的指令  
+postrotate 在logrotate转储之后需要执行的指令  
+olddir 转储的日志存放目录  
+dateext 使用当期日期作为命名格式  
+dateformat .%Y-%m-%d 配合dateext使用，紧跟在下一行出现，支持 %Y %m %d %s 这四个参数  
+**3.可以使用以下命令对创建好的配置文件进行测试**  
+(1)logrotate -d /etc/logrotate.d/suri\_logrotate //调试模式，输出调试结果，但并不执行。  
+(2)logrotate -f /etc/logrotate.d/suri\_logrotate //强制模式，对suri\_logrotate进行rotate。
+
+**注意，如果日志转储失败，那么尝试通过以下方法解决**  
+**1.使用命令**  
+chcon -Rv --type=var\_log\_t /var/log/suricata/  
+**2.如果运行以上命令报错误chcon: can’t apply partial context to unlabeled file xxxxx，使用ls -Z查看日志安全对象属性，如果没有system\_u:object\_r:var\_log\_t:s0**  
+\-rw-r–r--. root root system\_u:object\_r:var\_log\_t:s0 eve.json  
+**如果没有，那么通过复制别的文件安全对象属性赋予当前文件安全对象属性即可**  
+chcon -Rv --reference=/var/log/anaconda/anaconda.log /var/log/suricata/
+
+
+```
+logrotate常用关键字解释:
+daily|weekly|monthly 指定转储的周期
+rotate 3 //可以保留几份日志文件
+missingok 如果日志丢失，不报错继续滚动下一个日志
+nocompress 不做gzip压缩处理
+create 自动创建新的日志文件，新的日志文件具有和原来的文件相同的权限
+sharedscripts 运行postrotate脚本，作用是在所有日志都轮转后统一执行一次脚本。如果没有配置这个，那么每个日志轮转后都会执行一次脚本
+prerotate 在logrotate转储之前需要执行的指令
+postrotate 在logrotate转储之后需要执行的指令
+olddir 转储的日志存放目录
+dateext 使用当期日期作为命名格式
+dateformat .%Y-%m-%d 配合dateext使用，紧跟在下一行出现，支持 %Y %m %d %s 这四个参数
+3.可以使用以下命令对创建好的配置文件进行测试
+(1)logrotate -d /etc/logrotate.d/suri_logrotate //调试模式，输出调试结果，但并不执行。
+(2)logrotate -f /etc/logrotate.d/suri_logrotate //强制模式，对suri_logrotate进行rotate。
+
+注意，如果日志转储失败，那么尝试通过以下方法解决
+1.使用命令
+chcon -Rv --type=var_log_t /var/log/suricata/
+2.如果运行以上命令报错误chcon: can’t apply partial context to unlabeled file xxxxx，使用ls -Z查看日志安全对象属性，如果没有system_u:object_r:var_log_t:s0
+-rw-r–r--. root root system_u:object_r:var_log_t:s0 eve.json
+如果没有，那么通过复制别的文件安全对象属性赋予当前文件安全对象属性即可
+chcon -Rv --reference=/var/log/anaconda/anaconda.log /var/log/suricata/
+```
+
+手动定时任务
+```
+logrotate -vf /etc/logrotate.d/suricata
+```
