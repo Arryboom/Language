@@ -3121,3 +3121,82 @@ use ```systemctl status kibana``` could check some error related to headless chr
 try ```yum install fontconfig freetype``` for sure.
 
 >https://github.com/elastic/kibana/issues/28123
+
+
+
+
+#move wazuh manager to another directory
+
+
+###1 move file
+```
+service wazuh-manager wazuh-api filebeat stop
+cp -pr /var/ossec /data/
+rm -fr /var/ossec
+ln -sd /data/ossec /var/ossec
+```
+
+###2 
+```
+service wazuh-manager wazuh-api start
+```
+
+###3 
+change the wazuh filebeat plugin to make it support symlinks
+
+add ``symlinks: true`` to the path field
+
+- 1
+
+```
+/usr/share/filebeat/module/wazuh/archives/manifest.yml
+```
+
+```
+[root@wazuh-1 archives]# cat manifest.yml
+module_version: 0.1
+
+var:
+  - name: paths
+    default:
+      - /var/ossec/logs/archives/archives.json
+    symlinks: true
+  - name: index_prefix
+    default: wazuh-archives-3.x-
+
+input: config/archives.yml
+
+ingest_pipeline: ingest/pipeline.json
+[root@wazuh-1 archives]#
+```
+
+- 2 
+
+```
+/usr/share/filebeat/module/wazuh/alerts/manifest.yml
+```
+
+```
+[root@wazuh-1 alerts]# cat manifest.yml
+module_version: 0.1
+
+var:
+  - name: paths
+    default:
+      - /var/ossec/logs/alerts/alerts.json
+    symlinks: true
+  - name: index_prefix
+    default: wazuh-alerts-3.x-
+
+input: config/alerts.yml
+
+ingest_pipeline: ingest/pipeline.json
+[root@wazuh-1 alerts]#
+```
+
+
+then do filebeat restart,it should works
+
+
+>https://discuss.elastic.co/t/filebeat-5-5-1-is-not-work-with-symlink-file-when-symlinks-option-has-been-set-true/96990
+>https://discuss.elastic.co/t/how-to-enable-symlinks/126852/3
