@@ -3200,3 +3200,54 @@ then do filebeat restart,it should works
 
 >https://discuss.elastic.co/t/filebeat-5-5-1-is-not-work-with-symlink-file-when-symlinks-option-has-been-set-true/96990
 >https://discuss.elastic.co/t/how-to-enable-symlinks/126852/3
+
+
+
+
+#移除长期失连的agent
+
+>https://wazuh.com/blog/how-to-purge-non-active-agents/
+
+
+###Example 1: Purging **never connected** agents older than 21 days
+Assuming the current date is 2019-04-11, the agent 002 is removed because its status is never connected and the dateAdd was more than 21 days ago (2019-03-01). In other words, the agent was registered but it has never reported to the manager.
+
+
+```
+# curl -u foo:bar -k -XDELETE 'https://localhost:55000/agents?status=neverconnected&older_than=21d&pretty'
+{
+   "error": 0,
+   "data": {
+      "msg": "All selected agents were removed",
+      "older_than": "21d",
+      "affected_agents": [
+         "002"
+      ],
+      "total_affected_agents": 1
+   }
+}
+```
+
+###Example 2: Purging **disconnected** agents older than 21 days
+Assuming the current date is 2019-04-11, the agent 003 is removed because its status is disconnected and the lastKeepAlive was more than 21 days ago (2019-03-11). In other words, the agent hasn’t reported in 21 days.
+
+```
+# curl -u foo:bar -k -XDELETE 'https://localhost:55000/agents?status=disconnected&older_than=21d&pretty'
+{
+   "error": 0,
+   "data": {
+      "msg": "All selected agents were removed",
+      "older_than": "21d",
+      "affected_agents": [
+         "003"
+      ],
+      "total_affected_agents": 1
+   }
+}
+```
+
+
+#ossec-remoted(1408): ERROR: Invalid ID 1058 for the source ip: 'x.x.x.x'
+
+
+may caused by samilar agent name registerd.
