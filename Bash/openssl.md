@@ -208,3 +208,30 @@ OpenSSL和[Java](http://lib.csdn.net/base/java "Java 知识库") KeyStore本质�
     生成Server端的对外KeyStore。先把根证书放到里面。
 - **keytool -importcert -alias servercert -file server.crt -keystore servertrust.jks**  
     把Server证书加到对外KeyStore里面。
+
+
+
+
+
+#生成证书链
+
+
+>https://blog.csdn.net/weixin_38468566/article/details/106430612
+
+![](/pics/screencapture-blog-csdn-net-weixin-38468566-article-details-106430612-2020-12-02-15_59_44.png)
+
+
+
+#吊销证书列表
+
+>https://blog.csdn.net/u010129119/article/details/53419581
+
+
+![](/pics/screencapture-blog-csdn-net-u010129119-article-details-53419581-2020-12-02-16_04_19.png)
+
+
+#openssl 根据证书生成p7b证书链
+>https://blog.csdn.net/u012198553/article/details/78698992?utm_medium=distribute.pc_relevant.none-task-blog-baidulandingword-10&spm=1001.2101.3001.4242
+
+
+![](/pics/screencapture-blog-csdn-net-u012198553-article-details-78698992-2020-12-02-16_06_18.png)

@@ -221,6 +221,26 @@ Use command:
 update-ca-trust extract 
 ```
 
+**for ubuntu**
+
+Ubuntu下添加系统根证书, 只要将证书(扩展名为crt)复制到**/usr/local/share/ca-certificates**文件夹然后运行update-ca-certificates即可。
+
+添加证书：
+```
+$sudo cp 证书路径.crt /usr/local/share/ca-certificates
+
+$sudo update-ca-certificates
+```
+ 
+
+删除证书：
+```
+$sudo rm -f /usr/local/share/ca-certificates/xinmu.crt  
+
+$sudo update-ca-certificates
+
+```
+
 
 
 
