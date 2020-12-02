@@ -68,3 +68,195 @@ cat web.crt
 
 
 >https://zixuephp.net/article-420.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+
+1. Curve25519
+http://cr.yp.to/ecdh.htmlCurve25519 是目前最高水平的 Diffie-Hellman函数，适用于广泛的场景，由Daniel J. Bernstein教授设计。由于NIST P-256的设计过程不透明，有来历不明的参数，被广泛怀疑有后门，所以设计了Curve25519，Curve25519的设计过程完全公开，没有任何来历不明的参数。 部署情况：http://ianix.com/pub/curve25519-deployment.html
+
+2.Ed25519
+
+http://ed25519.cr.yp.to/Ed25519是一个数字签名算法，签名和验证的性能都极高， 一个4核2.4GHz 的 Westmere cpu，每秒可以验证 71000 个签名，安全性极高，等价于RSA约3000-bit。签名过程不依赖随机数生成器，不依赖hash函数的防碰撞性，没有时间通道攻击的问题，并且签名很小，只有64字节，公钥也很小，只有32字节。 部署情 况：http://ianix.com/pub/ed25519-deployment.html
+
+3. 前向安全性
+前向安全性( Perfect Forward Secrecy )http://vincent.bernat.im/en/blog/2011-ssl-perfect-forward-secrecy.html前向安全性指的是，如果攻击者抓取并保存流量，那么将来私钥泄露后，攻击者也无法利用泄露的私钥解密这些流量。
+
+
+---
+
+
+查询openssl当前版本支持的椭圆曲线类型（该列表虽并不包括x25519，实际上是支持的）
+```
+$ openssl ecparam -list_curves
+  secp256k1 : SECG curve over a 256 bit prime field
+  secp384r1 : NIST/SECG curve over a 384 bit prime field
+  secp521r1 : NIST/SECG curve over a 521 bit prime field
+  prime256v1: X9.62/SECG curve over a 256 bit prime field
+```
+生成Curve25519椭圆曲线密钥（该密钥专门用于ECDH密钥协商）
+For X25519 and X448, it's treated as a distinct algorithm but not as one of the curves listed with ecparam -list_curves option. You can use the following command to generate an X25519 key:
+```
+openssl genpkey -algorithm X25519 -out xkey.pem
+```
+
+生成Ed25519椭圆曲线签名密钥（专用于数字签名）
+备注：The ability to generate X25519 keys was added in OpenSSL 1.1.0. The ability to generate X448, ED25519 and ED448 keys was added in OpenSSL 1.1.1.
+```
+openssl genpkey -algorithm ED25519 -out xkey.pem
+```
+SM2椭圆数字签名/加解密密钥
+The SM2 algorithm supports sign, verify, encrypt and decrypt operations. For the sign and verify operations, SM2 requires an ID string to be passed in.
+Sign some data using an SM2(7) private key and a specific ID:
+```
+openssl pkeyutl -sign -in file -inkey sm2.key -out sig -rawin -digest sm3 -pkeyopt sm2_id:someid
+Verify some data using an SM2(7) certificate and a specific ID:
+```
+openssl pkeyutl -verify -certin -in file -inkey sm2.cert -sigfile sig -rawin -digest sm3 -pkeyopt sm2_id:someid
+参考资料:
+https://github.com/openssl/openssl/blob/master/doc/HOWTO/keys.txt
+https://www.openssl.org/docs/manmaster/man1/genpkey.html
+https://www.openssl.org/docs/manmaster/man1/ecparam.html
+https://www.openssl.org/docs/manmaster/man1/pkeyutl.html
+
+
+>https://blog.csdn.net/liuqun69/article/details/88361044
+>https://blog.csdn.net/qmickecs/article/details/73193108
+
+
+
+
+---
+>https://www.cnblogs.com/jiangxinnju/p/12615280.html
+
+
+# [使用OpenSSL实现X25519秘钥协商功能](https://www.cnblogs.com/jiangxinnju/p/12615280.html)
+
+首先大体了解下X5519曲线算法和ECC椭圆曲线算法，ECC是Elliptic curve cryptography(椭圆曲线密码学)的缩写，严格的讲X25519算法也是椭圆曲线算法的一种，但是和其他椭圆曲线算法不兼容（如secp256k1/secp354r1/secp521k1/prime256v1），所以OpenSSL最新版本虽然支持ECC算法，但是用法和其他椭圆曲线算法不同，相关情况可以参考：
+
+- X25519（Curve25519）椭圆曲线参考资料：[https://www.jianshu.com/p/5dba044f67b1](https://www.jianshu.com/p/5dba044f67b1)
+- OpenSSL在使用X25519时的小坑：[https://blog.csdn.net/qmickecs/article/details/73193108](https://blog.csdn.net/qmickecs/article/details/73193108)
+- 如何使用X25519派生共享秘钥：[https://github.com/project-everest/hacl-star/blob/master/tests/benchmark/bench\_curve25519.cpp](https://github.com/project-everest/hacl-star/blob/master/tests/benchmark/bench_curve25519.cpp)
+
+问题在于我们使用时需要拿到X25519公钥和私钥的unsigned char\*类型数据，但是OpenSSL在生成密钥对和派生共享密钥时都是用使用EVP\_PKEY类型，对于一般的椭圆曲线算法，我们可以使用i2d\_PublicKey/d21\_PublicKey/i2d\_PrivateKey/d21\_PrivateKey进行两种类型的转换：
+
+- EVP\_PKEY from char buffer in x509 (PKCS7)：[https://stackoverflow.com/questions/2918923/evp-pkey-from-char-buffer-in-x509-pkcs7](https://stackoverflow.com/questions/2918923/evp-pkey-from-char-buffer-in-x509-pkcs7)
+
+但是结合如下链接以及查看OpenSSL源码，发现这四个方法根本不适用EVP\_PKEY\_X25519类型，调用时直接返回-1。
+
+- [https://www.mail-archive.com/mailto:openssl-commits@openssl.org/msg20218.html](https://www.mail-archive.com/mailto:openssl-commits@openssl.org/msg20218.html)
+- [https://github.com/openssl/openssl/pull/8168/commits/d3530f99473293a8fd5d309931e9021a7469deb2](https://github.com/openssl/openssl/pull/8168/commits/d3530f99473293a8fd5d309931e9021a7469deb2)
+
+从以下链接中可以获取一些OpenSSL常用的转换策略，但是仍然不适用于X25519：
+
+- How does one access the raw ECDH public key, private key and params inside OpenSSL's EVP\_PKEY structure? [https://stackoverflow.com/questions/18155559/how-does-one-access-the-raw-ecdh-public-key-private-key-and-params-inside-opens](https://stackoverflow.com/questions/18155559/how-does-one-access-the-raw-ecdh-public-key-private-key-and-params-inside-opens)
+
+后来发现Stack Overflow的相关提问涉及到了ecx\_get\_priv\_key/ecx\_get\_pub\_key两个函数，但是这两个函数都是internal的，并没有暴露给开发者，所以这条路也走不通
+
+- How to use ecx get\_priv/pub\_key methods from openssl? [https://stackoverflow.com/questions/59468839/how-to-use-ecx-get-priv-pub-key-methods-from-openssl](https://stackoverflow.com/questions/59468839/how-to-use-ecx-get-priv-pub-key-methods-from-openssl)
+
+最后翻了下OpenSSL的Github issues，发现不少人遇到了这个问题：
+
+- It's not possible to export the raw public key for X25519/Ed255919/X448/Ed448：[https://github.com/openssl/openssl/issues/6259](https://github.com/openssl/openssl/issues/6259)
+- Add getters for raw private/public keys：[https://github.com/openssl/openssl/pull/6394](https://github.com/openssl/openssl/pull/6394)
+
+从大家的讨论中发现OpenSSL的commiter在1.1.1版本提供了EVP\_PKEY\_get\_raw\_private\_key和EVP\_PKEY\_get\_raw\_public\_key，经验证可以使用：
+
+- [https://github.com/openssl/openssl/commit/0d124b0a51d3ad8c8807cab280ea18fc68489155](https://github.com/openssl/openssl/commit/0d124b0a51d3ad8c8807cab280ea18fc68489155)
+
+
+
+
+
+---
+
+
+![](/pics/screencapture-jianshu-p-5dba044f67b1-2020-12-02-13_27_26.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#centos import CA store
+
+
+
+Install the ca-certificates package:
+```
+yum install ca-certificates
+```
+Enable the dynamic CA configuration feature:
+```
+update-ca-trust enable
+```
+Add it as a new file to /etc/pki/ca-trust/source/anchors/:
+```
+cp foo.crt /etc/pki/ca-trust/source/anchors/
+```
+Use command:
+```
+update-ca-trust extract 
+```
+
+
+
+
+
+  由于某些需要在设置好xxnet的相关属性后，通过web浏览器访问网站的时候总是报证书错误，把相关的证书导入到浏览器里面也不行，如是有了以下的方法：
+   把CA放到/etc/pki/ca-trust/source/anchors，在命令行运行/bin/update-ca-trust，这样证书就导入到系统中去了。
+   这样就可以顺利的使用xxnet了。
+
+
+```
+Install the ca-certificates package:
+
+yum install ca-certificates
+
+Enable the dynamic CA configuration feature:
+
+update-ca-trust force-enable
+
+Add it as a new file to /etc/pki/ca-trust/source/anchors/:
+
+cp foo.crt /etc/pki/ca-trust/source/anchors/
+
+Use command:
+
+update-ca-trust extract
+```
+
+
+
+---
+
+
+
+#证书链
+
+>https://www.cnblogs.com/gsls200808/p/4502044.html
+
+
+![](/pics/screencapture-cnblogs-gsls200808-p-4502044-html-2020-12-02-15_47_20.png)

@@ -88,6 +88,172 @@ openssl ca -in yuick.csr \
 
 
 
+###another way for domain name invalid fix
+
+
+
+解决Chrome不能识别证书通用名称NET::ERR_CERT_COMMON_NAME_INVALID错误
+https://blog.pinterjann.is/ed25519-certificates.html
+>https://www.cnblogs.com/yszzu/p/11188731.html
+>https://my.oschina.net/u/4255576/blog/3342463
+>https://www.v2ex.com/t/282326
+
+
+
+open ssl
+```
+openssl genrsa -out server.key 1024
+openssl req -new -x509 -days 3650 -key server.key -out server.crt -subj "/C=CN/ST=mykey/L=mykey/O=mykey/OU=mykey/CN=*.alibaba-inc.com/CN=*.alibaba.net/CN=domain3"
+```
+
+
+```
+openssl ecparam -out 你的域名.ecc.pkey -name secp384r1 -genkey && openssl req -new -key 你的域名.ecc.pkey -sha384 -nodes -out 你的域名.ecc.csr -subj "/C=CN/ST=省份 /L=城市 /O=组织 /OU=组织单位 /部门 /分支 /emailAddress=邮箱 /CN=你的域名"
+```
+
+
+> R1 系列曲线（包括 Prime256v1 ，这个已经改叫 SECP256r1 ）的随机数选择器是 NIST 制定的通用标准，问题不大，主要是被发现选择器可能有漏洞。
+K1 系列曲线没有已知漏洞，但被支持度实在太差。
+
+
+不同标准里同一条曲线的不同名称。 常用 SECG 这一列的名称。参见 RFC4492 Appendix A
+```
+https://tools.ietf.org/html/rfc4492#appendix-A
+
+Curve names chosen by
+different standards organizations
+------------+---------------+-------------
+SECG | ANSI X9.62 | NIST
+------------+---------------+-------------
+…………(省略 n 行)
+secp256r1 | prime256v1 | NIST P-256
+
+```
+
+# 一、安装依赖
+
+利用 OpenSSL 签发自然是需要 OpenSSL 软件及库，一般情况下 CentOS、Ubuntu 等系统均已内置，可执行 openssl 确认，如果出现 oepnssl: command not found 说明没有内置，需要手动安装，以 CentOS 为例，安装命令如下：
+
+```
+[root@CA ~]# yum install openssl openssl-devel -y
+```
+
+修改openssl.cnf配置文件
+
+```
+[root@CA ~]# vim /etc/pki/tls/openssl.cnf
+dir=/etc/pki/CA
+```
+
+创建相关的文件
+
+```
+[root@CA ~]# cd /etc/pki/CA
+[root@CA ~]# mkdir certs newcerts crl
+[root@CA ~]# touch index.txt
+[root@CA ~]# echo 01 > serial
+```
+
+> 在 openssl.cnf 文件中还有很多实用的配置，比如生成证书请求文件（csr）用到的 countryName\_default（默认国家）、stateOrProvinceName\_default（默认省份）、localityName\_default（默认城市）等等，在文件中设置好后续自签证书可以省去输入的步骤，视需求修改。
+
+# 二、自建CA
+
+## 2.1 生成根密钥
+
+```
+[root@CA ~]# (umask 077; openssl genrsa -out private/cakey.pem 2048)
+```
+
+## 2.2 生成根CA证书
+
+```
+[root@CA ~]# openssl req -x509 -new -key private/cakey.pem -out cacert.pem -days 3650
+```
+
+以上CA服务器搭建完成
+
+# 三、颁发证书
+
+## 3.1 创建证书请求
+
+```
+#先为网站生成一对密钥
+[root@web ~]# (umask 077; openssl genrsa -out http.key 2048 )
+#生成证书颁发请求.csr
+[root@web ~]# openssl req -new -key http.key -out http.csr
+#将此请求文件(http.csr)传递给CA服务器
+```
+
+## 3.2 附加用途
+
+解决Chrome不能识别证书通用名称NET::ERR\_CERT\_COMMON\_NAME\_INVALID错误
+
+```
+[root@CA ~]# vim http.ext
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth, clientAuth
+subjectAltName=@SubjectAlternativeName
+
+[ SubjectAlternativeName ]
+IP.1=192.168.1.1
+IP.2=192.168.1.2
+```
+
+与签发域名证书的区别（也是与其他教程的区别）就在于此步骤，在 不改 openssl.cnf 的情况 （方便签发不同证书）下如果是要签发 IP 证书必须参照上述格式执行此步骤。
+
+如果要通过 修改 openssl.cnf 来签发证书，除将上述配置直接改到 openssl.cnf 相应位置外，必须将配置中的 basicConstraints = CA:FLASE 改为 basicConstraints = CA:TRUE，否则修改不生效，这是其他教程没有提到的。
+
+如果是域名证书，也可以在此可以添加多域名，如：
+
+```
+[root@CA ~]# vim http.ext
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth, clientAuth
+subjectAltName=@SubjectAlternativeName
+
+[ SubjectAlternativeName ]
+DNS.1=test.com
+DNS.2=www.test.com
+```
+
+> extendedKeyUsage 可以指定证书目的，即用途，一般有：  
+> serverAuth：保证远程计算机的身份  
+> clientAuth：向远程计算机证明你的身份  
+> codeSigning：确保软件来自软件发布者，保护软件在发行后不被更改  
+> emailProtection：保护电子邮件消息  
+> timeStamping：允许用当前时间签名数据  
+> 如果不指定，则默认为 所有应用程序策略
+
+## 3.3 签发证书
+
+CA服务器签署颁发此证书
+
+```
+[root@CA ~]# openssl ca -in http.csr -out http.crt -days [number]
+或者
+[root@CA ~]# openssl x509 -req -days 365 -in http.csr -signkey http.key -out http.crt
+或者（需要事前定义好http.ext中的内容，该操作Chrome不会报错）
+[root@CA ~]# openssl x509 -req -in http.csr -CA /etc/pki/CA/cacert.pem -CAkey /etc/pki/CA/private/cakey.pem -CAcreateserial -out http.crt -days 3650 -sha256 -extfile http.ext
+```
+
+CA服务器再将签署好的证书发送给客户端
+
+<table><tr><td bgcolor=yellow>注：后续用户访问时需要将上述生成的cakey.pem导入浏览器或者导入系统中，再次访问域名证书就正常了。</td></tr></table>
+
+# 四、问题排查
+
+1.问题：TXT\_DB error number 2 解决：原因是已经生成了同名证书，将 common name 设置成不同，或修改 CA 下的 index.txt.attr，将 unique\_subject = yes 改为 unique\_subject = no
+
+
+---
+
+
+![](/pics/screencapture-blog-pinterjann-is-ed25519-certificates-html-2020-12-02-13_47_41.png)
+
+
+---
+
+
 ###edit nginx conf
 
 
@@ -174,6 +340,8 @@ server {
     error_log /var/log/nginx/logs/assets_umod_error.log error;
 }
 
+```
+
 
 >http://www.ttlsa.com/nginx/how-to-nginx-ssl-reverse-proxy/
 
@@ -184,6 +352,7 @@ server {
 
 
 ####some seems to be more secure conf
+
 ```
 server {
     listen 80;
