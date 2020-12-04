@@ -235,3 +235,75 @@ OpenSSL和[Java](http://lib.csdn.net/base/java "Java 知识库") KeyStore本质�
 
 
 ![](/pics/screencapture-blog-csdn-net-u012198553-article-details-78698992-2020-12-02-16_06_18.png)
+
+
+
+
+#pkcs 常见证书格式及相互转换
+
+>https://blog.csdn.net/shenyongjun1209/article/details/52781461
+
+PKCS 全称是 Public-Key Cryptography Standards ，是由 RSA 实验室与其它安全系统开发商为促进公钥密码的发展而制订的一系列标准，PKCS 目前共发布过 15 个标准。 常用的有：
+PKCS#7 Cryptographic Message Syntax Standard
+PKCS#10 Certification Request Standard
+PKCS#12 Personal Information Exchange Syntax Standard
+X.509是常见通用的证书格式。所有的证书都符合为Public Key Infrastructure (PKI) 制定的 ITU-T X509 国际标准。
+PKCS#7 常用的后缀是： .P7B .P7C .SPC
+PKCS#12 常用的后缀有： .P12 .PFX
+X.509 DER 编码(ASCII)的后缀是： .DER .CER .CRT
+X.509 PAM 编码(Base64)的后缀是： .PEM .CER .CRT
+.cer/.crt是用于存放证书，它是2进制形式存放的，不含私钥。
+.pem跟crt/cer的区别是它以Ascii来表示。
+pfx/p12用于存放个人证书/私钥，他通常包含保护密码，2进制方式
+p10是证书请求
+p7r是CA对证书请求的回复，只用于导入
+p7b以树状展示证书链(certificate chain)，同时也支持单个证书，不含私钥。
+—————-
+小美注：
+der,cer文件一般是二进制格式的，只放证书，不含私钥
+crt文件可能是二进制的，也可能是文本格式的，应该以文本格式居多，功能同der/cer
+pem文件一般是文本格式的，可以放证书或者私钥，或者两者都有
+pem如果只含私钥的话，一般用.key扩展名，而且可以有密码保护
+pfx,p12文件是二进制格式，同时含私钥和证书，通常有保护密码
+怎么判断是文本格式还是二进制？用记事本打开，如果是规则的数字字母，如
+```
+—–BEGIN CERTIFICATE—–
+MIIE9jCCA96gAwIBAgIQVXD9d9wgivhJM//a3VIcDjANBgkqhkiG9w0BAQUFADBy
+—–END CERTIFICATE—–
+```
+就是文本的，上面的BEGIN CERTIFICATE，说明这是一个证书
+如果是—–BEGIN RSA PRIVATE KEY—–，说明这是一个私钥
+文本格式的私钥，也可能有密码保护
+文本格式怎么变成二进制？ 从程序角度来说，去掉前后的—-行，剩下的去掉回车，用base64解码，就得到二进制了
+不过一般都用命令行openssl完成这个工作
+—————
+一 用openssl创建CA证书的RSA密钥(PEM格式)：
+``openssl genrsa -des3 -out ca.key 1024``
+二用openssl创建CA证书(PEM格式,假如有效期为一年)：
+``openssl req -new -x509 -days 365 -key ca.key -out ca.crt -config openssl.cnf``
+openssl是可以生成DER格式的CA证书的，最好用IE将PEM格式的CA证书转换成DER格式的CA证书。
+三 x509到pfx
+``pkcs12 -export –in keys/client1.crt -inkey keys/client1.key -out keys/client1.pfx``
+四 PEM格式的ca.key转换为Microsoft可以识别的pvk格式。
+``pvk -in ca.key -out ca.pvk -nocrypt -topvk``
+五 PKCS#12 到 PEM 的转换
+```
+openssl pkcs12 -nocerts -nodes -in cert.p12 -out private.pem
+```
+验证 ```openssl pkcs12 -clcerts -nokeys -in cert.p12 -out cert.pem```
+六 从 PFX 格式文件中提取私钥格式文件 (.key)
+```
+openssl pkcs12 -in mycert.pfx -nocerts -nodes -out mycert.key
+```
+七 转换 pem 到到 spc
+```
+openssl crl2pkcs7 -nocrl -certfile venus.pem -outform DER -out venus.spc
+```
+用 -outform -inform 指定 DER 还是 PAM 格式。例如：
+```
+openssl x509 -in Cert.pem -inform PEM -out cert.der -outform DER
+```
+八 PEM 到 PKCS#12 的转换，
+```
+openssl pkcs12 -export -in Cert.pem -out Cert.p12 -inkey key.pem
+```
