@@ -584,6 +584,19 @@ Linux distribution Supported storage drivers Docker CE on Ubuntu aufs, devicemap
 ---
 
 
+#Docker 所有容器都挤在 CPU0 工作是怎么回事？
+
+>https://www.v2ex.com/t/734881#reply4
+
+```
+--cpuset-cpus string CPUs in which to allow execution (0-3, 0,1)
+```
+```
+--cpuset-cpus="0-2,7,8"
+```
+关键字 docker container cpu affinity
+
+
 
 
 ---

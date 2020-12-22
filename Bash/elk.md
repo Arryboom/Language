@@ -2369,3 +2369,259 @@ openssl pkcs12 -in path.p12 -out newfile.crt.pem -clcerts -nokeys -passin 'pass:
 #tips
 
 ES 最大内存只支持 32G
+
+
+
+#kibana搜索语法
+
+>https://www.cnblogs.com/harrychinese/p/kibana_search.html
+>http://www.ttlsa.com/elk/elk-kibana-query-and-filter/
+>https://www.cnblogs.com/heygirl/p/5608909.html
+
+
+
+Kibana 支持三种搜索语法, 分别是 Lucene query 语法, 基于 json 的 ES query语法, 以及 Kuery 语法. 前两种语法可以直接使用, Kuery语法需要先启用.
+Lucene query 语法学习简单快速, ES query 语法相对复杂, 但更强大, 适合基于ES的程序开发.
+
+这里仅仅关注Lucene query 语法.
+
+
+## 参考:
+
+[http://www.cnblogs.com/pengzhen/p/6930211.html](http://www.cnblogs.com/pengzhen/p/6930211.html)  
+[http://xiaorui.cc/2015/02/13/在kibana里使用lucene语法进行搜索query搜索/](http://xiaorui.cc/2015/02/13/%E5%9C%A8kibana%E9%87%8C%E4%BD%BF%E7%94%A8lucene%E8%AF%AD%E6%B3%95%E8%BF%9B%E8%A1%8C%E6%90%9C%E7%B4%A2query%E6%90%9C%E7%B4%A2/)  
+[https://lucene.apache.org/core/2\_9\_4/queryparsersyntax.html](https://lucene.apache.org/core/2_9_4/queryparsersyntax.html)
+
+## 以Key:Value的形式构建查询条件,
+
+Key即是域名(Field), Value即是值项(Term)  
+默认域名可以省略掉, Lucene的默认域是text域, kibana的默认域是message域, message会包含所有日志内容.
+
+```
+    title:abc   # 在title这个域中搜索 abc, 所有title 包含 abc 都会被搜索出来. 
+    title:"abc def"  # 在title这个域中搜索 abc def 这个完整的字符串.
+    title:abc def   # 这个写法不同于上面的查询语句, 其实是两个查询条件, 在title域中搜索abc, 并且在默认域中搜索def.
+    title:"1=1"   # 如果term有空格或等于号等特殊字符, 需要用双引号括起来.
+```
+
+## 对于数值项可以使用>、<、=操作符
+
+```
+    account_number:<100 
+```
+
+## 多个查询项的组合, 使用大写的 AND 、 OR 、NOT实现与或非.
+
+```
+    title:"The Right Way" AND text:go
+    account_number:<100 AND balance:>47500 
+```
+
+## 支持通配符
+
+```
+Kibana 一般不需要使用通配符, 因为 Kibana 的 key:value 查询条件, 只要域值包含 value 就能被搜索出来, 除非我们的值项有多个特征, 可以用通配符将多个特征连起来. 
+? 号可以匹配任意一个字符
+* 号可以匹配任意多个字符
+但通配符可以放在term的中间或尾部, 不能放在term的最前面. 
+```
+
+## 支持正则
+
+```
+ES 中正则性能很差，而且支持的功能也不是特别强大，尽量不要使用, 正则表达式需要用//括起来. 
+```
+
+```
+    message:/[mb]oat/  # 匹配 moat 或者 boat
+```
+
+## 范围限定
+
+```
+方括号代表包含边界值, 花括号代表不包含边界值
+```
+
+```
+    mod_date:[20020101 TO 20030101] 
+    title:{Aida TO Carmen}  
+```
+
+---
+
+![](/pics/screencapture-ttlsa-elk-elk-kibana-query-and-filter-2020-12-22-15_00_16.png)
+
+在Discover界面的搜索栏输入要查询的字段。查询语法是基于Lucene的查询语法。允许布尔运算符、通配符和字段筛选。注意关键字要大写。如查询类型是http，且状态码是302。
+```
+type: http AND http.code: 302
+```
+
+**字符串查询**
+查询可以包含一个或多个字或者短语。短语需要使用双引号引起来。如：
+
+每个字段都会匹配过去。要搜索一个确切的字符串，需要使用双引号引起来。
+
+如果不带引号，将会匹配每个单词。
+
+kibana会忽略特殊字符。
+
+**基于字段的查询**
+只搜索特定的字段。
+```
+status: Error
+```
+
+
+**正则表达式查询**
+kibana支持正则表达式过滤器和表达式。
+
+```
+http.response_headers.content-type: tex*
+```
+
+
+**返回查询**
+允许一个字段值在某个区间。[] 包含该值，{}不包含。
+
+```
+responsetime: {20 TO *}
+```
+
+**布尔查询**
+布尔运算符（AND，OR，NOT）允许通过逻辑运算符组合多个子查询。
+
+运算符AND/OR/NOT必须大写。
+```
+NOT type: mysql
+
+mysql.method: SELECT AND mysql.size: [10000 TO *]
+
+(mysql.method: INSERT OR mysql.method: UPDATE) AND responsetime: [30 TO *]
+```
+
+
+**创建过滤器**
+可通过单击可视化中的元素进行筛选。
+
+
+绿色filter for value  红色filter out value。
+
+
+---
+
+
+```
+全文搜索
+
+在搜索栏输入login，会返回所有字段值中包含login的文档
+
+
+使用双引号包起来作为一个短语搜索
+"like Gecko"
+
+字段
+
+也可以按页面左侧显示的字段搜索
+限定字段全文搜索：field:value
+精确搜索：关键字加上双引号 filed:"value"
+http.code:404 搜索http状态码为404的文档
+
+字段本身是否存在
+_exists_:http：返回结果中需要有http字段
+_missing_:http：不能含有http字段
+
+通配符
+
+? 匹配单个字符
+* 匹配0到多个字符
+
+kiba?a, el*search
+
+? * 不能用作第一个字符，例如：?text *text
+
+正则
+
+es支持部分正则功能
+mesg:/mes{2}ages?/
+
+模糊搜索
+
+~:在一个单词后面加上~启用模糊搜索
+
+first~ 也能匹配到 frist
+
+还可以指定需要多少相似度
+cromm~0.3 会匹配到 from 和 chrome
+数值范围0.0 ~ 1.0，默认0.5，越大越接近搜索的原始值
+
+近似搜索
+
+在短语后面加上~
+"select where"~3 表示 select 和 where 中间隔着3个单词以内
+
+范围搜索
+
+数值和时间类型的字段可以对某一范围进行查询
+length:[100 TO 200]
+date:{"now-6h" TO "now"}
+[ ] 表示端点数值包含在范围内，{ } 表示端点数值不包含在范围内
+
+逻辑操作
+
+AND
+OR
+
++：搜索结果中必须包含此项
+-：不能含有此项
++apache -jakarta test：结果中必须存在apache，不能有jakarta，test可有可无
+
+分组
+
+(jakarta OR apache) AND jakarta
+
+字段分组
+
+title:(+return +"pink panther")
+
+转义特殊字符
+
++ - && || ! () {} [] ^" ~ * ? : \
+以上字符当作值搜索的时候需要用\转义
+```
+
+
+
+#KQL语句整理
+
+>https://blog.csdn.net/wenqiangluyao/article/details/106790084
+
+
+![](/pics/screencapture-blog-csdn-net-wenqiangluyao-article-details-106790084-2020-12-22-15_04_23.png)
+
+```
+3.1 匹配：
+serverIp:10.100.249.111
+
+3.2 短语
+message:"Quick brown fox" 与message:Quick brown fox
+
+带引号的话，会完全按照短语内容来匹配；不带引号，会做分词
+
+3.3 组合
+level:info and serverIp:1.1.1.1
+
+serverIp:1.1.1.2 or serverIp:1.1.1.1
+
+3.2 条件分组
+
+level:INFO and (serverIp:1.1.1.2 or serverIp:1.1.1.1)
+
+message:(aaa and bbb and ccc)
+
+3.4 范围
+code>200
+
+not code:200
+
+not (code:200 or code:300)
+```

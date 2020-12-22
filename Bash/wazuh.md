@@ -3251,3 +3251,35 @@ Assuming the current date is 2019-04-11, the agent 003 is removed because its st
 
 
 may caused by samilar agent name registerd.
+
+
+
+
+---
+
+HOW TO SURVIVE A LOG FLOOD – WAZUH
+
+>https://www.nicktailor.com/?p=893
+
+
+Thankfully the Wazuh agent has a flood protection mechanism to prevent out of control log production on one system from creating disruptions to your network or to your Wazuh/Elastic services. In this lab we will create a small log flood and observe how it is gracefully contained by the Wazuh agent before it departs the system where the logs are produced. We will also take a look at the leaky bucket queue that Wazuh uses to accomplish this. Lastly we will note the alerts that are produced to keep us informed about the onset of, escalation of, and recovery from log flooding events.
+
+
+Open /var/ossec/etc/ossec.conf and find the <client_buffer> section, which looks like this:
+
+```
+<client_buffer>
+<!– Agent buffer options –>
+<disabled>no</disabled>
+<queue_size>5000</queue_size>
+<events_per_second>500</events_per_second>
+</client_buffer>
+```
+
+restart the client will works.u can config this remotely on manager .
+or u can disabled it by change no to yes to disable the flood protection.
+
+
+>https://documentation.wazuh.com/3.10/user-manual/capabilities/antiflooding.html
+
+>https://documentation.wazuh.com/3.0/user-manual/reference/ossec-conf/client_buffer.html

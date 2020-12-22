@@ -280,3 +280,41 @@ update-ca-trust extract
 
 
 ![](/pics/screencapture-cnblogs-gsls200808-p-4502044-html-2020-12-02-15_47_20.png)
+
+
+
+
+
+#centos7通过CERTBOT自动续期SSL证书
+
+>https://www.jianshu.com/p/43e74cddba45
+
+![](/pics/screencapture-jianshu-p-43e74cddba45-2020-12-22-15_09_34.png)
+
+
+一般推荐使用的ssl_ciphers值: 
+
+https://wiki.mozilla.org/Security/Server_Side_TLS
+```
+ssl_ciphers 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128:AES256:AES:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK';
+ssl_prefer_server_ciphers on;
+}
+```
+
+
+#certbot生成ecc证书
+
+>https://certbot.eff.org/docs/using.html#using-ecdsa-keys
+
+
+If you want to use ECDSA keys for all certificates in the future, you can simply add the following line to Certbot’s [configuration file](https://certbot.eff.org/docs/using.html#config-file)
+```
+key-type = ecdsa
+```
+After this option is set, newly obtained certificates will use ECDSA keys. This includes certificates managed by Certbot that previously used RSA keys.
+
+If you want to change a single certificate to use ECDSA keys, you’ll need to issue a new Certbot command setting `--key-type ecdsa` on the command line like
+
+```
+certbot renew --key-type ecdsa --cert-name example.com --force-renewal
+```

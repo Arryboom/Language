@@ -307,3 +307,14 @@ openssl x509 -in Cert.pem -inform PEM -out cert.der -outform DER
 ```
 openssl pkcs12 -export -in Cert.pem -out Cert.p12 -inkey key.pem
 ```
+
+
+
+
+---
+
+
+我司的一个 Go 写的 http 服务，之前用的 rsa 的，白天访问高峰能把 12 核的机器 CPU 全部跑满，换成 ECC,负载不到 1 了。
+
+哦，我说的是整个证书链都是 ECC 证书，这样验证速度才是最快的。但现在 LE 的 ECC 是只有你网站的证书是 ECC，根证书和中间证书都还是 RSA 。
+可以参考 14 楼的链接。
