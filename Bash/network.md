@@ -1897,6 +1897,65 @@ udp2raw 的 ICMP 模式。
 https://github.com/esrrhs/pingtunnel
 
 
+#能用 iptables 把流量转发到另一台机器的某个端口吗？
+>https://www.v2ex.com/t/744959#reply20
+
+下面是我用 iptables 做的 SNAT
+```
+-A POSTROUTING -s 192.168.0.0/24 -j SNAT --to-source 192.168.0.150
+```
+
+我猜 !# 说的是这个
+```
+sudo su
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -t nat -A PREROUTING -p tcp --dport 8388 -j DNAT --to-destination US_VPS_IP:8388
+iptables -t nat -A POSTROUTING -p tcp -d US_VPS_IP --dport 8388 -j SNAT --to-source JAPAN_VPS_IP
+```
+
+https://github.com/shadowsocks/shadowsocks/wiki/Setup-a-Shadowsocks-relay
+
+```
+# 转发脚本内容 tcpproxy.sh
+----------
+#!/bin/sh
+# TCP Proxy using IPTables
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+
+# Flush nat table
+iptables -t nat -F
+
+# tcpproxy LOCAL_IP LOCAL_PORT REMOTE_IP REMOTE_PORT
+
+function tcpproxy {
+iptables -t nat -A PREROUTING --dst $1 -p tcp --dport $2 -j DNAT --to-destination $3:$4
+iptables -t nat -A POSTROUTING --dst $3 -p tcp --dport $4 -j SNAT --to-source $1
+iptables -t nat -A OUTPUT --dst $1 -p tcp --dport $2 -j DNAT --to-destination $3:$4
+}
+------------
+
+# 使用方法
+tcpproxy.sh 192.168.1.1 12345 192.168.1.2 12345
+```
+
+iptables 和 iproute 搭配可以实现。看 https://tldp.org/HOWTO/TransparentProxy-6.html 这里的第 2 种方法。
+这种方法不用修改网关，原理是把去往 12345 端口的流量打上标记，然后设定 ip rule 使这些流量走另一个路由表到达运行代理的设备。
+#14 #15 可解，iptables 打 mark，增加路由表改路由
+但你全部流量都转发，和改网关又有什么区别呢
+可以使用 haproxy，iptables 试了不稳定
+用 HAProxy 吧，甚至 Nginx 的 stream 代理都行
+有个简单的命令行工具
+
+https://github.com/Ehco1996/ehco
+
+推荐试试
+SNAT+DNAT 可以。haproxy/nginx 也可以。不过会丢失原始的客户端 IP
+如果要保留，可以尝试 LVS FullNAT 模式+toa 模块
+
+
+
+
 
 
 ---

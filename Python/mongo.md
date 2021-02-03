@@ -189,3 +189,14 @@ WriteResult({ "nRemoved" : 2 })           # 删除了两条数据
         print(i)
     ####
 ```
+
+
+
+
+
+
+---
+跨表查询
+
+>https://www.cnblogs.com/xuliuzai/p/10055535.html
+>https://blog.csdn.net/weixin_42621957/article/details/80936647
