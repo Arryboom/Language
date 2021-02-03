@@ -61,3 +61,11 @@ return data
 https://github.com/CaffreySun/OHouEmoji
 
 https://emoji.ohou.ga/
+
+
+
+
+
+#视频流
+
+树莓派使用 ffmpeg+rtmp 推流直播，延迟严重
