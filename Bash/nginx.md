@@ -2044,7 +2044,53 @@ http {
 ```
 
 
+#nginx redirect http to https
+>https://stackoverflow.com/questions/8768946/dealing-with-nginx-400-the-plain-http-request-was-sent-to-https-port-error
+>https://stackoverflow.com/questions/60351876/400-bad-request-on-nginx-1-14-0-ubuntu
 
+```
+error_page 497 https://$server_name:$server_port$request_uri;
+```
+You probably want $server_name instead of $host, the server_name presumably being set to the CN that the SSL cert authenticates. That way, the user won't get a scare screen if they came in via an IP or localhost. 
+
+
+
+
+The error means you are trying to access http://example.com:443 meaning you are sending HTTP request instead of https request, maybe its a typo or a browser thing?
+Also, according to nginx documentation ssl off; was made obsolete after nginx 1.15 so I would get rid of that.
+
+And adding the following will most probably fix your issue:
+```
+if ($scheme = http) {
+           return 301 https://$server_name$request_uri;
+    }
+```
+And the final config should look like this:
+```
+server {
+    listen 443 default_server ssl;
+    server_name www.example.com;
+
+    if ($scheme = http) {
+        return 301 https://$server_name$request_uri;
+    }
+
+    root /home/rohangular/websiteangular/dist/angular-website;
+    index index.html index.htm;
+
+    access_log /var/log/nginx/example.com/access.log;
+    error_log /var/log/nginx/example.com/error.log;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    ssl_certificate /root/ssl-bundle.crt;
+    ssl_certificate_key /root/example.com.key;
+}
+
+```
 
 ---
 

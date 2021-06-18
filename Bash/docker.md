@@ -144,7 +144,59 @@ hash_of_the_container 可以通过 docker inspect 容器名字 来查看
 
 id 就是 容器的 hash 数值，在 hostconfig.json 里有 "PortBindings":{} 这个配置项，可以改成 "PortBindings":{"80/tcp":[{"HostIp":"","HostPort":"8080"}]} 这里 80 是容器端口， 8080 是本地端口， 然后在 config.v2.json 里面添加一个配置项 "ExposedPorts":{"80/tcp":{}} , 将这个配置项添加到 "Tty": true, 前面，我不知道添加到别的地方会不会有影响，因为经过对比正常的端口映射配置项是在这个位置，这个就是将容器内部端口暴露出来，如果不加这一句端口映射不会成功的，最后重启 docker的守护进程 service docker restart
 这里有个问题就是重启后 用docker ps -a 是看不到端口映射的，但实际已经映射好了，我正常在新建一个带有端口映射容器的时候，重启 docker的守护进程，端口映射也不会显示出来，但是通过docker inspect 容器名 可以看到配置项已经修改成功了。
+---
+*another way*
 
+https://stackoverflow.com/questions/19335444/how-do-i-assign-a-port-mapping-to-an-existing-docker-container#
+[How do I assign a port mapping to an existing Docker container? - Stack Overflow](https://stackoverflow.com/questions/19335444/how-do-i-assign-a-port-mapping-to-an-existing-docker-container#)
+
+> This answer is not useful
+> 
+> The question owner accepted this as the best answer Dec 15 '19 at 14:36.
+> 
+> [](https://stackoverflow.com/posts/38783433/timeline)
+> 
+> Show activity on this post.
+> 
+> You can change the port mapping by directly editing the `hostconfig.json` file at `/var/lib/docker/containers/[hash_of_the_container]/hostconfig.json` or `/var/snap/docker/common/var-lib-docker/containers/[hash_of_the_container]/hostconfig.json`, I believe, if You installed Docker as a snap.
+> 
+> You can determine the \[hash\_of\_the\_container\] via the `docker inspect <container_name>` command and the value of the "Id" field is the hash.
+> 
+> 1.  Stop the container (`docker stop <container_name>`).
+> 2.  Stop docker service (per Tacsiazuma's comment)
+> 3.  Change the file.
+> 4.  Restart your docker engine (to flush/clear config caches).
+> 5.  Start the container (`docker start <container_name>`).
+> 
+> So you don't need to create an image with this approach. You can also change the restart flag here.
+> 
+> _P.S. You may visit [https://docs.docker.com/engine/admin/](https://docs.docker.com/engine/admin/) to learn how to correctly restart your docker engine as per your host machine. I used `sudo systemctl restart docker` to restart my docker engine that is running on Ubuntu 16.04_.
+
+---
+
+*and another way*
+
+Thanks. For the sake of completeness, I had to run the following 3 `iptables` commands to get it to open to the outside world.
+
+```
+HOST> iptables -t nat -A DOCKER -p tcp --dport 443 -j DNAT --to-destination 172.17.0.2:443
+HOST> iptables -t nat -A POSTROUTING -j MASQUERADE -p tcp --source 172.17.0.2 --destination 172.17.0.2 --dport https
+HOST> iptables -A DOCKER -j ACCEPT -p tcp --destination 172.17.0.2 --dport https
+```
+https://forums.docker.com/t/how-to-expose-port-on-running-container/3252/16
+
+https://github.com/docker/docker.github.io/issues/4942
+
+
+Tried and tested.
+
+- Stop your container using `docker stop <container-name/container-id>`.
+    
+- Edit `hostconfig.json` and `config.v2.json` files of the respective container by adding your port to `PortBindings` key and `ExposedPorts` key respectively.
+    
+- You'll require `sudo` access, or as `root` user. Then run `systemctl stop docker` and then run `systemctl start docker`.
+    
+- Finally start your container using `docker start <container-name/container-id>`.
 
 
 #docker crontab
@@ -598,6 +650,18 @@ Linux distribution Supported storage drivers Docker CE on Ubuntu aufs, devicemap
 
 
 
+
+#container freezing and connot start,
+
+- 
+*Assuming you have /bin/bash*
+```docker run -it --entrypoint "/bin/bash" myimagename:myimagetag```
+- 
+the container seems to be crashing on boot for some reason. Try to start it using the pseudo-TTY "-dit" argument to see why its failing
+
+``docker run -it MYCONTAINER /bin/sh``
+
+That should give you an idea about why it is crashing.
 
 ---
 
