@@ -4105,6 +4105,11 @@ dig not usable,not find
 ```
 yum install bind-utils
 ```
+dig cname
+
+```
+dig cname www.github.com @localhost 
+```
 
 
 
