@@ -601,3 +601,26 @@ done
 | windows                        | amd64                    |
 
 
+#icon
+>https://stackoverflow.com/questions/25602600/how-do-you-set-the-application-icon-in-golang
+
+This works well:
+
+```go
+go install github.com/tc-hib/go-winres@latest
+go-winres simply --icon youricon.png
+go build
+```
+
+If your app has a GUI: `go-winres simply --icon icon.png --manifest gui`
+
+
+
+
+This worked out for me
+```
+go get github.com/akavel/rsrc
+rsrc -ico YOUR_ICON_FILE_NAME.ico
+go build
+```
+
