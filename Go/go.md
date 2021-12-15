@@ -225,6 +225,8 @@ goland报错 can't load package: package main: found packages language (coverage
 ```  
 
  - map增删改查
+
+
 ```
     // 创建
     m := map[string]string{
@@ -435,10 +437,10 @@ http://c.biancheng.net/view/89.html
 >https://www.cnblogs.com/apocelipes/p/9861315.html
 
 在实际开发中，总有一些函数的参数个数是在编码过程中无法确定的，比如我们最常用的fmt.Printf和fmt.Println：
-
+```
 fmt.Printf("一共有%v行%v列\\n", rows, cols)
 fmt.Println("共计大小:", size)
-
+```
 当你需要实现类似的接口时，就需要我们的**可变参数**出场了。
 
 
@@ -520,3 +522,82 @@ too many arguments in call to sum
 https://golang.org/ref/spec#Passing\_arguments\_to\_...\_parameters
 
 https://golang.org/doc/effective\_go.html#append
+
+
+
+
+# one key to compile multiple platforms
+
+```
+./go-executable-build.bash github.com/mholt/caddy/caddy
+```
+
+
+- ./go-executable-build.bash
+
+
+```
+#!/usr/bin/env bash
+
+package=$1
+if [[ -z "$package" ]]; then
+  echo "usage: $0 <package-name>"
+  exit 1
+fi
+package_split=(${package//\// })
+package_name=${package_split[-1]}
+
+platforms=("windows/amd64" "windows/386" "darwin/amd64")
+
+for platform in "${platforms[@]}"
+do
+    platform_split=(${platform//\// })
+    GOOS=${platform_split[0]}
+    GOARCH=${platform_split[1]}
+    output_name=$package_name'-'$GOOS'-'$GOARCH
+    if [ $GOOS = "windows" ]; then
+        output_name+='.exe'
+    fi
+
+    env GOOS=$GOOS GOARCH=$GOARCH go build -o $output_name $package
+    if [ $? -ne 0 ]; then
+        echo 'An error has occurred! Aborting the script execution...'
+        exit 1
+    fi
+done
+```
+
+| GOOS - Target Operating System | GOARCH - Target Platform |
+|--------------------------------|--------------------------|
+| android                        | arm                      |
+| darwin                         | 386                      |
+| darwin                         | amd64                    |
+| darwin                         | arm                      |
+| darwin                         | arm64                    |
+| dragonfly                      | amd64                    |
+| freebsd                        | 386                      |
+| freebsd                        | amd64                    |
+| freebsd                        | arm                      |
+| linux                          | 386                      |
+| linux                          | amd64                    |
+| linux                          | arm                      |
+| linux                          | arm64                    |
+| linux                          | ppc64                    |
+| linux                          | ppc64le                  |
+| linux                          | mips                     |
+| linux                          | mipsle                   |
+| linux                          | mips64                   |
+| linux                          | mips64le                 |
+| netbsd                         | 386                      |
+| netbsd                         | amd64                    |
+| netbsd                         | arm                      |
+| openbsd                        | 386                      |
+| openbsd                        | amd64                    |
+| openbsd                        | arm                      |
+| plan9                          | 386                      |
+| plan9                          | amd64                    |
+| solaris                        | amd64                    |
+| windows                        | 386                      |
+| windows                        | amd64                    |
+
+
