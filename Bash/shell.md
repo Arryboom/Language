@@ -4111,6 +4111,21 @@ dig cname
 dig cname www.github.com @localhost 
 ```
 
+#获取系统内所有可写/执行路径/文件
+>https://askubuntu.com/questions/679344/how-can-i-find-world-writable-files-and-folders-and-set-the-sticky-bit
+
+- writeable folder
+```
+find / -type d \( -perm -g+w -or -perm -o+w \) -exec ls -adl {} \;
+```
+- file that able to execute and write
+```
+find / -perm -o+w 
+find . -perm -o+w -exec chmod +t {} + 
+find / -not -type l -perm -o+w
+find / -type f! -path "/ proc / *" -prune -perm o + w exec ls {} -lg /; 2>; / dev / null
+find / -type f! -path "/ proc / *" -prune -perm o + w exec ls {} -lg /; 2&gt; / dev / null
+```
 
 
 ---
