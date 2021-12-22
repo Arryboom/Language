@@ -318,3 +318,13 @@ If you want to change a single certificate to use ECDSA keys, you’ll need to i
 ```
 certbot renew --key-type ecdsa --cert-name example.com --force-renewal
 ```
+
+
+
+#ed25519 for nginx
+
+```
+openssl genpkey -algorithm ed25519>ssl.key
+openssl req -new -key ssl.key -out ssl.csr
+openssl req -x509 -nodes -days 1365 -key ssl.key -in ssl.csr -out ssl.crt
+```
