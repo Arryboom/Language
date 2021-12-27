@@ -2328,6 +2328,35 @@ if ($http_x_forwarded_for ~ "202.175.*.*|202.86.*.*|172.23.*.*"){undefined
 
 ```
 
+1、设置ip白名单：
+
+```nginx
+geo $whiteiplist {
+    default 1;
+    127.0.0.1 0;
+    10.10.24.139 0;
+}
+
+map $whiteiplist $all_limit {
+    1 $binary_remote_addr;
+    0 "";
+}
+```
+
+geo指令定义一个白名单 $whitiplist; default 1 代表受限制；0代表不受限制；map指令是将$whiteiplist值为1的，也就是受限制的IP，映射为客户端IP。将$whiteiplist值为0的，也就是白名单IP，映射为空的字符串。
+
+  
+
+2､限制单个ip请求数量
+
+```text
+limit_conn_zone $all_limit zone=m_perip:10m;
+limit_conn    m_perip         50;
+```
+
+limit\_conn\__zone和limit\_conn_指令对于键为空值的将会被忽略，从而实现对于列出来的IP不做限制。
+
+>https://zhuanlan.zhihu.com/p/41649915
 >https://cloud.tencent.com/developer/article/1026848
 
 ---
