@@ -2163,10 +2163,172 @@ while true; do curl http://127.0.0.1; done
 ```
 
 
+#Nginx实现IP白名单
+
+1. first way:
+
+白名单设置，访问根目录
+```
+location / {
+
+                allow 123.34.22.155;
+
+                allow 33.56.32.1/100;
+
+                deny  all;
+
+}
+```
+黑名单设置，访问根目录
+```
+location / {
+
+                deny 123.34.22.155;
+
+}
+```
+特定目录访问限制
+```
+location /tree/list {
+
+                allow 123.34.22.155;
+
+                deny  all;
+
+}
+```
+
+2. second way:
+
+1.设置目录白名单：对指定请求路径不设置限制，如对请求路径为api目录下的请求不做限制，则可写为
+```
+server{
+    location /app {
+      proxy_pass http://192.168.1.111:8095/app;
+ 
+      limit_conn conn 20;
+ 
+      limit_rate 500k;
+ 
+      limit_req zone=foo burst=5 nodelay;
+    }
+    location /app/api {
+      proxy_pass http://192.168.1.111:8095/app/api
+    }
+}
+# 因nginx会优先进行精准匹配，所以以上写法即remove了对api目录下属路径的限制
+
+```
+设置ip白名单，需用到nginx geo 与 nginx map
+
+在没有人为删除的情况下（--without-http_geo_module或--without-http_map_module），nginx默认加载了ngx-http-geo-module和ngx-http-map-module相关内容；
+
+ngx-http-geo-module可以用来创建变量，变量值依赖于客户端 ip 地址;
+
+ngx-http-map-module可以基于其他变量及变量值进行变量创建，其允许分类，或者映射多个变量到不同值并存储在一个变量中；
 
 
+```
+Nginx geo 格式说明
+ 
+Syntax ( 语法格式 ): geo [$address] $variable { ... }
+Default ( 默认 ): -
+Content ( 配置段位 ): http
+Nginx map 格式说明
+Syntax ( 语法格式 ): map String $variable { ... }
+Default ( 默认 )：-
+Content ( 配置段位 ): http
+ 
+白名单配置示例
+ 
+http{
+   # ... 其他配置内容
+   #定义白名单ip列表变量
+   geo $whiteiplist {
+     default 1 ;
+     127.0.0.1/32 0;
+     64.223.160.0/19 0;
+   }
+   #使用map指令映射将白名单列表中客户端请求ip为空串
+   map $whiteiplist $limit{
+     1 $binary_remote_addr ;
+     0 "";
+   }
+   #配置请求限制内容
+   limit_conn_zone $limit zone=conn:10m;
+   limit_req_zone $limit zone=allips:10m rate=20r/s;
+   server{
+     location /yourApplicationName {
+       proxy_pass http://192.168.1.111:8095/app;
+       limit_conn conn 50;
+       limit_rate 500k;
+       limit_req zone=allips burst=5 nodelay;
+     }
+   }
+}
+白名单配置可用于对合作客户，搜索引擎等请求过滤限制
+ 
+#（特殊情况处理）
+ 
+#如果想仅限制指定的请求，如：只限制Post请求，则：
+http{
+   # 其他请求..
+   #请求地址map映射
+   map $request_method $limit {
+     default "";
+     POST $binary_remote_addr;
+   }
+   #限制定义
+   limit_req_zone $limit zone=reqlimit:20m rate=10r/s;
+   server{
+     ... #与普通限制一致
+   }
+}
+#在此基础上，想进行指定方法的白名单限制处理，则：
+http{
+   #...
+   #定义白名单列表
+   map $whiteiplist $limitips{
+     1 $binary_remote_addr;
+     0 "";
+   }
+ 
+   #基于白名单列表，定义指定方法请求限制
+   map $request_method $limit {
+     default "";
+     # POST $binary_remote_addr;
+     POST $limitips;
+   }
+ 
+   #对请求进行引用
+   limit_req_zone $limit zone=reqlimit:20m rate=10r/s;
+ 
+   #在server中进行引用
+   server{
+     #... 与普通限制相同
+   }
+}
+```
+
+3. with front proxy
+
+```
+sever层中添加：
+
+ 
+
+set $allow false;
+if ($http_x_forwarded_for ~ "202.175.*.*|202.86.*.*|172.23.*.*"){undefined
+                set $allow true;
+        }
+        if ($allow = false){undefined
+                return 404;
+        }
 
 
+```
+
+>https://cloud.tencent.com/developer/article/1026848
 
 ---
 
