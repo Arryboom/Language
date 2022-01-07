@@ -232,3 +232,81 @@ Docker 的这个漏洞公布之后，引发了网友的广泛讨论，大家各�
 参考链接： https://duo.com/decipher/docker-bug-allows-root-access-to-host-file-system
 
 https://news.ycombinator.com/item?id=20031403
+
+
+
+
+
+
+
+
+
+
+
+
+
+#docker sudo
+
+>https://stackoverflow.com/questions/25845538/how-to-use-sudo-inside-a-docker-container
+
+For anyone who has this issue with an already running container, and they don't necessarily want to rebuild, the following command connects to a running container with root privileges:
+
+```
+docker exec -ti -u root container_name bash
+```
+
+You can also connect using its ID, rather than its name, by finding it with:
+
+```
+docker ps -l
+```
+
+To save your changes so that they are still there when you next launch the container (or docker-compose cluster) - note that these changes would not be repeated if you rebuild from scratch:
+
+```
+docker commit container_id image_name
+```
+
+To roll back to a previous image version (warning: this deletes history rather than appends to the end, so to keep a reference to the current image, tag it first using the optional step):
+
+```
+docker history image_name
+docker tag latest_image_id my_descriptive_tag_name  # optional
+docker tag desired_history_image_id image_name
+```
+
+To start a container that isn't running and connect as root:
+
+```
+docker run -ti -u root --entrypoint=/bin/bash image_id_or_name -s
+```
+
+To copy from a running container:
+
+```
+docker cp <containerId>:/file/path/within/container /host/path/target
+```
+
+To export a copy of the image:
+
+```
+docker save container | gzip > /dir/file.tar.gz
+```
+
+Which you can restore to another Docker install using:
+
+```
+gzcat /dir/file.tar.gz | docker load
+```
+
+It is much quicker but takes more space to not compress, using:
+
+```
+docker save container | dir/file.tar
+```
+
+And:
+
+```
+cat dir/file.tar | docker load
+```
