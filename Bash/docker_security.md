@@ -253,6 +253,7 @@ For anyone who has this issue with an already running container, and they don't 
 
 ```
 docker exec -ti -u root container_name bash
+docker exec -u 0 -it mycontainer bash
 ```
 
 You can also connect using its ID, rather than its name, by finding it with:
