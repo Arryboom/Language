@@ -920,6 +920,10 @@ virsh shutdown rusts
 virsh start rusts
 virsh console rusts
 virsh help console
+# virsh net-list
+# virsh net-info default
+virsh net-dhcp-leases default
+virsh domifaddr freebsd11.1
 ```
 To exit a virsh console session, type ```CTRL+Shift followed by ]``` or ```CTRL+Shift+5```
 
@@ -932,3 +936,4 @@ To exit a virsh console session, type ```CTRL+Shift followed by ]``` or ```CTRL+
 ```
 yum install libguestfs-tools
 ```
+
