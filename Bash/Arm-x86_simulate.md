@@ -745,7 +745,7 @@ wget https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2111.
 qemu-img convert -f qcow2 -O raw CentOS-7-x86_64-GenericCloud-2111.qcow2 CentOS-7-x86_64-GenericCloud-2111.raw
 qemu-img create -b focal-server-cloudimg-amd64.raw -f qcow2 -F qcow2 hal9000.img 10G
 #virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --graphics vnc,listen=0.0.0.0
-virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --nographic
+virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --nographic --virt-type qemu --graphics none  --noreboot --noautoconsole
 ```
 
 >virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --nographic
@@ -924,6 +924,7 @@ virsh help console
 # virsh net-info default
 virsh net-dhcp-leases default
 virsh domifaddr freebsd11.1
+virsh undefine VM_NAME
 ```
 To exit a virsh console session, type ```CTRL+Shift followed by ]``` or ```CTRL+Shift+5```
 
