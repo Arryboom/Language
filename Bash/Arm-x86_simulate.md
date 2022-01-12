@@ -746,7 +746,7 @@ qemu-img convert -f qcow2 -O raw CentOS-7-x86_64-GenericCloud-2111.qcow2 CentOS-
 qemu-img create -b focal-server-cloudimg-amd64.raw -f qcow2 -F qcow2 hal9000.img 10G
 #virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --graphics vnc,listen=0.0.0.0
 #virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --virt-type qemu --graphics none  --noreboot --noautoconsole --extra-args='console=ttyS0'
-virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0 --virt-type qemu --graphics none  --noreboot --noautoconsole
+virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0 --virt-type qemu --graphics none  --noreboot --noautoconsole -vga none
 ```
 
 >virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --nographic
@@ -760,6 +760,10 @@ virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk pa
 -serial mon:telnet:127.0.0.1:6665,server,nowait \
 -pidfile /home/oc/VM/pid/netbsd-pid \
 
+
+>pass -smp cores=4 or -smp cores=4,sockets=1 ?
+>https://bbs.archlinux.org/viewtopic.php?id=208368
+>https://leduccc.medium.com/improving-the-performance-of-a-windows-10-guest-on-qemu-a5b3f54d9cf5
 
 ---
 unnessary
@@ -1123,3 +1127,68 @@ My emulated machine will be called ubuntu18.04 here.
     ```
     ssh myusername@localhost -p 22222
     ```
+
+
+
+###performance
+```
+qemu-system-x86_64
+-enable-kvm
+-name guest=ubuntu16.04_32_bit_test,debug-threads=on
+-S
+-object secret,id=masterKey0,format=raw,file=/var/lib/libvirt/qemu/domain-1-ubuntu16.04_32_bit_t/master-key.aes
+-machine pc-i440fx-zesty,accel=kvm,usb=off,dump-guest-core=off
+-cpu Skylake-Client
+-m 1024
+-realtime mlock=off
+-smp 1,sockets=1,cores=1,threads=1
+-uuid 4aaf9c8f-f8b5-477b-ac18-d273318dfe90
+-no-user-config
+-nodefaults
+-chardev socket,id=charmonitor,path=/var/lib/libvirt/qemu/domain-1-ubuntu16.04_32_bit_t/monitor.sock,server,nowait
+-mon chardev=charmonitor,id=monitor,mode=control
+-rtc base=utc,driftfix=slew
+-global kvm-pit.lost_tick_policy=discard
+-no-hpet
+-no-reboot
+-global PIIX4_PM.disable_s3=1
+-global PIIX4_PM.disable_s4=1
+-boot strict=on
+-device ich9-usb-ehci1,id=usb,bus=pci.0,addr=0x5.0x7
+-device ich9-usb-uhci1,masterbus=usb.0,firstport=0,bus=pci.0,multifunction=on,addr=0x5
+-device ich9-usb-uhci2,masterbus=usb.0,firstport=2,bus=pci.0,addr=0x5.0x1
+-device ich9-usb-uhci3,masterbus=usb.0,firstport=4,bus=pci.0,addr=0x5.0x2
+-device virtio-serial-pci,id=virtio-serial0,bus=pci.0,addr=0x6
+-drive file=/var/lib/libvirt/images/ubuntu16.04_32_bit_test.qcow2,format=qcow2,if=none,id=drive-virtio-disk0
+-device virtio-blk-pci,scsi=off,bus=pci.0,addr=0x7,drive=drive-virtio-disk0,id=virtio-disk0,bootindex=2
+-drive file=/home/gdahlman/Downloads/ubuntu-16.04.2-server-i386.iso,format=raw,if=none,id=drive-ide0-0-0,readonly=on
+-device ide-cd,bus=ide.0,unit=0,drive=drive-ide0-0-0,id=ide0-0-0,bootindex=1
+-netdev tap,fd=26,id=hostnet0,vhost=on,vhostfd=28
+-device virtio-net-pci,netdev=hostnet0,id=net0,mac=52:54:00:22:78:27,bus=pci.0,addr=0x3
+-chardev pty,id=charserial0-deviceisa-serial,chardev=charserial0,id=serial0
+-chardev spicevmc,id=charchannel0,name=vdagent
+-device virtserialport,bus=virtio-serial0.0,nr=1,chardev=charchannel0,id=channel0,name=com.redhat.spice.0
+-device usb-tablet,id=input0,bus=usb.0,port=1
+-spice port=5900,addr=127.0.0.1,disable-ticketing,image-compression=off,seamless-migration=on
+-device qxl-vga,id=video0,ram_size=67108864,vram_size=67108864,vram64_size_mb=0,vgamem_mb=16,max_outputs=1,bus=pci.0,addr=0x2
+-device intel-hda,id=sound0,bus=pci.0,addr=0x4
+-device hda-duplex,id=sound0-codec0,bus=sound0.0,cad=0
+-chardev spicevmc,id=charredir0,name=usbredir
+-device usb-redir,chardev=charredir0,id=redir0,bus=usb.0,port=2
+-chardev spicevmc,id=charredir1,name=usbredir
+-device usb-redir,chardev=charredir1,id=redir1,bus=usb.0,port=3
+-device virtio-balloon-pci,id=balloon0,bus=pci.0,addr=0x8
+-msg timestamp=on
+root@rodin
+```
+
+>https://askubuntu.com/questions/616483/why-is-qemu-so-slow-even-with-kvm?rq=1
+>The libvirt virt-install command will help you with this from the command line and it's --os-variant flag will take care of most of the quirks and optimizations for you.
+>https://leduccc.medium.com/improving-the-performance-of-a-windows-10-guest-on-qemu-a5b3f54d9cf5
+
+
+```
+sudo qemu-system-x86_64 -drive file=/Multimedia/VM-Data/arch-usenet.img,media=disk,format=raw -m 2G -cpu Broadwell -smp cpus=1,cores=4 --enable-kvm -net nic,model=virtio -net bridge,br=br0 -name arch-usenet -vga none -nographic -d guest_errors```
+
+
+Based on that document, _cpus_ isn't a valid option for **\-smp** for example. It's unfortunate they keep it around, and that it's the first Google hit for "qemu command line options". The [qemu wiki](http://wiki.qemu.org/Manual) points out that it is "from QEMU 0.12.0 release" and recommends [this](http://qemu.weilnetz.de/qemu-doc.html) instead.
