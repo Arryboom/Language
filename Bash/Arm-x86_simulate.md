@@ -745,7 +745,8 @@ wget https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2111.
 qemu-img convert -f qcow2 -O raw CentOS-7-x86_64-GenericCloud-2111.qcow2 CentOS-7-x86_64-GenericCloud-2111.raw
 qemu-img create -b focal-server-cloudimg-amd64.raw -f qcow2 -F qcow2 hal9000.img 10G
 #virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --graphics vnc,listen=0.0.0.0
-virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --virt-type qemu --graphics none  --noreboot --noautoconsole --extra-args='console=ttyS0'
+#virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --virt-type qemu --graphics none  --noreboot --noautoconsole --extra-args='console=ttyS0'
+virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0 --virt-type qemu --graphics none  --noreboot --noautoconsole
 ```
 
 >virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --nographic
@@ -1046,3 +1047,79 @@ I copied --extra-args='console=ttyS0' somewhere from Internet last time, it work
     No need to manually specify the baud rate.
     "--serial" option has been deprecated
     The RedHat console device is "/dev/ttyS0", not "/dev/tty0"
+
+
+
+### port forward
+
+
+
+There is a way to set up port redirection on the fly when the guest is using user-mode networking, I blogged about it here:
+
+http://blog.adamspiers.org/2012/01/23/port-redirection-from-kvm-host-to-guest/
+
+You can see the details there, but for convenience, here is the solution I figured out:
+
+virsh qemu-monitor-command --hmp sles11 'hostfwd_add ::2222-:22'
+
+This one-liner is a lot easier than the other answers but only works in some scenarios (user mode network stack).
+
+
+
+The "only" way we can make a port forward using KVM (libvirt) with the "default network" (virbr0) is using the hack/workaround informed by @Antony Nguyen . Or more simply you can use libvirt-hook-qemu.
+
+This thread has a complete explanation of how to solve this problem for CentOS 7 (and certainly for other distros) using libvirt-hook-qemu: https://superuser.com/a/1475915/195840 .
+
+
+
+
+---
+
+Just to have this documented somewhere on the net:
+
+I managed to do this some two years later by manually adding the relevant QEMU arguments to the KVM XML file (which holds the config for all the fancy virtualisation foo behind the scenes).
+
+Here are the steps I performed to grant port forwarding to a user network; in my case, forwarding the host's port 22222 to the guest's port 22:
+
+My emulated machine will be called ubuntu18.04 here.
+
+1. Open xml config for editing via virsh
+    
+    ```
+    $ virsh -c qemu:///session edit ubuntu18.04
+    ```
+    
+2. Find and remove the configuration for the "user"-type interface which may look somehow like this:
+    
+    ```
+    <interface type='user'>
+      <mac address='52:54:00:52:35:ff'/>
+      <model type='rtl8139'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+    </interface>
+    ```
+    
+3. Add the QEMU namespace to the (root) domain tag:
+    
+    ```
+    <domain type='kvm' xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
+    ```
+    
+4. Manually add the now missing interface configuration as QEMU arguments somewhere inside the domain tag (e.g., as last child of `<domain>`):
+    
+    ```
+    <qemu:commandline>
+      <qemu:arg value='-netdev'/>
+      <qemu:arg value='user,id=mynet.0,net=10.0.10.0/24,hostfwd=tcp::22222-:22'/>
+      <qemu:arg value='-device'/>
+      <qemu:arg value='rtl8139,netdev=mynet.0'/>
+    </qemu:commandline>
+    ```
+    
+5. Save the config and fire up/reboot the VM.
+    
+6. ssh away:
+    
+    ```
+    ssh myusername@localhost -p 22222
+    ```
