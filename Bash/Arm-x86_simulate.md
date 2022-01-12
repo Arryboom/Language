@@ -745,7 +745,7 @@ wget https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2111.
 qemu-img convert -f qcow2 -O raw CentOS-7-x86_64-GenericCloud-2111.qcow2 CentOS-7-x86_64-GenericCloud-2111.raw
 qemu-img create -b focal-server-cloudimg-amd64.raw -f qcow2 -F qcow2 hal9000.img 10G
 #virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --graphics vnc,listen=0.0.0.0
-virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --nographic --virt-type qemu --graphics none  --noreboot --noautoconsole
+virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --virt-type qemu --graphics none  --noreboot --noautoconsole --extra-args='console=ttyS0'
 ```
 
 >virt-install --name=rusts --ram=16384 --vcpus=4 --arch=x86_64 --import --disk path=/data/osimage/rusthd.img,format=qcow2 --os-variant=centos7.0 --network bridge=virbr0,model=virtio --nographic
@@ -942,6 +942,11 @@ yum install libguestfs-tools
 
 ###extend
 
+
+>www.linux-kvm.com/content/tip-how-run-headless-guest-machine-using-vnc-kvm
+>www.linux-kvm.com/content/running-kvm-nographics-no-console-output
+>https://serverfault.com/questions/257962/kvm-guest-installed-from-console-but-how-to-get-to-the-guests-console
+
 ```
 qemu -enable-kvm                     \
      -smp 4                          \
@@ -1028,3 +1033,16 @@ allows to modify disk images using the QEMU Monitor Protocol (QMP) without runni
 **qemu-system-x86\_64**
 
 is the QEMU PC System emulator
+
+
+
+---
+
+### console
+
+I copied --extra-args='console=ttyS0' somewhere from Internet last time, it works!
+
+    No need for two "console" commands, that just opens two consoles instead of one
+    No need to manually specify the baud rate.
+    "--serial" option has been deprecated
+    The RedHat console device is "/dev/ttyS0", not "/dev/tty0"
