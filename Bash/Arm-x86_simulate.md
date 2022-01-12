@@ -927,7 +927,7 @@ virsh domifaddr freebsd11.1
 ```
 To exit a virsh console session, type ```CTRL+Shift followed by ]``` or ```CTRL+Shift+5```
 
-
+s
 ###reset password
 
 >https://www.cyberciti.biz/faq/how-to-reset-forgotten-root-password-for-linux-kvm-qcow2-image-vm/
@@ -937,3 +937,93 @@ To exit a virsh console session, type ```CTRL+Shift followed by ]``` or ```CTRL+
 yum install libguestfs-tools
 ```
 
+
+
+###extend
+
+```
+qemu -enable-kvm                     \
+     -smp 4                          \
+     -cpu host                       \
+     -m 1G                           \
+     -drive file=$VDISK_FILENAME     \
+     -cdrom grub-img.iso             \
+     -boot order=c,once=d,menu=on    \
+     -net nic,netdev=net0            \
+     -netdev user,id=net0            \
+     -device ac97                    \
+     -vga std                        \
+     -serial mon:stdio               \
+     -name "fedora-16"
+```
+
+ Meaning of the command line options
+
+-enable-kvm: enable full KVM virtualization support. On some hardware, it may be necessary to add the undocumented -machine smm=off option in order to enable KVM.
+
+-smp <N>: enable symmetric multiprocessing with <N> CPUs.
+
+-cpu <model>: simulate CPU <model>. the list of supported models can be obtained with -cpu help.
+
+-drive file=<filename>: defines a virtual disk whose image is stored in <filename>.
+
+-cdrom grub-img.iso: defines an iso formated file to use as a cdrom. Here we use a grub rescue disk, which may turn handy when something goes wrong at boot time.
+
+-boot order=c,once=d,menu=on: defines the boot order for the virtual BIOS.
+
+-net nic,netdev=<netid>: defines a network card connected to the network device with id <netid>.
+
+-netdev user,id=<netid>: defines the network “user” device. This is a virtual local network with addresses 10.0.2.0/24, where the host has address 10.0.2.2 and acts as a gateway to internet, and with a name server at address 10.0.2.3, and an smb server at address 10.0.2.4. A builtin DHCP server can allocate addresses between 10.0.2.15 and 10.0.2.31.
+
+-soundhw <model>: defines the soundcard model. The list may be obtained with -soundhw help.
+
+-vga <type>: defines the type of vga card to emulate.
+
+-serial mon:stdio: sends the serial port of the guest (/dev/ttyS0 on linux guests), multiplexed with the qemu monitor, to the standard input and output of the qemu process.
+
+-name <name>: sets the name of the guest. This name is displayed in the guest window caption. It may be useful if you run several guests at the same time.
+
+---
+
+
+
+
+**elf2dmp**
+
+Converts files from elf to dmp format
+
+**qemu-edid**
+
+is a test tool for the qemu EDID generator
+
+**qemu-ga**
+
+implements support for QMP (QEMU Monitor Protocol) commands and events that terminate and originate respectively within the guest using an agent built as part of QEMU
+
+**qemu-img**
+
+provides commands to manage QEMU disk images
+
+**qemu-io**
+
+is a diagnostic and manipulation program for (virtual) memory media. It is still at an early stage of development
+
+**qemu-keymap**
+
+generates qemu reverse keymaps from xkb keymaps, which can be used with the qemu "-k" command line switch
+
+**qemu-nbd**
+
+exports Qemu disk images using the QEMU Disk Network Block Device (NBD) protocol
+
+**qemu-pr-helper**
+
+Implements the persistent reservation helper for QEMU
+
+**qemu-storage-daemon**
+
+allows to modify disk images using the QEMU Monitor Protocol (QMP) without running a VM
+
+**qemu-system-x86\_64**
+
+is the QEMU PC System emulator
