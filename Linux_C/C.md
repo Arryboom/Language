@@ -1127,3 +1127,25 @@ reference:
 http://man7.org/linux/man-pages/man3/fopen.3.html
 
 http://stackoverflow.com/questions/16208206/confused-by-python-file-mode-w
+
+
+
+
+#Is sprintf(buffer, "%s […]", buffer, […]) safe?
+>https://stackoverflow.com/questions/1283354/is-sprintfbuffer-s-buffer-safe
+
+
+
+If you want to concatenate formatted text to the end of a buffer using printf(), I'd recommend you use an integer to keep track of the end position.
+```
+int i = strlen(buffer);
+i += sprintf(&buffer[i], " <input type='file' name='%s' />\r\n", id);
+i += sprintf(&buffer[i], "</td>");
+```
+or:
+```
+int i = strlen(buffer);
+i += sprintf(&buffer[i], " <input type='file' name='%s' />\r\n", id);
+strcat(&buffer[i], "</td>");
+```
+And before people go berserk downvoting this ("This isn't safe! You can overrun the buffer!"), I'm just addressing a reasonable way to build a formatted string in C/C++.

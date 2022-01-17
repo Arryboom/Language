@@ -624,3 +624,133 @@ rsrc -ico YOUR_ICON_FILE_NAME.ico
 go build
 ```
 
+
+
+#Is it safe for more than one goroutine to print to stdout?
+>https://stackoverflow.com/questions/14694088/is-it-safe-for-more-than-one-goroutine-to-print-to-stdout
+
+
+
+No it's not safe even though you may not sometimes observe any troubles. IIRC, the fmt package tries to be on the safe side, so probably intermixing of some sort may occur but no process crash, hopefully.
+
+This is an instance of a more universal Go documentation rule: Things are not safe for concurrent access unless specified otherwise or where obvious from context.
+
+One can have a safe version of a nice subset of fmt.Print* functionality using the log package with some small initial setup.
+
+
+
+The common methods (fmt.printLine) are not safe. However, there are methods that are.
+```
+log.Logger is "goroutine safe": https://golang.org/pkg/log/#Logger
+```
+Something like this will create a stdout logger that can be used from any go routine safely.
+```
+logger := log.New(os.Stdout, "", 0)
+```
+
+
+
+
+
+
+#Go Printf-like functions
+
+
+
+Go has many Printf-like functions. To make life easier, I’ll simply refer to fmt.Sprintf() but most of the specifics will also apply to the other functions. The other Printf-like functions include fmt.Errorf(), fmt.Fprintf(), fmt.Fscanf(), fmt.Printf(), fmt.Scanf(), fmt.Sscanf(), and log.Printf().
+
+
+The format placeholders, such as `%s` or `%d`, are called _verbs_. There are lots of them for formatting many variable types and ways of precisely adjusting the formatting. Here, I’ll cover the top 5 that I consider to be the most useful.
+
+## %v
+
+This is my favorite verb because it allows me to be lazy. It takes pretty much any variable type and formats it in the default style for that type. Unfortunately, since it is not as precise about what it does, it’s used less in production code. However, it is great for early-stage development, experimenting, and debugging.
+
+An example of using `%v`:
+
+a := 5  
+b := "Hello"  
+c := falsefmt.Printf("%v %v %v", a, b, c) // prints: 5 Hello false
+
+## %s
+
+Simply a string. This verb doesn’t interpret the string that’s passed in and so it shows up as is.
+
+An example of using `%s`:
+
+a := "strömmar"  
+fmt.Printf("Don't cross the %s\\n", a)  
+// prints: Don't cross the strömmar
+
+## %q
+
+This verb formats values (i.e., arguments) with quotes. This is handy when you need quoted and quote-escaped values.
+
+An example of using `%q`:
+
+a := "Hello"  
+b := 5  
+c := "6"  
+d := \`"Hello"\`  
+fmt.Printf("%q %q %q %q", a, b, c, d)  
+// prints: "Hello" '\\x05' "6" "\\"Hello\\""
+
+## %d
+
+`%d` formats a regular old base-10 integer number.
+
+An example of using `%d`:
+
+a := 5  
+b := 4815162342  
+fmt.Printf("%d %d", a, b)  
+// prints: 5 4815162342
+
+## %t
+
+Presumably ‘t’ here stands for _true_ as `%t` formats a boolean value.
+
+An example of using `%t`:
+
+a := true  
+b := !a  
+fmt.Printf("%t %t", a, b)  
+// prints: true false
+
+For more details about all the options, see the [fmt documentation](https://golang.org/pkg/fmt/).
+
+
+>https://faun.pub/golangs-fmt-sprintf-and-printf-demystified-4adf6f9722a2
+
+
+
+
+#fmt.Sprintf("%x") may cause a stack overflow
+
+>https://groups.google.com/g/golang-dev/c/U5YPb9qMTbM
+
+```
+> Is there no cheap trick that would prevent this problem.
+
+go vet detect this and Go 1.10 runs go vet automatically.
+
+jnml@r550:/tmp> cat main.go 
+package main
+
+import "fmt"
+
+type T int
+
+func (t T) String() string {
+	return fmt.Sprintf("%x", t)
+}
+
+func main() {
+	t := T(0)
+	println(t.String())
+}
+jnml@r550:/tmp> go vet main.go 
+main.go:8: arg t for printf causes recursive call to String method
+exit status 1
+jnml@r550:/tmp> 
+```
